@@ -1,3 +1,5 @@
+CLEAR = clear
+WATCHER = entr
 LEX = flex
 YACC = bison
 
@@ -42,10 +44,10 @@ y.tab.h y.tab.c: sysY.y
 	$(YACC) -vdty sysY.y
 
 test-lex: $(TEST_DIR)/lexer
-	cd test && ./lexer
+	$(CLEAR) && cd test && ./lexer
 
 test-parser: $(TEST_DIR)/parser
-	cd test && ./parser
+	$(CLEAR) && cd test && ./parser
 
 submit.zip: y.tab.h y.tab.c lex.yy.c
 	$(ZIP) submit.zip $(wildcard *.c)
@@ -53,6 +55,9 @@ submit.zip: y.tab.h y.tab.c lex.yy.c
 clean:
 	$(RM) -f $(GEN_FILES) $(OBJ)
 
-.PHONY: clean test-lex text-parser lexer parser
+dev:
+	echo sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-parser
+
+.PHONY: clean test-lex text-parser lexer parser dev
 
 .DEFAULT_GOAL = test-parser
