@@ -51,7 +51,7 @@ submit.zip: y.tab.h y.tab.c lex.yy.c
 	$(ZIP) submit.zip $(wildcard *.c)
 
 clean:
-	$(RM) -f $(GEN_FILES)
+	$(RM) -f $(GEN_FILES) $(OBJ)
 
 .PHONY: clean test-lex text-parser lexer parser
 

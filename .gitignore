@@ -3,5 +3,5 @@ y.*
 *.yy.c
 *.o
 test/lexer
-text/parser
+test/parser
 test/*.exe
