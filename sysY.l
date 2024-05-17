@@ -27,42 +27,42 @@ COMMENT "//".*\n
 
 
 {COMMENT}       {}
-"main"          {printf("MAINTK %s\n", yytext);         }
-"const"         {printf("CONSTTK %s\n", yytext);        }
-"int"           {printf("INTTK %s\n", yytext);          return Int;}
-"break"         {printf("BREAKTK %s\n", yytext);        }
-"continue"      {printf("CONTINUETK %s\n", yytext);     }
-"if"            {printf("IFTK %s\n", yytext);           }
-"else"          {printf("ELSETK %s\n", yytext);         }
-"!"             {printf("NOT %s\n", yytext);            }
-"&&"            {printf("AND %s\n", yytext);            }
-"||"            {printf("OR %s\n", yytext);             }
-"while"         {printf("WHILETK %s\n", yytext);        }
-"getint"        {printf("GETINTTK %s\n", yytext);       }
-"printf"        {printf("PRINTFTK %s\n", yytext);       }
-"return"        {printf("RETURNTK %s\n", yytext);       }
-"+"             {printf("PLUS %s\n", yytext);           }
-"-"             {printf("MINU %s\n", yytext);           }
-"void"          {printf("VOIDTK %s\n", yytext);         }
-"*"             {printf("MULT %s\n", yytext);           }
-"/"             {printf("DIV %s\n", yytext);            }
-"%"             {printf("MOD %s\n", yytext);            }
-"<"             {printf("LSS %s\n", yytext);            }
-"<="            {printf("LEQ %s\n", yytext);            }
-">"             {printf("GRE %s\n", yytext);            }
-">="            {printf("GEQ %s\n", yytext);            }
-"=="            {printf("EQL %s\n", yytext);            }
-"!="            {printf("NEQ %s\n", yytext);            }
-"="             {printf("ASSIGN %s\n", yytext);         return Equal;}
-";"             {printf("SEMICN %s\n", yytext);         }
-","             {printf("COMMA %s\n", yytext);          }
-"("             {printf("LPARENT %s\n", yytext);        }
-")"             {printf("RPARENT %s\n", yytext);        }
-"["             {printf("LBRACK %s\n", yytext);         }
-"]"             {printf("RBRACK %s\n", yytext);         }
-"{"             {printf("LBRACE %s\n", yytext);         }
-"}"             {printf("RBRACE %s\n", yytext);         }
-{FormatString}  {printf("STRCON %s\n", yytext);         }
+"main"          {printf("MAINTK %s\n", yytext);         return Main;    }
+"const"         {printf("CONSTTK %s\n", yytext);        return Const;   }
+"int"           {printf("INTTK %s\n", yytext);          return Int;     }
+"break"         {printf("BREAKTK %s\n", yytext);        return Break;   }
+"continue"      {printf("CONTINUETK %s\n", yytext);     return Continue;}
+"if"            {printf("IFTK %s\n", yytext);           return If;      }
+"else"          {printf("ELSETK %s\n", yytext);         return Else;    }
+"!"             {printf("NOT %s\n", yytext);            return Not;     }
+"&&"            {printf("AND %s\n", yytext);            return And;     }
+"||"            {printf("OR %s\n", yytext);             return Or;      }
+"while"         {printf("WHILETK %s\n", yytext);        return While;   }
+"getint"        {printf("GETINTTK %s\n", yytext);       return GetInt;  }
+"printf"        {printf("PRINTFTK %s\n", yytext);       return Printf;  }
+"return"        {printf("RETURNTK %s\n", yytext);       return Return;  }
+"+"             {printf("PLUS %s\n", yytext);           return Plus;    }
+"-"             {printf("MINU %s\n", yytext);           return Minus;   }
+"void"          {printf("VOIDTK %s\n", yytext);         return Void;    }
+"*"             {printf("MULT %s\n", yytext);           return Mult;    }
+"/"             {printf("DIV %s\n", yytext);            return Div;     }
+"%"             {printf("MOD %s\n", yytext);            return Mod;     }
+"<"             {printf("LSS %s\n", yytext);            return Less;    }
+"<="            {printf("LEQ %s\n", yytext);            return LessEq;  }
+">"             {printf("GRE %s\n", yytext);            return Greater; }
+">="            {printf("GEQ %s\n", yytext);            return GreaterEq;}
+"=="            {printf("EQL %s\n", yytext);            return Equal;   }
+"!="            {printf("NEQ %s\n", yytext);            return NotEq;   }
+"="             {printf("ASSIGN %s\n", yytext);         return Assign;  }
+";"             {printf("SEMICN %s\n", yytext);         return SemiCon; }
+","             {printf("COMMA %s\n", yytext);          return Comma;   }
+"("             {printf("LPARENT %s\n", yytext);        return LeftParent;}
+")"             {printf("RPARENT %s\n", yytext);        return RightParent;}
+"["             {printf("LBRACK %s\n", yytext);         return LeftBrack;}
+"]"             {printf("RBRACK %s\n", yytext);         return RightBrack;}
+"{"             {printf("LBRACE %s\n", yytext);         return LeftBrace;}
+"}"             {printf("RBRACE %s\n", yytext);         return RightBrace;}
+{FormatString}  {printf("STRCON %s\n", yytext);         return StringConst;}
 {IntConst}      {printf("INTCON %s\n", yytext);         yylval = atoi(yytext); return IntegerConst;}
 {Identifier}    {printf("IDENFR %s\n", yytext);         return Identifier;}
 [ \f\n\r\t\v]   {}

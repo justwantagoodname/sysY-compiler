@@ -19,12 +19,16 @@ void yyerror(const char *s) {
 
     Int Void 
     
-    While Break If Else Continue Not And Or 
-
+    While Break 
+    
+    If Else Continue 
+    
     GetInt Printf 
     
     Return
-
+    
+    Not And Or 
+    
     Plus  Minus Mult  Div  Mod  
 
     Less  Greater  GreaterEq  LessEq  Equal  NotEq  
@@ -40,7 +44,12 @@ void yyerror(const char *s) {
     StringConst IntegerConst Identifier
 
 %%
-VariableDef:  Int Identifier Equal IntegerConst {printf("Defined %d", $4);}
+CompUnit: MainFuncDef {printf("<CompUnit>\n");};
+
+MainFuncDef: Int Main LeftParent RightParent Block {printf("<MainFuncDef>\n");};
+
+Block: LeftBrace RightBrace;
+
 %%
 
 int main(int argc, const char** argv) {
