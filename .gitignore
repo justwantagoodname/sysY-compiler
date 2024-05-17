@@ -1,6 +1,7 @@
 y.*
 *.zip
 *.yy.c
+*.o
 test/lexer
 text/parser
 test/*.exe

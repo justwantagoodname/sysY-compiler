@@ -1,36 +1,58 @@
 LEX = flex
 YACC = bison
+
 CC = gcc
+CFLAGS = 
+LDFLAGS = -ly
+
+UNAME := $(shell uname)
+
+ifeq ($(UNAME), Linux)
+    LDFLAGS += -lfl
+endif
+
+ifeq ($(UNAME), Darwin)
+    LDFLAGS += -ll
+endif
+
 ZIP = zip
 TEST_DIR=test
 
-objects = lex.yy.c $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* y.*
+GEN_FILES = lex.yy.c y.* $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.*
 
-lexer: lex.yy.c
-	$(CC) lex.yy.c -o $(TEST_DIR)/lexer
+SRC = lex.yy.c y.tab.c
+OBJ = $(SRC:.c=.o)
 
-parser:	lex.yy.c y.tab.h y.tab.c
-	$(CC) lex.yy.c y.tab.h y.tab.c -o $(TEST_DIR)/$@ -lfl -ly
+lexer: $(TEST_DIR)/lexer
+parser: $(TEST_DIR)/parser
 
+$(TEST_DIR)/lexer: lex.yy.o
+	$(CC) $^ -o $@ $(LDFLAGS)
 
-lex.yy.c: sysY.l
+$(TEST_DIR)/parser:	lex.yy.o y.tab.o
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+lex.yy.c: y.tab.h sysY.l
 	$(LEX) sysY.l
 
-clean:
-	$(RM) $(objects)
-
-test-lex: lexer
-	cd test && ./lexer
-
-test-parser: parser
-	cd test && ./parser
-
-y.tab.h y.tab.c y.output: sysY.y
+y.tab.h y.tab.c: sysY.y
 	$(YACC) -vdty sysY.y
 
-submit.zip: lex.yy.c
-	$(ZIP) submit.zip lex.yy.c
+test-lex: $(TEST_DIR)/lexer
+	cd test && ./lexer
 
-.PHONY: clean test
+test-parser: $(TEST_DIR)/parser
+	cd test && ./parser
+
+submit.zip: y.tab.h y.tab.c lex.yy.c
+	$(ZIP) submit.zip $(wildcard *.c)
+
+clean:
+	$(RM) -f $(GEN_FILES)
+
+.PHONY: clean test-lex text-parser lexer parser
 
 .DEFAULT_GOAL = test-parser

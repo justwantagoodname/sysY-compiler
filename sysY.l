@@ -1,10 +1,14 @@
 %{
 
+#if !defined(CC_LAB_LEXICAL)
 #include "y.tab.h"
+
 
 extern char *yytext, *filename;
 extern int yylval;
 void yyerror(const char*);
+
+#endif
 
 %}
 
@@ -49,7 +53,7 @@ COMMENT "//".*\n
 ">="            {printf("GEQ %s\n", yytext);            }
 "=="            {printf("EQL %s\n", yytext);            }
 "!="            {printf("NEQ %s\n", yytext);            }
-"="             {printf("ASSIGN %s\n", yytext);         return Eq;}
+"="             {printf("ASSIGN %s\n", yytext);         return Equal;}
 ";"             {printf("SEMICN %s\n", yytext);         }
 ","             {printf("COMMA %s\n", yytext);          }
 "("             {printf("LPARENT %s\n", yytext);        }
@@ -59,8 +63,8 @@ COMMENT "//".*\n
 "{"             {printf("LBRACE %s\n", yytext);         }
 "}"             {printf("RBRACE %s\n", yytext);         }
 {FormatString}  {printf("STRCON %s\n", yytext);         }
-{IntConst}      {printf("INTCON %s\n", yytext);         yylval = atoi(yytext); return IntConst;}
-{Identifier}    {printf("IDENFR %s\n", yytext);         return Indent;}
+{IntConst}      {printf("INTCON %s\n", yytext);         yylval = atoi(yytext); return IntegerConst;}
+{Identifier}    {printf("IDENFR %s\n", yytext);         return Identifier;}
 [ \f\n\r\t\v]   {}
 %%
 
