@@ -44,10 +44,10 @@ y.tab.h y.tab.c: sysY.y
 	$(YACC) -vdty sysY.y
 
 test-lex: $(TEST_DIR)/lexer
-	$(CLEAR) && cd test && ./lexer
+	$(CLEAR) && date && cd test && ./lexer
 
 test-parser: $(TEST_DIR)/parser
-	$(CLEAR) && cd test && ./parser
+	$(CLEAR) && date && cd test && ./parser
 
 submit.zip: y.tab.h y.tab.c lex.yy.c
 	$(ZIP) submit.zip $(wildcard *.c)

@@ -44,11 +44,11 @@ void yyerror(const char *s) {
     StringConst IntegerConst Identifier
 
 %%
-CompUnit: MainFuncDef {printf("<CompUnit>\n");};
+CompUnit: {Decl} {FuncDecl} MainFuncDef {printf("<CompUnit>\n");};
 
 MainFuncDef: Int Main LeftParent RightParent Block {printf("<MainFuncDef>\n");};
 
-Block: LeftBrace RightBrace;
+Block: LeftBrace RightBrace {printf("<Block>\n");};
 
 %%
 
