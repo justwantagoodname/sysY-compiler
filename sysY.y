@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define debug printf
 extern char *yytext;
 extern FILE *yyin;
 const char *filename = "testfile.txt";
@@ -44,17 +43,14 @@ void yyerror(const char *s);
 
 %%
 /* resolve confilcts wtf? */
-CompUnit: GlobalDecl GlobalFuncDef MainFuncDef {printf("<CompUnit>\n");}
-        | GlobalDecl MainFuncDef {printf("<CompUnit>\n");}
+CompUnit: GlobalDecl MainFuncDef {printf("<CompUnit>\n");}
         ;
 
 MainFuncDef: Int Main LeftParent RightParent Block {printf("<MainFuncDef>\n");};
 
-GlobalFuncDef: /* empty */
-             | GlobalFuncDef FuncDef {printf("<GlobalFuncDef>\n");};
-
 GlobalDecl: /* empty */ 
-          | GlobalDecl Decl {printf("<GlobalDecl>\n");}
+          | GlobalDecl Decl
+          | GlobalDecl FuncDef 
           ;
 
 Decl: VarDecl 
@@ -78,7 +74,7 @@ ConstInitValList: /* empty */
                 | ConstInitValList Comma ConstInitValue {printf("<ConstInitValList>\n");}
                 ;
 
-VarDecl: PrimaryType VarDef SemiCon {printf("<VarDecl>\n");};
+VarDecl: Int VarDef SemiCon {printf("<VarDecl>\n");};
 
 VarDef: /* empty */ 
       | Identifier {printf("<VarDef>\n");}
@@ -104,7 +100,9 @@ FuncType: Void {printf("<FuncType>\n");}
         | Int {printf("<FuncType>\n");}
         ;
 
-FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");};
+FuncDef: Int Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");}
+       | Void Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");} 
+       ;
 
 FuncFParams: /* empty */
            | FuncFParam {printf("<FuncFParams>\n");}
@@ -216,24 +214,34 @@ void yyerror(const char *s) {
 }
 
 int main(int argc, const char** argv) {
-    const char* output = "output.txt";
-    for (int i = 0;i < argc; i++) {
-        if (strcmp(argv[i], "-i") == 0) {
-            if (i + 1 >= argc) {
-              fprintf(stderr, "No input file specified\n");
-              return 1;
-            }
-            filename = argv[i+1];
-        }
-        if (strcmp(argv[i], "-o") == 0) {
-            if (i + 1 >= argc) {
-              fprintf(stderr, "No output file specified\n");
-              return 1;
-            }
-            output = argv[i+1];
-        }
-    }
-    if (strcmp(output, "-") != 0) freopen(output, "w", stdout);
-    yyin = fopen(filename, "r");
-    yyparse();
+  const char* output = "output.txt";
+  for (int i = 0;i < argc; i++) {
+      if (strcmp(argv[i], "-i") == 0) {
+          if (i + 1 >= argc) {
+            fprintf(stderr, "No input file specified\n");
+            return 1;
+          }
+          filename = argv[i+1];
+      }
+      if (strcmp(argv[i], "-o") == 0) {
+          if (i + 1 >= argc) {
+            fprintf(stderr, "No output file specified\n");
+            return 1;
+          }
+          output = argv[i+1];
+      }
+  }
+  if (strcmp(output, "-") != 0) freopen(output, "w", stdout);
+  yyin = fopen(filename, "r");
+
+#if 0
+  char c;
+  while ((c = fgetc(yyin)) != EOF) {
+      if (c == '\n') continue;
+      printf("%c", c);
+  }
+  printf("\n");
+  rewind(yyin);
+#endif
+  yyparse();
 }
