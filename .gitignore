@@ -5,3 +5,4 @@ y.*
 test/lexer
 test/parser
 test/*.exe
+test/output.*

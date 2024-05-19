@@ -47,10 +47,10 @@ test-lex: $(TEST_DIR)/lexer
 	$(CLEAR) && date && cd test && ./lexer
 
 test-parser: $(TEST_DIR)/parser
-	$(CLEAR) && date && cd test && ./parser
+	$(CLEAR) && date && cd test && ./parser -o -
 
-submit.zip: y.tab.h y.tab.c lex.yy.c
-	$(ZIP) submit.zip $(wildcard *.c)
+zip: y.tab.h y.tab.c lex.yy.c
+	$(ZIP) submit.zip $(wildcard *.c) $(wildcard *.h)
 
 clean:
 	$(RM) -f $(GEN_FILES) $(OBJ)
