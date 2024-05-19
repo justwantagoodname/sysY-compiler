@@ -127,9 +127,9 @@ PrimaryType: Int;
 Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
     | Exp SemiCon {printf("<Stmt>\n");}
     | Block {printf("<Stmt>\n");}
-    | If LeftParent Exp RightParent Stmt {printf("<Stmt>\n");}
-    | If LeftParent Exp RightParent Stmt Else Stmt {printf("<Stmt>\n");}
-    | While LeftParent Exp RightParent Stmt {printf("<Stmt>\n");}
+    | If LeftParent Cond RightParent Stmt {printf("<Stmt>\n");}
+    | If LeftParent Cond RightParent Stmt Else Stmt {printf("<Stmt>\n");}
+    | While LeftParent Cond RightParent Stmt {printf("<Stmt>\n");}
     | Return Exp SemiCon {printf("<Stmt>\n");}
     | Return SemiCon {printf("<Stmt>\n");}
     | PrintfStmt {printf("<Stmt>\n");}
