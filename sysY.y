@@ -42,9 +42,15 @@ void yyerror(const char *s);
     StringConst IntegerConst Identifier
 
 %%
-CompUnit: GlobalDecl MainFuncDef {printf("<CompUnit>\n");};
+/* resolve confilcts wtf? */
+CompUnit: GlobalDecl GlobalFuncDef MainFuncDef {printf("<CompUnit>\n");}
+        | GlobalDecl MainFuncDef {printf("<CompUnit>\n");}
+        ;
 
 MainFuncDef: Int Main LeftParent RightParent Block {printf("<MainFuncDef>\n");};
+
+GlobalFuncDef: /* empty */
+             | GlobalFuncDef FuncDef {printf("<GlobalFuncDef>\n");};
 
 GlobalDecl: /* empty */ 
           | GlobalDecl Decl {printf("<GlobalDecl>\n");}
@@ -96,6 +102,22 @@ InitValList: /* empty */
 Exp: IntegerConst;
 
 ConstExp: IntegerConst {printf("<ConstExp>\n");};
+
+FuncType: Void {printf("<FuncType>\n");}
+        | Int {printf("<FuncType>\n");}
+        ;
+
+FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");};
+
+FuncFParams: /* empty */
+           | FuncFParam {printf("<FuncFParams>\n");}
+           | FuncFParam Comma FuncFParams {printf("<FuncFParams>\n");}
+           ;
+
+FuncFParam: PrimaryType Identifier {printf("<FuncFParam>\n");}
+          | PrimaryType Identifier LeftBrack RightBrack {printf("<FuncFParam>\n");}
+          | PrimaryType Identifier LeftBrack RightBrack ArrayDecl {printf("<FuncFParam>\n");} 
+          ;
 
 Block: LeftBrace BlockItem RightBrace {printf("<Block>\n");};
 
