@@ -120,8 +120,37 @@ FuncFParam: PrimaryType Identifier {printf("<FuncFParam>\n");}
 
 Block: LeftBrace BlockItem RightBrace {printf("<Block>\n");};
 
+Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
+    | Exp SemiCon {printf("<Stmt>\n");}
+    | Block {printf("<Stmt>\n");}
+    | If LeftParent Exp RightParent Stmt {printf("<Stmt>\n");}
+    | If LeftParent Exp RightParent Stmt Else Stmt {printf("<Stmt>\n");}
+    | While LeftParent Exp RightParent Stmt {printf("<Stmt>\n");}
+    | Return Exp SemiCon {printf("<Stmt>\n");}
+    | Return SemiCon {printf("<Stmt>\n");}
+    | PrintfStmt {printf("<Stmt>\n");}
+    | LVal Assign GetInt LeftParent RightParent SemiCon {printf("<Stmt>\n");}
+    | Break SemiCon {printf("<Stmt>\n");}
+    | Continue SemiCon {printf("<Stmt>\n");}
+    ;
+
+PrintfStmt: Printf LeftParent StringConst PrintfArgs RightParent SemiCon {printf("<PrintfStmt>\n");}
+          ; 
+
+PrintfArgs: /* empty */
+          | Exp {printf("<PrintfArgs>\n");}
+          | Exp Comma PrintfArgs {printf("<PrintfArgs>\n");}
+          ;
+
+LVal: Identifier {printf("<LVal>\n");}
+    | Identifier LeftBrack Exp RightBrack {printf("<LVal>\n");}
+    ;
+
+Cond: Exp {printf("<Cond>\n");};
+
 BlockItem:  /* empty */
-         | BlockItem Decl {printf("<BlockItem>\n");}
+         | BlockItem Decl 
+         | BlockItem Stmt 
          ;
 
 PrimaryType: Int;
