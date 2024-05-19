@@ -115,7 +115,6 @@ FuncFParams: /* empty */
            ;
 
 FuncFParam: PrimaryType Identifier {printf("<FuncFParam>\n");}
-          | PrimaryType Identifier LeftBrack RightBrack {printf("<FuncFParam>\n");}
           | PrimaryType Identifier LeftBrack RightBrack ArrayDecl {printf("<FuncFParam>\n");} 
           ;
 
