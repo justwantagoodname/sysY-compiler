@@ -49,8 +49,10 @@ test-lex: $(TEST_DIR)/lexer
 test-parser: $(TEST_DIR)/parser
 	$(CLEAR) && date && cd test && ./parser -o -
 
-zip: y.tab.h y.tab.c lex.yy.c
+submit.zip: y.tab.h y.tab.c lex.yy.c
 	$(ZIP) submit.zip $(wildcard *.c) $(wildcard *.h)
+
+zip: submit.zip
 
 clean:
 	$(RM) -f $(GEN_FILES) $(OBJ)
@@ -58,6 +60,6 @@ clean:
 dev:
 	echo sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-parser
 
-.PHONY: clean test-lex text-parser lexer parser dev
+.PHONY: clean test-lex text-parser lexer parser dev zip
 
 .DEFAULT_GOAL = test-parser
