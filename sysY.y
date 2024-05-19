@@ -99,10 +99,6 @@ InitValList: /* empty */
            | InitValList Comma InitValue {printf("<InitValList>\n");}
            ;
 
-Exp: IntegerConst;
-
-ConstExp: IntegerConst {printf("<ConstExp>\n");};
-
 FuncType: Void {printf("<FuncType>\n");}
         | Int {printf("<FuncType>\n");}
         ;
@@ -120,6 +116,13 @@ FuncFParam: PrimaryType Identifier {printf("<FuncFParam>\n");}
 
 Block: LeftBrace BlockItem RightBrace {printf("<Block>\n");};
 
+BlockItem:  /* empty */
+         | BlockItem Decl 
+         | BlockItem Stmt 
+         ;
+
+PrimaryType: Int;
+
 Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
     | Exp SemiCon {printf("<Stmt>\n");}
     | Block {printf("<Stmt>\n");}
@@ -134,7 +137,7 @@ Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
     | Continue SemiCon {printf("<Stmt>\n");}
     ;
 
-PrintfStmt: Printf LeftParent StringConst PrintfArgs RightParent SemiCon {printf("<PrintfStmt>\n");}
+PrintfStmt: Printf LeftParent StringConst Comma PrintfArgs RightParent SemiCon {printf("<PrintfStmt>\n");}
           ; 
 
 PrintfArgs: /* empty */
@@ -146,14 +149,65 @@ LVal: Identifier {printf("<LVal>\n");}
     | Identifier LeftBrack Exp RightBrack {printf("<LVal>\n");}
     ;
 
-Cond: Exp {printf("<Cond>\n");};
+Exp: AddExp;
 
-BlockItem:  /* empty */
-         | BlockItem Decl 
-         | BlockItem Stmt 
-         ;
+AddExp: MulExp {printf("<AddExp>\n");}
+      | AddExp Plus MulExp {printf("<AddExp>\n");}
+      | AddExp Minus MulExp {printf("<AddExp>\n");}
+      ;
 
-PrimaryType: Int;
+MulExp: UnaryExp {printf("<MulExp>\n");}
+      | MulExp Mult UnaryExp {printf("<MulExp>\n");}
+      | MulExp Div UnaryExp {printf("<MulExp>\n");}
+      | MulExp Mod UnaryExp {printf("<MulExp>\n");}
+      ;
+
+UnaryExp: PrimaryExp {printf("<UnaryExp>\n");}
+        | Identifier LeftParent FuncRParams RightParent {printf("<UnaryExp>\n");}
+        | UnaryOp UnaryExp {printf("<UnaryExp>\n");}
+        ; 
+
+UnaryOp: Plus {printf("<UnaryOp>\n");}
+       | Minus {printf("<UnaryOp>\n");}
+       | Not {printf("<UnaryOp>\n");}
+       ;
+
+FuncRParams: /* empty */
+           | Exp {printf("<FuncRParams>\n");}
+           | Exp Comma FuncRParams {printf("<FuncRParams>\n");}
+           ;
+
+PrimaryExp: LVal {printf("<PrimaryExp>\n");}
+          | Number {printf("<PrimaryExp>\n");}
+          | LeftParent Exp RightParent {printf("<PrimaryExp>\n");}
+          ;
+
+Number: IntegerConst {printf("<Number>\n");};
+
+Cond: LOrExp {printf("<Cond>\n");};
+
+LOrExp: LAndExp {printf("<LOrExp>\n");}
+      | LOrExp Or LAndExp {printf("<LOrExp>\n");}
+      ;
+
+LAndExp: EqExp {printf("<LAndExp>\n");}
+       | LAndExp And EqExp {printf("<LAndExp>\n");}
+       ;
+
+EqExp: RelExp {printf("<EqExp>\n");}
+     | EqExp Equal RelExp {printf("<EqExp>\n");}
+     | EqExp NotEq RelExp {printf("<EqExp>\n");}
+     ;
+
+RelExp: AddExp {printf("<RelExp>\n");}
+      | RelExp Less AddExp {printf("<RelExp>\n");}
+      | RelExp Greater AddExp {printf("<RelExp>\n");}
+      | RelExp LessEq AddExp {printf("<RelExp>\n");}
+      | RelExp GreaterEq AddExp {printf("<RelExp>\n");}
+      ;
+
+ConstExp: AddExp {printf("<ConstExp>\n");}
+        ;
 %%
 
 void yyerror(const char *s) {
