@@ -8,9 +8,7 @@ extern FILE *yyin;
 const char *filename = "testfile.txt";
 int yylex(void);
 
-void yyerror(const char *s) {
-  fprintf (stderr, "%s\n", s);
-}
+void yyerror(const char *s);
 
 %}
 
@@ -44,13 +42,73 @@ void yyerror(const char *s) {
     StringConst IntegerConst Identifier
 
 %%
-CompUnit: {Decl} {FuncDecl} MainFuncDef {printf("<CompUnit>\n");};
+CompUnit: GlobalDecl MainFuncDef {printf("<CompUnit>\n");};
 
 MainFuncDef: Int Main LeftParent RightParent Block {printf("<MainFuncDef>\n");};
 
-Block: LeftBrace RightBrace {printf("<Block>\n");};
+GlobalDecl: /* empty */ 
+          | GlobalDecl Decl {printf("<GlobalDecl>\n");}
+          ;
 
+Decl: VarDecl 
+    | ConstDecl 
+    ;
+
+ConstDecl: Const PrimaryType ConstDef SemiCon {printf("<ConstDecl>\n");};
+
+ConstDef: /* empty */ 
+        | Identifier Assign ConstInitValue {printf("<ConstDef>\n");}
+        | Identifier ArrayDecl Assign ConstInitValue {printf("<ConstDef>\n");}
+        | ConstDef Comma ConstDef
+        ;
+
+ConstInitValue: ConstExp {printf("<ConstInitVal>\n");};
+              | LeftBrace ConstInitValList RightBrace {printf("<ConstInitVal>\n");}
+              ;
+
+ConstInitValList: /* empty */
+                | ConstInitValue {printf("<ConstInitValList>\n");}
+                | ConstInitValList Comma ConstInitValue {printf("<ConstInitValList>\n");}
+                ;
+
+VarDecl: PrimaryType VarDef SemiCon {printf("<VarDecl>\n");};
+
+VarDef: /* empty */ 
+      | Identifier {printf("<VarDef>\n");}
+      | Identifier Assign InitValue {printf("<VarDef>\n");}
+      | Identifier ArrayDecl {printf("<VarDef>\n");}
+      | Identifier ArrayDecl Assign InitValue {printf("<VarDef>\n");}
+      | VarDef Comma VarDef
+      ;
+
+ArrayDecl: /* empty */ 
+         | LeftBrack ConstExp RightBrack ArrayDecl
+         ;
+
+InitValue: Exp {printf("<InitVal>\n");};
+         | LeftBrace InitValList RightBrace {printf("<InitVal>\n");};
+
+InitValList: /* empty */
+           | InitValue {printf("<InitValList>\n");}
+           | InitValList Comma InitValue {printf("<InitValList>\n");}
+           ;
+
+Exp: IntegerConst;
+
+ConstExp: IntegerConst {printf("<ConstExp>\n");};
+
+Block: LeftBrace BlockItem RightBrace {printf("<Block>\n");};
+
+BlockItem:  /* empty */
+         | BlockItem Decl {printf("<BlockItem>\n");}
+         ;
+
+PrimaryType: Int;
 %%
+
+void yyerror(const char *s) {
+  fprintf (stderr, "%s\n", s);
+}
 
 int main(int argc, const char** argv) {
     for (int i = 0;i < argc; i++) {
