@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define debug printf
 extern char *yytext;
 extern FILE *yyin;
 const char *filename = "testfile.txt";
@@ -215,6 +216,7 @@ void yyerror(const char *s) {
 }
 
 int main(int argc, const char** argv) {
+    const char* output = "output.txt";
     for (int i = 0;i < argc; i++) {
         if (strcmp(argv[i], "-i") == 0) {
             if (i + 1 >= argc) {
@@ -228,10 +230,10 @@ int main(int argc, const char** argv) {
               fprintf(stderr, "No output file specified\n");
               return 1;
             }
-            freopen(argv[i+1], "w", stdout);
+            output = argv[i+1];
         }
     }
-
+    if (strcmp(output, "-") != 0) freopen(output, "w", stdout);
     yyin = fopen(filename, "r");
     yyparse();
 }
