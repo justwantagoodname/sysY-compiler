@@ -55,7 +55,7 @@ submit.zip: y.tab.h y.tab.c lex.yy.c
 zip: submit.zip
 
 clean:
-	$(RM) -f $(GEN_FILES) $(OBJ)
+	$(RM) -f $(GEN_FILES) $(OBJ) submit.zip
 
 dev:
 	echo sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-parser
