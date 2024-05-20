@@ -1,11 +1,7 @@
-int sum(int x, int y) {
-    return x + y;
-}
+int a;
 
-void f() {
+int f();
 
-}
+int b;
 
-int main() {
-
-}
+int g();

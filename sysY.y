@@ -5,7 +5,6 @@
 
 extern char *yytext;
 extern FILE *yyin;
-const char *filename = "testfile.txt";
 int yylex(void);
 
 void yyerror(const char *s);
@@ -41,172 +40,25 @@ void yyerror(const char *s);
 
     StringConst IntegerConst Identifier
 
+/* see https://www.gnu.org/software/bison/manual/html_node/Simple-GLR-Parsers.html */
+%glr-parser
+
+%expect-rr 1
+
 %%
-/* resolve confilcts wtf? */
-CompUnit: GlobalDecl MainFuncDef {printf("<CompUnit>\n");}
-        ;
 
-MainFuncDef: Int Main LeftParent RightParent Block {printf("<MainFuncDef>\n");};
+Decl: /* empty */ | FunDecl Decl | VarDecl Decl;
 
-GlobalDecl: /* empty */ 
-          | GlobalDecl Decl
-          | GlobalDecl FuncDef 
-          ;
+VarDecl: VarType Identifier SemiCon {printf("<VarDecl>\n");};
 
-Decl: VarDecl 
-    | ConstDecl 
-    ;
+FunDecl: FuncType Identifier LeftParent RightParent SemiCon {printf("<FunDecl>\n");};
 
-ConstDecl: Const PrimaryType ConstDef SemiCon {printf("<ConstDecl>\n");};
+VarType: BType;
 
-ConstDef: /* empty */ 
-        | Identifier Assign ConstInitValue {printf("<ConstDef>\n");}
-        | Identifier ArrayDecl Assign ConstInitValue {printf("<ConstDef>\n");}
-        | ConstDef Comma ConstDef
-        ;
+BType: Int;
 
-ConstInitValue: ConstExp {printf("<ConstInitVal>\n");};
-              | LeftBrace ConstInitValList RightBrace {printf("<ConstInitVal>\n");}
-              ;
+FuncType: Void | BType {printf("<FuncType>\n");};
 
-ConstInitValList: /* empty */
-                | ConstInitValue {printf("<ConstInitValList>\n");}
-                | ConstInitValList Comma ConstInitValue {printf("<ConstInitValList>\n");}
-                ;
-
-VarDecl: Int VarDef SemiCon {printf("<VarDecl>\n");};
-
-VarDef: /* empty */ 
-      | Identifier {printf("<VarDef>\n");}
-      | Identifier Assign InitValue {printf("<VarDef>\n");}
-      | Identifier ArrayDecl {printf("<VarDef>\n");}
-      | Identifier ArrayDecl Assign InitValue {printf("<VarDef>\n");}
-      | VarDef Comma VarDef
-      ;
-
-ArrayDecl: /* empty */ 
-         | LeftBrack ConstExp RightBrack ArrayDecl
-         ;
-
-InitValue: Exp {printf("<InitVal>\n");};
-         | LeftBrace InitValList RightBrace {printf("<InitVal>\n");};
-
-InitValList: /* empty */
-           | InitValue {printf("<InitValList>\n");}
-           | InitValList Comma InitValue {printf("<InitValList>\n");}
-           ;
-
-FuncType: Void {printf("<FuncType>\n");}
-        | Int {printf("<FuncType>\n");}
-        ;
-
-FuncDef: Int Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");}
-       | Void Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");} 
-       ;
-
-FuncFParams: /* empty */
-           | FuncFParam {printf("<FuncFParams>\n");}
-           | FuncFParam Comma FuncFParams {printf("<FuncFParams>\n");}
-           ;
-
-FuncFParam: PrimaryType Identifier {printf("<FuncFParam>\n");}
-          | PrimaryType Identifier LeftBrack RightBrack ArrayDecl {printf("<FuncFParam>\n");} 
-          ;
-
-Block: LeftBrace BlockItem RightBrace {printf("<Block>\n");};
-
-BlockItem:  /* empty */
-         | BlockItem Decl 
-         | BlockItem Stmt 
-         ;
-
-PrimaryType: Int;
-
-Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
-    | Exp SemiCon {printf("<Stmt>\n");}
-    | Block {printf("<Stmt>\n");}
-    | If LeftParent Cond RightParent Stmt {printf("<Stmt>\n");}
-    | If LeftParent Cond RightParent Stmt Else Stmt {printf("<Stmt>\n");}
-    | While LeftParent Cond RightParent Stmt {printf("<Stmt>\n");}
-    | Return Exp SemiCon {printf("<Stmt>\n");}
-    | Return SemiCon {printf("<Stmt>\n");}
-    | PrintfStmt {printf("<Stmt>\n");}
-    | LVal Assign GetInt LeftParent RightParent SemiCon {printf("<Stmt>\n");}
-    | Break SemiCon {printf("<Stmt>\n");}
-    | Continue SemiCon {printf("<Stmt>\n");}
-    ;
-
-PrintfStmt: Printf LeftParent StringConst Comma PrintfArgs RightParent SemiCon {printf("<PrintfStmt>\n");}
-          ; 
-
-PrintfArgs: /* empty */
-          | Exp {printf("<PrintfArgs>\n");}
-          | Exp Comma PrintfArgs {printf("<PrintfArgs>\n");}
-          ;
-
-LVal: Identifier {printf("<LVal>\n");}
-    | Identifier LeftBrack Exp RightBrack {printf("<LVal>\n");}
-    ;
-
-Exp: AddExp;
-
-AddExp: MulExp {printf("<AddExp>\n");}
-      | AddExp Plus MulExp {printf("<AddExp>\n");}
-      | AddExp Minus MulExp {printf("<AddExp>\n");}
-      ;
-
-MulExp: UnaryExp {printf("<MulExp>\n");}
-      | MulExp Mult UnaryExp {printf("<MulExp>\n");}
-      | MulExp Div UnaryExp {printf("<MulExp>\n");}
-      | MulExp Mod UnaryExp {printf("<MulExp>\n");}
-      ;
-
-UnaryExp: PrimaryExp {printf("<UnaryExp>\n");}
-        | Identifier LeftParent FuncRParams RightParent {printf("<UnaryExp>\n");}
-        | UnaryOp UnaryExp {printf("<UnaryExp>\n");}
-        ; 
-
-UnaryOp: Plus {printf("<UnaryOp>\n");}
-       | Minus {printf("<UnaryOp>\n");}
-       | Not {printf("<UnaryOp>\n");}
-       ;
-
-FuncRParams: /* empty */
-           | Exp {printf("<FuncRParams>\n");}
-           | Exp Comma FuncRParams {printf("<FuncRParams>\n");}
-           ;
-
-PrimaryExp: LVal {printf("<PrimaryExp>\n");}
-          | Number {printf("<PrimaryExp>\n");}
-          | LeftParent Exp RightParent {printf("<PrimaryExp>\n");}
-          ;
-
-Number: IntegerConst {printf("<Number>\n");};
-
-Cond: LOrExp {printf("<Cond>\n");};
-
-LOrExp: LAndExp {printf("<LOrExp>\n");}
-      | LOrExp Or LAndExp {printf("<LOrExp>\n");}
-      ;
-
-LAndExp: EqExp {printf("<LAndExp>\n");}
-       | LAndExp And EqExp {printf("<LAndExp>\n");}
-       ;
-
-EqExp: RelExp {printf("<EqExp>\n");}
-     | EqExp Equal RelExp {printf("<EqExp>\n");}
-     | EqExp NotEq RelExp {printf("<EqExp>\n");}
-     ;
-
-RelExp: AddExp {printf("<RelExp>\n");}
-      | RelExp Less AddExp {printf("<RelExp>\n");}
-      | RelExp Greater AddExp {printf("<RelExp>\n");}
-      | RelExp LessEq AddExp {printf("<RelExp>\n");}
-      | RelExp GreaterEq AddExp {printf("<RelExp>\n");}
-      ;
-
-ConstExp: AddExp {printf("<ConstExp>\n");}
-        ;
 %%
 
 void yyerror(const char *s) {
@@ -221,7 +73,6 @@ int main(int argc, const char** argv) {
             fprintf(stderr, "No input file specified\n");
             return 1;
           }
-          filename = argv[i+1];
       }
       if (strcmp(argv[i], "-o") == 0) {
           if (i + 1 >= argc) {
@@ -232,7 +83,7 @@ int main(int argc, const char** argv) {
       }
   }
   if (strcmp(output, "-") != 0) freopen(output, "w", stdout);
-  yyin = fopen(filename, "r");
+  yyin = fopen("testfile.txt", "r");
 
 #if 0
   char c;

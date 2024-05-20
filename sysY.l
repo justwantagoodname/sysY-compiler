@@ -4,7 +4,7 @@
 #include "y.tab.h"
 
 
-extern char *yytext, *filename;
+extern char *yytext;
 extern int yylval;
 void yyerror(const char*);
 
