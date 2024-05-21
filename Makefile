@@ -41,7 +41,7 @@ lex.yy.c: y.tab.h sysY.l
 	$(LEX) sysY.l
 
 y.tab.h y.tab.c: sysY.y
-	$(YACC) -vdty sysY.y
+	$(YACC) -vdt -b y sysY.y
 
 test-lex: $(TEST_DIR)/lexer
 	$(CLEAR) && date && cd test && ./lexer
