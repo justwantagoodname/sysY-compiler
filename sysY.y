@@ -145,6 +145,8 @@ Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
     | Continue SemiCon {printf("<Stmt>\n");}
     ;
 
+/* attach else to cloest if stmt */
+/* see https://www.gnu.org/software/bison/manual/html_node/Merging-GLR-Parses.html */
 IfStmt: If LeftParent Cond RightParent Stmt {printf("<IFStmt>\n");} %dprec 2
       | If LeftParent Cond RightParent Stmt Else Stmt {printf("<IFStmtElse>\n");} %dprec 1
       ;
