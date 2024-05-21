@@ -5,7 +5,7 @@ YACC = bison
 
 CC = gcc
 CFLAGS = 
-LDFLAGS = -ly
+LDFLAGS = 
 
 UNAME := $(shell uname)
 
@@ -14,7 +14,7 @@ ifeq ($(UNAME), Linux)
 endif
 
 ifeq ($(UNAME), Darwin)
-    LDFLAGS += -ll
+    LDFLAGS += -ll -ly
 endif
 
 ZIP = zip
