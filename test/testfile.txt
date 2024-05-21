@@ -1,4 +1,5 @@
+void merge(int arr[], int start, int mid, int end) {}
+
 int main() {
-    printf("%d %d %d\n", i, j, k);
-    return c;
+    printf("%d %d %d", a, b, c);
 }

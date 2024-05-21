@@ -122,6 +122,7 @@ FuncFParamList:  FuncFParam
               ;
 
 FuncFParam: PrimaryType Identifier {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");}
+          |  PrimaryType Identifier LeftBrack RightBrack {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
           | PrimaryType Identifier LeftBrack RightBrack ArrayDecl {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
           ;
 
