@@ -1,7 +1,10 @@
 %{
+
 #include "sysY.h"
 
 %}
+
+%locations
 
 %glr-parser
 
