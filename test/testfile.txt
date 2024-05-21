@@ -1,5 +1,5 @@
-void merge(int arr[], int start, int mid, int end) {}
-
+// void merge(int arr[], int start, int mid, int end) {}
+int a[3] = {1, 2, 3};
 int main() {
-    printf("%d %d %d", a, b, c);
+//    printf("%d %d %d", a, b, c);
 }

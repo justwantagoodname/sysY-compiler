@@ -102,8 +102,8 @@ InitValue: Exp {print_tokens(@$.last_line, @$.last_column); printf("<InitVal>\n"
          ;
 
 InitValList: /* empty */
-           | InitValue {print_tokens(@$.last_line, @$.last_column); printf("<InitValList>\n");}
-           | InitValList Comma InitValue {print_tokens(@$.last_line, @$.last_column); printf("<InitValList>\n");}
+           | InitValue /* {print_tokens(@$.last_line, @$.last_column); printf("<InitValList>\n");} */
+           | InitValList Comma InitValue /* {print_tokens(@$.last_line, @$.last_column); printf("<InitValList>\n");} */
            ;
 
 FuncType: Void {print_tokens(@$.last_line, @$.last_column); printf("<FuncType>\n");}
