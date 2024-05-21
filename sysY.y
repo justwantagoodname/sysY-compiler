@@ -49,7 +49,8 @@ void yyerror(const char *s);
 CompUnit: GlobalDecl GlobalFuncDef MainFuncDef {printf("<CompUnit>\n");}
         ;
 
-MainFuncDef: Int Main LeftParent RightParent Block {printf("<MainFuncDef>\n");};
+MainFuncDef: Int Main LeftParent RightParent Block {printf("<MainFuncDef>\n");}
+           ;
 
 GlobalDecl: /* empty */ 
           | GlobalDecl Decl
@@ -63,27 +64,28 @@ Decl: VarDecl
     | ConstDecl 
     ;
 
-ConstDecl: Const PrimaryType ConstDefList SemiCon {printf("<ConstDecl>\n");};
+ConstDecl: Const PrimaryType ConstDefList SemiCon {printf("<ConstDecl>\n");}
+         ;
 
 ConstDefList: ConstDef
             | ConstDefList Comma ConstDef
             ;
 
-ConstDef: /* empty */ 
-        | Identifier Assign ConstInitValue {printf("<ConstDef>\n");}
+ConstDef: Identifier Assign ConstInitValue {printf("<ConstDef>\n");}
         | Identifier ArrayDecl Assign ConstInitValue {printf("<ConstDef>\n");}
         ;
 
-ConstInitValue: ConstExp {printf("<ConstInitVal>\n");};
+ConstInitValue: ConstExp {printf("<ConstInitVal>\n");}
               | LeftBrace ConstInitValList RightBrace {printf("<ConstInitVal>\n");}
               ;
 
 ConstInitValList: /* empty */
-                | ConstInitValue {printf("<ConstInitValList>\n");}
-                | ConstInitValList Comma ConstInitValue {printf("<ConstInitValList>\n");}
+                | ConstInitValue /* {printf("<ConstInitValList>\n");} */
+                | ConstInitValList Comma ConstInitValue /* {printf("<ConstInitValList>\n");} */
                 ;
 
-VarDecl: PrimaryType VarDefList SemiCon {printf("<VarDecl>\n");};
+VarDecl: PrimaryType VarDefList SemiCon {printf("<VarDecl>\n");}
+       ;
 
 VarDefList: VarDef
           | VarDefList Comma VarDef
@@ -100,7 +102,8 @@ ArrayDecl: LeftBrack ConstExp RightBrack
          ;
 
 InitValue: Exp {printf("<InitVal>\n");};
-         | LeftBrace InitValList RightBrace {printf("<InitVal>\n");};
+         | LeftBrace InitValList RightBrace {printf("<InitVal>\n");}
+         ;
 
 InitValList: /* empty */
            | InitValue {printf("<InitValList>\n");}
@@ -111,12 +114,16 @@ FuncType: Void {printf("<FuncType>\n");}
         | Int {printf("<FuncType>\n");}
         ;
 
-FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");} ;
+FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");} 
+       ;
 
-FuncFParams: /* empty */
-           | FuncFParam {printf("<FuncFParams>\n");}
-           | FuncFParam Comma FuncFParams {printf("<FuncFParams>\n");}
+FuncFParams: /* empty */ 
+           | FuncFParamList {printf("<FuncFParams>\n");}
            ;
+
+FuncFParamList:  FuncFParam 
+              | FuncFParam Comma FuncFParamList
+              ;
 
 FuncFParam: PrimaryType Identifier {printf("<FuncFParam>\n");}
           | PrimaryType Identifier LeftBrack RightBrack ArrayDecl {printf("<FuncFParam>\n");} 
@@ -147,11 +154,11 @@ Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
 
 /* attach else to cloest if stmt */
 /* see https://www.gnu.org/software/bison/manual/html_node/Merging-GLR-Parses.html */
-IfStmt: If LeftParent Cond RightParent Stmt {printf("<IFStmt>\n");} %dprec 2
-      | If LeftParent Cond RightParent Stmt Else Stmt {printf("<IFStmtElse>\n");} %dprec 1
+IfStmt: If LeftParent Cond RightParent Stmt /* {printf("<IFStmt>\n");} */ %dprec 2
+      | If LeftParent Cond RightParent Stmt Else Stmt /* {printf("<IFStmtElse>\n");} */ %dprec 1
       ;
 
-PrintfStmt: Printf LeftParent PrintfArgs RightParent SemiCon {printf("<PrintfStmt>\n");}
+PrintfStmt: Printf LeftParent PrintfArgs RightParent SemiCon /* {printf("<PrintfStmt>\n");} */
           ; 
 
 PrintfArgs: StringConst
@@ -161,15 +168,23 @@ PrintfArgs: StringConst
 PrintfVarArg: Comma Exp
             ;
 
-PrintfVarArgs: PrintfVarArg {printf("<PrintfVarArgs>\n");}
-             | PrintfVarArg Comma PrintfVarArgs {printf("<PrintfVarArgs>\n");}
+PrintfVarArgs: PrintfVarArg /* {printf("<PrintfVarArgs>\n");} */
+             | PrintfVarArg Comma PrintfVarArgs /* {printf("<PrintfVarArgs>\n");} */
              ;
 
 LVal: Identifier {printf("<LVal>\n");}
-    | Identifier LeftBrack Exp RightBrack {printf("<LVal>\n");}
+    | Identifier ArrayLocatorList {printf("<LVal>\n");}
     ;
 
-Exp: AddExp;
+ArrayLocator: LeftBrack Exp RightBrack
+            ;
+
+ArrayLocatorList: ArrayLocator
+                | ArrayLocator ArrayLocatorList
+                ;
+
+Exp: AddExp {printf("<Exp>\n");}
+   ;
 
 AddExp: MulExp {printf("<AddExp>\n");}
       | AddExp Plus MulExp {printf("<AddExp>\n");}
@@ -192,10 +207,13 @@ UnaryOp: Plus {printf("<UnaryOp>\n");}
        | Not {printf("<UnaryOp>\n");}
        ;
 
-FuncRParams: /* empty */
-           | Exp {printf("<FuncRParams>\n");}
-           | Exp Comma FuncRParams {printf("<FuncRParams>\n");}
+FuncRParams: /* empty */ 
+           | FuncRParamList {printf("<FuncRParams>\n");}
            ;
+
+FuncRParamList: Exp 
+              | Exp Comma FuncRParamList 
+              ;
 
 PrimaryExp: LVal {printf("<PrimaryExp>\n");}
           | Number {printf("<PrimaryExp>\n");}
