@@ -3,6 +3,7 @@
 #if !defined(CC_LAB_LEXICAL)
 #include "y.tab.h"
 
+// #define printf(...) (0)
 
 extern char *yytext;
 extern int yylval;
@@ -12,7 +13,7 @@ void yyerror(const char*);
 
 %}
 
-IntConst [1-9][0-9]+|0
+IntConst [1-9][0-9]*|0
 Identifier [a-zA-Z_][a-zA-Z0-9_]*
 FormatString \".*\"
 Comment "//".*\n
@@ -32,7 +33,7 @@ Whitespaces [ \f\n\r\t\v]
     /* keywords */
 "main"          {printf("MAINTK %s\n", yytext);         return Main;    }
 "const"         {printf("CONSTTK %s\n", yytext);        return Const;   }
-"int"           {printf("INTTK %s\n", yytext);          return Int;     }
+"int"           {yylval = 114514; printf("INTTK %s\n", yytext);          return Int;     }
 "break"         {printf("BREAKTK %s\n", yytext);        return Break;   }
 "continue"      {printf("CONTINUETK %s\n", yytext);     return Continue;}
 "if"            {printf("IFTK %s\n", yytext);           return If;      }
