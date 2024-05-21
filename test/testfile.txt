@@ -1,11 +1,17 @@
-int sum(int x, int y) {
-    return x + y;
-}
+// const int a = 1, b = 2;
+int a, b;
 
-void f() {
-
-}
+int f() {}
 
 int main() {
-
+/*    if (1) {
+        if (2) {
+            3;
+        }
+    } else {
+        4;
+    }
+*/
+//    if (1) 1; else 2;
+    if (1) if (2) ; ;
 }

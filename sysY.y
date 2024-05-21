@@ -5,12 +5,13 @@
 
 extern char *yytext;
 extern FILE *yyin;
-const char *filename = "testfile.txt";
 int yylex(void);
 
 void yyerror(const char *s);
 
 %}
+
+%glr-parser
 
 %token 
     Main Const 
@@ -43,26 +44,32 @@ void yyerror(const char *s);
 
 %%
 /* resolve confilcts wtf? */
-CompUnit: GlobalDecl MainFuncDef {printf("<CompUnit>\n");}
+CompUnit: GlobalDecl GlobalFuncDef MainFuncDef {printf("<CompUnit>\n");}
         ;
 
 MainFuncDef: Int Main LeftParent RightParent Block {printf("<MainFuncDef>\n");};
 
 GlobalDecl: /* empty */ 
           | GlobalDecl Decl
-          | GlobalDecl FuncDef 
           ;
+
+GlobalFuncDef: /* empty */
+             | GlobalFuncDef FuncDef
+             ;
 
 Decl: VarDecl 
     | ConstDecl 
     ;
 
-ConstDecl: Const PrimaryType ConstDef SemiCon {printf("<ConstDecl>\n");};
+ConstDecl: Const PrimaryType ConstDefList SemiCon {printf("<ConstDecl>\n");};
+
+ConstDefList: ConstDef
+            | ConstDefList Comma ConstDef
+            ;
 
 ConstDef: /* empty */ 
         | Identifier Assign ConstInitValue {printf("<ConstDef>\n");}
         | Identifier ArrayDecl Assign ConstInitValue {printf("<ConstDef>\n");}
-        | ConstDef Comma ConstDef
         ;
 
 ConstInitValue: ConstExp {printf("<ConstInitVal>\n");};
@@ -74,17 +81,19 @@ ConstInitValList: /* empty */
                 | ConstInitValList Comma ConstInitValue {printf("<ConstInitValList>\n");}
                 ;
 
-VarDecl: Int VarDef SemiCon {printf("<VarDecl>\n");};
+VarDecl: PrimaryType VarDefList SemiCon {printf("<VarDecl>\n");};
 
-VarDef: /* empty */ 
-      | Identifier {printf("<VarDef>\n");}
+VarDefList: VarDef
+          | VarDefList Comma VarDef
+          ;
+
+VarDef: Identifier {printf("<VarDef>\n");}
       | Identifier Assign InitValue {printf("<VarDef>\n");}
       | Identifier ArrayDecl {printf("<VarDef>\n");}
       | Identifier ArrayDecl Assign InitValue {printf("<VarDef>\n");}
-      | VarDef Comma VarDef
       ;
 
-ArrayDecl: /* empty */ 
+ArrayDecl: LeftBrack ConstExp RightBrack 
          | LeftBrack ConstExp RightBrack ArrayDecl
          ;
 
@@ -100,9 +109,7 @@ FuncType: Void {printf("<FuncType>\n");}
         | Int {printf("<FuncType>\n");}
         ;
 
-FuncDef: Int Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");}
-       | Void Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");} 
-       ;
+FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block {printf("<FuncDef>\n");} ;
 
 FuncFParams: /* empty */
            | FuncFParam {printf("<FuncFParams>\n");}
@@ -123,10 +130,10 @@ BlockItem:  /* empty */
 PrimaryType: Int;
 
 Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
+    | SemiCon {printf("<Stmt>\n");}
     | Exp SemiCon {printf("<Stmt>\n");}
     | Block {printf("<Stmt>\n");}
-    | If LeftParent Cond RightParent Stmt {printf("<Stmt>\n");}
-    | If LeftParent Cond RightParent Stmt Else Stmt {printf("<Stmt>\n");}
+    | IfStmt {printf("<Stmt>\n");}
     | While LeftParent Cond RightParent Stmt {printf("<Stmt>\n");}
     | Return Exp SemiCon {printf("<Stmt>\n");}
     | Return SemiCon {printf("<Stmt>\n");}
@@ -136,13 +143,23 @@ Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
     | Continue SemiCon {printf("<Stmt>\n");}
     ;
 
-PrintfStmt: Printf LeftParent StringConst Comma PrintfArgs RightParent SemiCon {printf("<PrintfStmt>\n");}
+IfStmt: If LeftParent Cond RightParent Stmt {printf("<IFStmt>\n");}
+      /* | If LeftParent Cond RightParent Stmt Else Stmt {printf("<IFStmtElse>\n");} */
+      ;
+
+PrintfStmt: Printf LeftParent PrintfArgs RightParent SemiCon {printf("<PrintfStmt>\n");}
           ; 
 
-PrintfArgs: /* empty */
-          | Exp {printf("<PrintfArgs>\n");}
-          | Exp Comma PrintfArgs {printf("<PrintfArgs>\n");}
+PrintfArgs: StringConst
+          | StringConst PrintfVarArgs
           ;
+
+PrintfVarArg: Comma Exp
+            ;
+
+PrintfVarArgs: PrintfVarArg {printf("<PrintfVarArgs>\n");}
+             | PrintfVarArg Comma PrintfVarArgs {printf("<PrintfVarArgs>\n");}
+             ;
 
 LVal: Identifier {printf("<LVal>\n");}
     | Identifier LeftBrack Exp RightBrack {printf("<LVal>\n");}
@@ -214,6 +231,7 @@ void yyerror(const char *s) {
 }
 
 int main(int argc, const char** argv) {
+  const char *filename = "testfile.txt";
   const char* output = "output.txt";
   for (int i = 0;i < argc; i++) {
       if (strcmp(argv[i], "-i") == 0) {
