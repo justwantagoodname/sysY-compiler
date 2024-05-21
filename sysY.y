@@ -41,7 +41,6 @@
     StringConst IntegerConst Identifier
 
 %%
-/* resolve confilcts wtf? */
 CompUnit: GlobalDecl GlobalFuncDef MainFuncDef {print_tokens(@$.last_line, @$.last_column); printf("<CompUnit>\n");}
         ;
 
