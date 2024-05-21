@@ -1,7 +1,4 @@
 // const int a = 1, b = 2;
-int a, b;
-
-int f() {}
 
 int main() {
 /*    if (1) {
@@ -13,5 +10,6 @@ int main() {
     }
 */
 //    if (1) 1; else 2;
-    if (1) if (2) 3; else 4;
+    0; // not allow
+    // if (1) if (2) 3; else 4;
 }

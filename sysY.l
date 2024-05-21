@@ -12,21 +12,24 @@ void yyerror(const char*);
 
 %}
 
-IntConst [0-9]+
+IntConst [1-9][0-9]+|0
 Identifier [a-zA-Z_][a-zA-Z0-9_]*
 FormatString \".*\"
-COMMENT "//".*\n
+Comment "//".*\n
+Whitespaces [ \f\n\r\t\v]
 
 %x MULTI_COMMENT
 
 %%
+    /* comments */
 "/\*"           BEGIN(MULTI_COMMENT);
 <MULTI_COMMENT>"*/"    BEGIN(INITIAL);
 <MULTI_COMMENT>[ \f\n\r\t\v]      {}
 <MULTI_COMMENT>.   {}
 
+{Comment}       {}
 
-{COMMENT}       {}
+    /* keywords */
 "main"          {printf("MAINTK %s\n", yytext);         return Main;    }
 "const"         {printf("CONSTTK %s\n", yytext);        return Const;   }
 "int"           {printf("INTTK %s\n", yytext);          return Int;     }
@@ -62,10 +65,16 @@ COMMENT "//".*\n
 "]"             {printf("RBRACK %s\n", yytext);         return RightBrack;}
 "{"             {printf("LBRACE %s\n", yytext);         return LeftBrace;}
 "}"             {printf("RBRACE %s\n", yytext);         return RightBrace;}
+
+    /* constants and identifiers */
 {FormatString}  {printf("STRCON %s\n", yytext);         return StringConst;}
 {IntConst}      {printf("INTCON %s\n", yytext);         yylval = atoi(yytext); return IntegerConst;}
 {Identifier}    {printf("IDENFR %s\n", yytext);         return Identifier;}
-[ \f\n\r\t\v]   {}
+
+    /* Whitespaces and error */
+{Whitespaces}   {}
+
+.               {printf("Unknown character %s\n", yytext); yyerror("Unknown character");}
 %%
 
 int yywrap() {
