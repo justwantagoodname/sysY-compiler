@@ -165,7 +165,7 @@ PrintfVarArg: Comma Exp
             ;
 
 PrintfVarArgs: PrintfVarArg /* {printf("<PrintfVarArgs>\n");} */
-             | PrintfVarArg Comma PrintfVarArgs /* {printf("<PrintfVarArgs>\n");} */
+             | PrintfVarArg PrintfVarArgs /* {printf("<PrintfVarArgs>\n");} */
              ;
 
 LVal: Identifier {print_tokens(@$.last_line, @$.last_column); printf("<LVal>\n");}
