@@ -13,6 +13,8 @@ void yyerror(const char *s);
 
 %glr-parser
 
+%expect 2
+
 %token 
     Main Const 
 
@@ -143,8 +145,8 @@ Stmt: LVal Assign Exp SemiCon {printf("<Stmt>\n");}
     | Continue SemiCon {printf("<Stmt>\n");}
     ;
 
-IfStmt: If LeftParent Cond RightParent Stmt {printf("<IFStmt>\n");}
-      /* | If LeftParent Cond RightParent Stmt Else Stmt {printf("<IFStmtElse>\n");} */
+IfStmt: If LeftParent Cond RightParent Stmt {printf("<IFStmt>\n");} %dprec 2
+      | If LeftParent Cond RightParent Stmt Else Stmt {printf("<IFStmtElse>\n");} %dprec 1
       ;
 
 PrintfStmt: Printf LeftParent PrintfArgs RightParent SemiCon {printf("<PrintfStmt>\n");}
