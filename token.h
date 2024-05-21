@@ -1,47 +1,19 @@
 #pragma once
 
-enum Token {
-    Main = 0, Const, Int, Void,
-    
-    While, Break, 
-    
-    If, Else, Continue,
+#ifndef TOKEN_H
+#define TOKEN_H
 
-    Not, And, Or, 
+#include <stddef.h>
 
-    GetInt, Printf,
+struct TokenInfo {
+    const char *name;
+    const char *literal;
+    size_t line, col;
 
-    Return,
-
-    Plus, Minus, Mult, Div, Mod, 
-
-    Less, Greater, GreaterEq, LessEq, Equal, NotEq, 
-
-    Assign, SemiCon, Comma,
-    
-    LeftParent, RightParent,
-
-    LeftBrack, RightBrack,
-
-    LeftBrace, RightBrace,
-
-    String, Integer, Identifier,
-
-    _TokenCount
+    struct TokenInfo *next, *prev;    
 };
 
-struct CString {
-    char* literal;
-    size_t len;
-};
+void push_token(const char *name, const char *literal);
+void print_tokens(int line, int col);
 
-
-struct ASTNode
-{
-    enum Token type;
-    struct CString literal;
-    union NodeData
-    {
-        
-    } data;
-};
+#endif

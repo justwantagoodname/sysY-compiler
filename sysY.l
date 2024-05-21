@@ -41,46 +41,46 @@ Whitespaces [ \f\n\r\t\v]
 {Comment}       {}
 
     /* keywords */
-"main"          {printf("MAINTK %s\n", yytext);         return Main;    }
-"const"         {printf("CONSTTK %s\n", yytext);        return Const;   }
-"int"           {yylval = 114514; printf("INTTK %s\n", yytext);          return Int;     }
-"break"         {printf("BREAKTK %s\n", yytext);        return Break;   }
-"continue"      {printf("CONTINUETK %s\n", yytext);     return Continue;}
-"if"            {printf("IFTK %s\n", yytext);           return If;      }
-"else"          {printf("ELSETK %s\n", yytext);         return Else;    }
-"!"             {printf("NOT %s\n", yytext);            return Not;     }
-"&&"            {printf("AND %s\n", yytext);            return And;     }
-"||"            {printf("OR %s\n", yytext);             return Or;      }
-"while"         {printf("WHILETK %s\n", yytext);        return While;   }
-"getint"        {printf("GETINTTK %s\n", yytext);       return GetInt;  }
-"printf"        {printf("PRINTFTK %s\n", yytext);       return Printf;  }
-"return"        {printf("RETURNTK %s\n", yytext);       return Return;  }
-"+"             {printf("PLUS %s\n", yytext);           return Plus;    }
-"-"             {printf("MINU %s\n", yytext);           return Minus;   }
-"void"          {printf("VOIDTK %s\n", yytext);         return Void;    }
-"*"             {printf("MULT %s\n", yytext);           return Mult;    }
-"/"             {printf("DIV %s\n", yytext);            return Div;     }
-"%"             {printf("MOD %s\n", yytext);            return Mod;     }
-"<"             {printf("LSS %s\n", yytext);            return Less;    }
-"<="            {printf("LEQ %s\n", yytext);            return LessEq;  }
-">"             {printf("GRE %s\n", yytext);            return Greater; }
-">="            {printf("GEQ %s\n", yytext);            return GreaterEq;}
-"=="            {printf("EQL %s\n", yytext);            return Equal;   }
-"!="            {printf("NEQ %s\n", yytext);            return NotEq;   }
-"="             {printf("ASSIGN %s\n", yytext);         return Assign;  }
-";"             {printf("SEMICN %s\n", yytext);         return SemiCon; }
-","             {printf("COMMA %s\n", yytext);          return Comma;   }
-"("             {printf("LPARENT %s\n", yytext);        return LeftParent;}
-")"             {printf("RPARENT %s\n", yytext);        return RightParent;}
-"["             {printf("LBRACK %s\n", yytext);         return LeftBrack;}
-"]"             {printf("RBRACK %s\n", yytext);         return RightBrack;}
-"{"             {printf("LBRACE %s\n", yytext);         return LeftBrace;}
-"}"             {printf("RBRACE %s\n", yytext);         return RightBrace;}
+"main"          {push_token("MAINTK", yytext);         return Main;    }
+"const"         {push_token("CONSTTK", yytext);        return Const;   }
+"int"           {push_token("INTTK", yytext);          return Int;     }
+"break"         {push_token("BREAKTK", yytext);        return Break;   }
+"continue"      {push_token("CONTINUETK", yytext);     return Continue;}
+"if"            {push_token("IFTK", yytext);           return If;      }
+"else"          {push_token("ELSETK", yytext);         return Else;    }
+"!"             {push_token("NOT", yytext);            return Not;     }
+"&&"            {push_token("AND", yytext);            return And;     }
+"||"            {push_token("OR", yytext);             return Or;      }
+"while"         {push_token("WHILETK", yytext);        return While;   }
+"getint"        {push_token("GETINTTK", yytext);       return GetInt;  }
+"printf"        {push_token("PRINTFTK", yytext);       return Printf;  }
+"return"        {push_token("RETURNTK", yytext);       return Return;  }
+"+"             {push_token("PLUS", yytext);           return Plus;    }
+"-"             {push_token("MINU", yytext);           return Minus;   }
+"void"          {push_token("VOIDTK", yytext);         return Void;    }
+"*"             {push_token("MULT", yytext);           return Mult;    }
+"/"             {push_token("DIV", yytext);            return Div;     }
+"%"             {push_token("MOD", yytext);            return Mod;     }
+"<"             {push_token("LSS", yytext);            return Less;    }
+"<="            {push_token("LEQ", yytext);            return LessEq;  }
+">"             {push_token("GRE", yytext);            return Greater; }
+">="            {push_token("GEQ", yytext);            return GreaterEq;}
+"=="            {push_token("EQL", yytext);            return Equal;   }
+"!="            {push_token("NEQ", yytext);            return NotEq;   }
+"="             {push_token("ASSIGN", yytext);         return Assign;  }
+";"             {push_token("SEMICN", yytext);         return SemiCon; }
+","             {push_token("COMMA", yytext);          return Comma;   }
+"("             {push_token("LPARENT", yytext);        return LeftParent;}
+")"             {push_token("RPARENT", yytext);        return RightParent;}
+"["             {push_token("LBRACK", yytext);         return LeftBrack;}
+"]"             {push_token("RBRACK", yytext);         return RightBrack;}
+"{"             {push_token("LBRACE", yytext);         return LeftBrace;}
+"}"             {push_token("RBRACE", yytext);         return RightBrace;}
 
     /* constants and identifiers */
-{FormatString}  {printf("STRCON %s\n", yytext);         return StringConst;}
-{IntConst}      {printf("INTCON %s\n", yytext);         yylval = atoi(yytext); return IntegerConst;}
-{Identifier}    {printf("IDENFR %s\n", yytext);         return Identifier;}
+{FormatString}  {push_token("STRCON", yytext);         return StringConst;}
+{IntConst}      {push_token("INTCON", yytext);         yylval = atoi(yytext); return IntegerConst;}
+{Identifier}    {push_token("IDENFR", yytext);         return Identifier;}
 
     /* Whitespaces and error */
 {Whitespaces}   {}

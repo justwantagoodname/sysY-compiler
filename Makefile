@@ -31,7 +31,7 @@ parser: $(TEST_DIR)/parser
 $(TEST_DIR)/lexer: lex.yy.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
-$(TEST_DIR)/parser:	lex.yy.o y.tab.o
+$(TEST_DIR)/parser:	lex.yy.o y.tab.o token.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 %.o: %.c
@@ -50,7 +50,7 @@ test-parser: $(TEST_DIR)/parser
 	$(CLEAR) && date && cd test && ./parser -o -
 
 submit.zip: y.tab.h y.tab.c lex.yy.c
-	$(ZIP) submit.zip $(wildcard *.c) $(wildcard *.h)
+	$(ZIP) submit.zip -r $(wildcard *.c) $(wildcard *.h) lib
 
 zip: submit.zip
 
@@ -58,7 +58,7 @@ clean:
 	$(RM) -f $(GEN_FILES) $(OBJ) submit.zip
 
 dev:
-	echo sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-parser
+	echo *.c *.h sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-parser
 
 .PHONY: clean test-lex text-parser lexer parser dev zip
 
