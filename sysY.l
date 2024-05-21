@@ -1,15 +1,9 @@
 %{
 
-#if !defined(CC_LAB_LEXICAL)
+#include "sysY.h"
 #include "y.tab.h"
 
 // #define printf(...) (0)
-
-extern char *yytext;
-extern int yylval;
-void yyerror(const char*);
-
-#endif
 
 %}
 

@@ -1,13 +1,5 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-extern char *yytext;
-extern FILE *yyin;
-int yylex(void);
-
-void yyerror(const char *s);
+#include "sysY.h"
 
 %}
 
