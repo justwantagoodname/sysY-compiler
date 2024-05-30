@@ -34,7 +34,7 @@ struct ValueSymbol {
 typedef struct ValueSymbol ValueSymbol;
 
 struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void *constValue);
-void ValueSymbol_print(struct ValueSymbol *vSymbol);
+void ValueSymbol_print(struct ValueSymbol *vSymbol, int depth);
 
 struct Scope {
     char* id; // Scope name

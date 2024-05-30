@@ -6,6 +6,8 @@
 #include "lib/utlist.h"
 #include "sym.h"
 
+#define INDENT do { for (int i = 0; i < depth; i++) putchar('\t'); } while (0);
+
 struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void *constValue) {
     assert(id != NULL);
 
@@ -27,9 +29,9 @@ struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void
     return vSymbol;
 }
 
-void ValueSymbol_print(struct ValueSymbol *self) {
+void ValueSymbol_print(struct ValueSymbol *self, int depth) {
     assert(self != NULL);
-
+    INDENT;
     // print xml
     if (self->type == CONST_INT) {
         printf("<%s type=\"const_int\" value=\"%d\" />\n", self->id, self->constVal.intVal);
@@ -65,12 +67,10 @@ void Scope_addValueSymbol(struct Scope *scope, struct ValueSymbol *vSymbol) {
 void Scope_print_impl(struct Scope *scope, int depth) {
     assert(scope != NULL && depth >= 0);
 
-#define INDENT do { for (int i = 0; i < depth; i++) putchar('\t'); } while (0);
-
-    INDENT printf("<scope id=\"%s\">\n", scope->id);
+    INDENT printf("<Scope id=\"%s\">\n", scope->id);
     struct ValueSymbol *cur = NULL, *tmp = NULL;
     LL_FOREACH(scope->vSymbols, cur) {
-        ValueSymbol_print(cur);
+        ValueSymbol_print(cur, depth + 1);
     }
 
     if (scope->children) {
@@ -80,9 +80,7 @@ void Scope_print_impl(struct Scope *scope, int depth) {
             Scope_print_impl(cur, depth + 1);
         }
     }
-    INDENT printf("</scope>\n");
-
-#undef INDENT
+    INDENT printf("</Scope>\n");
 }
 
 void Scope_print(struct Scope *scope) {
