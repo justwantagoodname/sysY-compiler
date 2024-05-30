@@ -2,7 +2,14 @@
 
 #include "sysY.h"
 #include "token.h"
+#include "sym.h"
+#include "ast.h"
+#include "action.h"
+#include "lib/uthash.h"
 
+int count;
+
+void yyerror(struct ASTNode **cur, const char *s);
 %}
 
 %locations
@@ -11,7 +18,18 @@
 
 %expect 2
 
-%token 
+%start CompUnit
+
+%union {
+  int intValue;
+  const char* strValue;
+  const char* tokenValue;
+  struct ASTNode *astNode;
+  struct ValueSymbol *valueSymbol;
+  enum ValueType valueType;
+}
+
+%token
     Main Const 
 
     Int Void 
@@ -38,24 +56,40 @@
 
     LeftBrace RightBrace
 
-    StringConst IntegerConst Identifier
+
+%token <intValue> IntegerConst
+
+%token <strValue> StringConst Identifier
+
+%type <intValue> Number
+
+%type <astNode> CompUnit GlobalFuncDef MainFuncDef
+
+%type <valueSymbol> VarDecl VarDefList VarDef Decl GlobalDecl
+
+%type <valueType> PrimaryType
+
+%parse-param {struct ASTNode **root}
 
 %%
-CompUnit: GlobalDecl GlobalFuncDef MainFuncDef {print_tokens(@$.last_line, @$.last_column); printf("<CompUnit>\n");}
+CompUnit: GlobalDecl GlobalFuncDef MainFuncDef { Scope *global = Scope_create(NULL, "Global"); 
+                                                 global->vSymbols = $1;
+                                                 *root = $$ = ASTNode_create("CompUnit", global);
+                                                 printf("<CompUnit>\n"); }
         ;
 
 MainFuncDef: Int Main LeftParent RightParent Block {print_tokens(@$.last_line, @$.last_column); printf("<MainFuncDef>\n");}
            ;
 
-GlobalDecl: /* empty */ 
-          | GlobalDecl Decl
+GlobalDecl: /* empty */ { $$ = NULL; }
+          | GlobalDecl Decl { $$ = appendVSList($1, $2); }
           ;
 
 GlobalFuncDef: /* empty */
              | GlobalFuncDef FuncDef
              ;
 
-Decl: VarDecl 
+Decl: VarDecl { $$ = $1; }
     | ConstDecl 
     ;
 
@@ -79,17 +113,18 @@ ConstInitValList: /* empty */
                 | ConstInitValList Comma ConstInitValue /* {printf("<ConstInitValList>\n");} */
                 ;
 
-VarDecl: PrimaryType VarDefList SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<VarDecl>\n");}
+VarDecl: PrimaryType VarDefList SemiCon { modifyVSType($2, $1); $$ = $2; print_tokens(@$.last_line, @$.last_column); printf("<VarDecl>\n");}
        ;
 
-VarDefList: VarDef
-          | VarDefList Comma VarDef
+VarDefList: VarDef { $$ = addVSArray(NULL, $1); }
+          | VarDefList Comma VarDef { $$ = addVSArray($1, $3);}
           ;
 
-VarDef: Identifier {print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
-      | Identifier Assign InitValue {print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
-      | Identifier ArrayDecl {print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
-      | Identifier ArrayDecl Assign InitValue {print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
+VarDef: Identifier { $$ = ValueSymbol_create($1, ANY, NULL);
+                     print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n"); }
+      | Identifier Assign InitValue { $$ = ValueSymbol_create($1, ANY, NULL); print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
+      | Identifier ArrayDecl { $$ = ValueSymbol_create($1, ANY, NULL); print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
+      | Identifier ArrayDecl Assign InitValue { $$ = ValueSymbol_create($1, ANY, NULL); print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
       ;
 
 ArrayDecl: LeftBrack ConstExp RightBrack 
@@ -132,7 +167,8 @@ BlockItem:  /* empty */
          | BlockItem Stmt 
          ;
 
-PrimaryType: Int;
+PrimaryType: Int { $$ = INT; }
+           ;
 
 Stmt: LVal Assign Exp SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
@@ -216,7 +252,7 @@ PrimaryExp: LVal {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryEx
           | LeftParent Exp RightParent {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
           ;
 
-Number: IntegerConst {print_tokens(@$.last_line, @$.last_column); printf("<Number>\n");};
+Number: IntegerConst { $$ = $1; print_tokens(@$.last_line, @$.last_column); printf("<Number>\n");};
 
 Cond: LOrExp {print_tokens(@$.last_line, @$.last_column); printf("<Cond>\n");};
 
@@ -244,7 +280,7 @@ ConstExp: AddExp {print_tokens(@$.last_line, @$.last_column); printf("<ConstExp>
         ;
 %%
 
-void yyerror(const char *s) {
+void yyerror(struct ASTNode **cur, const char *s) {
   fprintf (stderr, "%s\n", s);
 }
 
@@ -279,5 +315,10 @@ int main(int argc, const char** argv) {
   printf("\n");
   rewind(yyin);
 #endif
-  yyparse();
+  struct ASTNode *root = NULL;
+  int result = yyparse(&root);
+  if (result == 0) {
+    printf("====AST Info====\n");
+    ASTNode_print(root);
+  }
 }

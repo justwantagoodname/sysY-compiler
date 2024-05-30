@@ -9,6 +9,7 @@ extern YYLTYPE yylloc;
 struct TokenInfo *head;
 
 void push_token(const char *name, const char* literal) {
+    return;
     struct TokenInfo *token = (struct TokenInfo *)malloc(sizeof(struct TokenInfo));
     token->name = name;
     token->literal = strdup(literal);

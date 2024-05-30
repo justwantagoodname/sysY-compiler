@@ -3,7 +3,6 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CC = gcc
 CFLAGS = 
 LDFLAGS = 
 
@@ -22,7 +21,7 @@ TEST_DIR=test
 
 GEN_FILES = lex.yy.c y.* $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.*
 
-SRC = lex.yy.c y.tab.c token.c
+SRC = lex.yy.c y.tab.c token.c sym.c ast.c action.c
 OBJ = $(SRC:.c=.o)
 
 lexer: $(TEST_DIR)/lexer
@@ -31,7 +30,7 @@ parser: $(TEST_DIR)/parser
 $(TEST_DIR)/lexer: lex.yy.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
-$(TEST_DIR)/parser:	lex.yy.o y.tab.o token.o
+$(TEST_DIR)/parser:	$(OBJ)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 %.o: %.c

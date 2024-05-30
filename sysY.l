@@ -4,7 +4,7 @@
 #include "y.tab.h"
 #include "token.h"
 
-#define printf(...) (0)
+
 
 #define YY_USER_ACTION \
     do { \
@@ -78,14 +78,14 @@ Whitespaces [ \f\n\r\t\v]
 "}"             {push_token("RBRACE", yytext);         return RightBrace;}
 
     /* constants and identifiers */
-{FormatString}  {push_token("STRCON", yytext);         return StringConst;}
-{IntConst}      {push_token("INTCON", yytext);         yylval = atoi(yytext); return IntegerConst;}
-{Identifier}    {push_token("IDENFR", yytext);         return Identifier;}
+{FormatString}  {push_token("STRCON", yytext);         yylval.strValue = strdup(yytext);    return StringConst;}
+{IntConst}      {push_token("INTCON", yytext);         yylval.intValue = atoi(yytext);      return IntegerConst;}
+{Identifier}    {push_token("IDENFR", yytext);         yylval.tokenValue = strdup(yytext);  return Identifier;}
 
     /* Whitespaces and error */
 {Whitespaces}   {}
 
-.               {printf("Unknown character %s\n", yytext); yyerror("Unknown character");}
+.               {printf("Unknown character %s\n", yytext); yyerror(NULL, "Unknown character");}
 %%
 
 int yywrap() {
