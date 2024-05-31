@@ -6,17 +6,36 @@
 #include "lib/uthash.h"
 #include <stdbool.h>
 
+enum FuncType {
+    ANY_FUNC = 0,
+    INT_FUNC,
+    VOID_FUNC,
+    _FuncType_Count
+};
+typedef enum FuncType FuncType;
 
 struct FunctionSymbol
 {
-    /* data */
+    const char *id;
+    FuncType type;
+    struct ValueSymbol *params;
+    struct ASTNode *body;
+
+    struct FunctionSymbol *next, *prev;
+    UT_hash_handle hh;
 };
+typedef struct FunctionSymbol FunctionSymbol;
+
+FunctionSymbol *FunctionSymbol_create(const char *id, FuncType type, struct ValueSymbol *params, struct ASTNode *body);
+void FunctionSymbol_print(FunctionSymbol *fSymbol);
 
 enum ValueType {
         ANY = 0, // For undetermined type 
         INT,
         CONST_INT,
+        _ValueType_Count
 };
+typedef enum ValueType ValueType;
 
 struct ValueSymbol {
     const char* id; // identifier literal name
@@ -24,17 +43,16 @@ struct ValueSymbol {
 
     union {
         int intVal;
-        struct ASTNode *initExp;
     } constVal; // store initial value or constant value
     bool hasInitVal; // whether has initial value
 
     UT_hash_handle hh;
-    struct ValueSymbol *next;
+    struct ValueSymbol *next, *prev;
 };
 typedef struct ValueSymbol ValueSymbol;
 
 struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void *constValue);
-void ValueSymbol_print(struct ValueSymbol *vSymbol, int depth);
+void ValueSymbol_print(struct ValueSymbol *vSymbol);
 
 struct Scope {
     char* id; // Scope name

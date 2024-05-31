@@ -1,5 +1,8 @@
-int a, b, c, d;
+int a;
+int f(int a, int b, int c) {
+    1 + 1;
+}
 
 int main() {
-    (1 + 1) * (2 + 2);
+    
 }

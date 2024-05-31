@@ -26,7 +26,9 @@ void yyerror(struct ASTNode **cur, const char *s);
   const char* tokenValue;
   struct ASTNode *astNode;
   struct ValueSymbol *valueSymbol;
-  enum ValueType valueType;
+  struct FunctionSymbol *funcSymbol;
+  ValueType valueType;
+  FuncType funcType;
 }
 
 %token
@@ -37,8 +39,6 @@ void yyerror(struct ASTNode **cur, const char *s);
     While Break 
     
     If Else Continue 
-    
-    GetInt Printf 
     
     Return
     
@@ -63,16 +63,19 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %type <intValue> Number
 
-%type <astNode> CompUnit GlobalFuncDef MainFuncDef Block BlockItem Stmt LVal 
+%type <astNode> CompUnit MainFuncDef Block BlockItem Stmt LVal 
                 Exp UnaryExp PrimaryExp ExpWrapper
-                FuncRParams FuncRParamList
-                IfStmt Cond
+                IfStmt Cond FuncRParams FuncRParamList
 
 %type <strValue> UnaryOp
 
-%type <valueSymbol> VarDecl VarDefList VarDef Decl GlobalDecl
+%type <valueSymbol> VarDecl VarDefList VarDef Decl GlobalDecl FuncFParams FuncFParamList FuncFParam
 
-%type <valueType> PrimaryType
+%type <funcSymbol> GlobalFuncDef FuncDef
+
+%type <valueType> PrimaryType 
+
+%type <funcType> FuncType
 
 %left Or
 %left And
@@ -86,6 +89,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 %%
 CompUnit: GlobalDecl GlobalFuncDef MainFuncDef { Scope *global = Scope_create(NULL, "Global"); 
                                                  global->vSymbols = $1;
+                                                 global->fSymbols = $2;
                                                  *root = $$ = ASTNode_create("CompUnit", global);
                                                  ASTNode_add_child($$, $3);
                                                 }
@@ -99,8 +103,8 @@ GlobalDecl: /* empty */ { $$ = NULL; }
           | GlobalDecl Decl { $$ = appendVSList($1, $2); }
           ;
 
-GlobalFuncDef: /* empty */
-             | GlobalFuncDef FuncDef
+GlobalFuncDef: /* empty */ { $$ = NULL; }
+             | GlobalFuncDef FuncDef { $$ = addFSArray($1, $2);  }
              ;
 
 Decl: VarDecl { $$ = $1; }
@@ -153,22 +157,22 @@ InitValList: /* empty */
            | InitValList Comma InitValue /* {print_tokens(@$.last_line, @$.last_column); printf("<InitValList>\n");} */
            ;
 
-FuncType: Void {print_tokens(@$.last_line, @$.last_column); printf("<FuncType>\n");}
-        | Int {print_tokens(@$.last_line, @$.last_column); printf("<FuncType>\n");}
+FuncType: Void { $$ = VOID_FUNC; }
+        | Int  { $$ = INT_FUNC; }
         ;
 
-FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block {print_tokens(@$.last_line, @$.last_column); printf("<FuncDef>\n");} 
+FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block { $$ = FunctionSymbol_create($2, $1, $4, $6); } 
        ;
 
-FuncFParams: /* empty */ 
-           | FuncFParamList {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParams>\n");}
+FuncFParams: /* empty */    { $$ = NULL; }
+           | FuncFParamList { $$ = $1; }
            ;
 
-FuncFParamList:  FuncFParam 
-              | FuncFParam Comma FuncFParamList
+FuncFParamList: FuncFParam { $$ = addVSArray(NULL, $1); }
+              | FuncFParamList Comma FuncFParam { $$ = addVSArray($1, $3);}
               ;
 
-FuncFParam: PrimaryType Identifier {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");}
+FuncFParam: PrimaryType Identifier { $$ = ValueSymbol_create($2, $1, NULL); }
           | PrimaryType Identifier LeftBrack RightBrack {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
           | PrimaryType Identifier LeftBrack RightBrack ArrayDecl {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
           ;
@@ -241,13 +245,13 @@ PrimaryExp: LVal { $$ = ASTNode_create("Fetch", NULL); ASTNode_add_child($$, $1)
           | LeftParent Exp RightParent { $$ = $2; }
           ;
 
-UnaryOp: Plus   { $$ = "UnPlus";   }
+UnaryOp: Plus   { $$ = "UnPlus";  }
        | Minus  { $$ = "UnMinus"; }
        | Not    { $$ = "Not";     }
        ;
 
-FuncRParams: /* empty */ { $$ = NULL; }
-           | FuncRParamList { $$ = $1; }
+FuncRParams: /* empty */    { $$ = NULL;}
+           | FuncRParamList { $$ = $1;  }
            ;
 
 FuncRParamList: ExpWrapper { $$ = NULL; ASTNode* param = ASTNode_create("Param", NULL); ASTNode_add_child(param, $1); $$ = addASTList($$, param); }
@@ -261,7 +265,7 @@ FuncRParamList: ExpWrapper { $$ = NULL; ASTNode* param = ASTNode_create("Param",
               | FuncRParamList Comma ExpWrapper { $$ = $1; ASTNode* param = ASTNode_create("Param", NULL); ASTNode_add_child(param, $3); addASTList($$, param); }
               ;
 
-Number: IntegerConst { $$ = $1; }
+Number: IntegerConst
       ;
 
 Cond: ExpWrapper
@@ -311,5 +315,7 @@ int main(int argc, const char** argv) {
   if (result == 0) {
     printf("====AST Info====\n");
     ASTNode_print(root);
+    printf("====Symbol Table Info====\n");
+    Scope_print(root->scope);
   }
 }

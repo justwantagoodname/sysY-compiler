@@ -1,11 +1,19 @@
+#include <stdio.h>
 #include "lib/uthash.h"
 #include "lib/utlist.h"
 #include "action.h"
 
-struct ValueSymbol *addVSArray(struct ValueSymbol *array, struct ValueSymbol *vSymbol) {
+ValueSymbol *addVSArray(struct ValueSymbol *array, struct ValueSymbol *vSymbol) {
     assert(vSymbol != NULL);
 
-    LL_PREPEND(array, vSymbol);
+    DL_APPEND(array, vSymbol);
+    return array;
+}
+
+FunctionSymbol *addFSArray(FunctionSymbol *array, FunctionSymbol *fSymbol) {
+    assert(fSymbol != NULL);
+    
+    DL_APPEND(array, fSymbol);
     return array;
 }
 
@@ -13,7 +21,7 @@ void modifyVSType(struct ValueSymbol *array, enum ValueType type) {
     assert(array != NULL);
 
     struct ValueSymbol *cur;
-    LL_FOREACH(array, cur) {
+    DL_FOREACH(array, cur) {
         cur->type = type;
     }
 }

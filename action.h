@@ -6,7 +6,9 @@
 #include "ast.h"
 #include "sym.h"
 
-struct ValueSymbol *addVSArray(struct ValueSymbol *array, struct ValueSymbol *vSymbol);
+ValueSymbol *addVSArray(struct ValueSymbol *array, struct ValueSymbol *vSymbol);
+
+FunctionSymbol *addFSArray(FunctionSymbol *array, FunctionSymbol *fSymbol);
 
 void modifyVSType(struct ValueSymbol *array, enum ValueType type);
 
