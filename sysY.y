@@ -64,11 +64,14 @@ void yyerror(struct ASTNode **cur, const char *s);
 %type <intValue> Number
 
 %type <astNode> CompUnit GlobalFuncDef MainFuncDef Block BlockItem Stmt 
-%type <astNode> Exp UnaryExp PrimaryExp UnaryOp 
+%type <astNode> Exp UnaryExp PrimaryExp 
+
+%type <strValue> UnaryOp
 
 %type <valueSymbol> VarDecl VarDefList VarDef Decl GlobalDecl
 
 %type <valueType> PrimaryType
+
 %left Or
 %left And
 %left Equal NotEq
@@ -223,7 +226,7 @@ ArrayLocatorList: ArrayLocator
                 | ArrayLocator ArrayLocatorList
                 ;
 
-Exp:  Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        }
+Exp:  Exp Or Exp       { $$ = createOpNode("Or", $1, $3);        }
    | Exp And Exp       { $$ = createOpNode("And", $1, $3);       }
    | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     }
    | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     }
@@ -241,7 +244,7 @@ Exp:  Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        }
 
 UnaryExp: PrimaryExp { $$ = $1; }
         | Identifier LeftParent FuncRParams RightParent {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}
-        | UnaryOp UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}
+        | UnaryOp UnaryExp { $$ = ASTNode_create($1, NULL); ASTNode_add_child($$, $2); }
         ; 
 
 PrimaryExp: LVal {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
@@ -249,9 +252,9 @@ PrimaryExp: LVal {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryEx
           | LeftParent Exp RightParent {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
           ;
 
-UnaryOp: Plus {print_tokens(@$.last_line, @$.last_column); printf("<UnaryOp>\n");}
-       | Minus {print_tokens(@$.last_line, @$.last_column); printf("<UnaryOp>\n");}
-       | Not {print_tokens(@$.last_line, @$.last_column); printf("<UnaryOp>\n");}
+UnaryOp: Plus {$$ = "UnPlus"; }
+       | Minus { $$ = "UnMinus"; }
+       | Not { $$ = "Not"; }
        ;
 
 FuncRParams: /* empty */ 
