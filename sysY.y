@@ -201,20 +201,6 @@ IfStmt: If LeftParent Cond RightParent Stmt { $$ = createIfNode($3, $5, NULL); }
       | If LeftParent Cond RightParent Stmt Else Stmt { $$ = createIfNode($3, $5, $7);} %dprec 1
       ;
 
-PrintfStmt: Printf LeftParent PrintfArgs RightParent SemiCon /* {printf("<PrintfStmt>\n");} */
-          ; 
-
-PrintfArgs: StringConst
-          | StringConst PrintfVarArgs
-          ;
-
-PrintfVarArg: Comma Exp
-            ;
-
-PrintfVarArgs: PrintfVarArg /* {printf("<PrintfVarArgs>\n");} */
-             | PrintfVarArg PrintfVarArgs /* {printf("<PrintfVarArgs>\n");} */
-             ;
-
 LVal: Identifier { $$ = ASTNode_create("Address", NULL); ASTNode_add_attr_str($$, "base", $1); }
     | Identifier ArrayLocatorList { $$ = ASTNode_create("Fetch", NULL); ASTNode_add_attr_str($$, "base", $1); /* TODO: calc base */ }
     ;
@@ -229,7 +215,7 @@ ArrayLocatorList: ArrayLocator
 ExpWrapper: Exp { $$ = ASTNode_create("Exp", NULL); ASTNode_add_child($$, $1); }
           ;
 
-Exp: Exp Or Exp       { $$ = createOpNode("Or", $1, $3);        }
+Exp: Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        }
    | Exp And Exp       { $$ = createOpNode("And", $1, $3);       }
    | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     }
    | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     }
@@ -252,7 +238,7 @@ UnaryExp: PrimaryExp { $$ = $1; }
 
 PrimaryExp: LVal { $$ = ASTNode_create("Fetch", NULL); ASTNode_add_child($$, $1); }
           | Number { $$ = ASTNode_create("Number", NULL); ASTNode_add_attr_int($$, "value", $1);}
-          | LeftParent Exp RightParent {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
+          | LeftParent Exp RightParent { $$ = $2; }
           ;
 
 UnaryOp: Plus   { $$ = "UnPlus";   }

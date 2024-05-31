@@ -1,6 +1,5 @@
 int a, b, c, d;
 
 int main() {
-    printf("a = %d, b = %d, c = %d", a, b, c);
-    return 0;
+    (1 + 1) * (2 + 2);
 }
