@@ -46,3 +46,27 @@ ASTNode *addASTList(ASTNode *list, ASTNode *target) {
 
     return list;
 }
+
+ASTNode *createIfNode(ASTNode *cond, ASTNode *then, ASTNode *elseStmt) {
+    assert(cond != NULL);
+    assert(then != NULL);
+
+    ASTNode *node = ASTNode_create("If", NULL);
+
+    // wrapper cond in a condition node
+    ASTNode *condNode = ASTNode_create("Cond", NULL);
+    ASTNode_add_child(condNode, cond);
+    ASTNode_add_child(node, condNode);
+
+    ASTNode *thenNode = ASTNode_create("Then", NULL);
+    ASTNode_add_child(thenNode, then);
+    ASTNode_add_child(node, thenNode);
+
+    if (elseStmt != NULL) {
+        ASTNode *elseNode = ASTNode_create("Else", NULL);
+        ASTNode_add_child(elseNode, elseStmt);
+        ASTNode_add_child(node, elseNode);
+    }
+
+    return node;
+}

@@ -66,6 +66,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 %type <astNode> CompUnit GlobalFuncDef MainFuncDef Block BlockItem Stmt LVal 
                 Exp UnaryExp PrimaryExp ExpWrapper
                 FuncRParams FuncRParamList
+                IfStmt Cond
 
 %type <strValue> UnaryOp
 
@@ -186,7 +187,7 @@ Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign", NULL); ASTN
     | SemiCon { $$ = ASTNode_create("NOP", NULL); }
     | ExpWrapper SemiCon { $$ = $1; }
     | Block { $$ = $1; /* TODO: Add new scope */ }
-    | IfStmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
+    | IfStmt { $$ = $1;  }
     | While LeftParent Cond RightParent Stmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | Return Exp SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | Return SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
@@ -198,8 +199,8 @@ Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign", NULL); ASTN
 
 /* attach else to cloest if stmt */
 /* see https://www.gnu.org/software/bison/manual/html_node/Merging-GLR-Parses.html */
-IfStmt: If LeftParent Cond RightParent Stmt /* {printf("<IFStmt>\n");} */ %dprec 2
-      | If LeftParent Cond RightParent Stmt Else Stmt /* {printf("<IFStmtElse>\n");} */ %dprec 1
+IfStmt: If LeftParent Cond RightParent Stmt { $$ = createIfNode($3, $5, NULL); } %dprec 2
+      | If LeftParent Cond RightParent Stmt Else Stmt { $$ = createIfNode($3, $5, $7);} %dprec 1
       ;
 
 PrintfStmt: Printf LeftParent PrintfArgs RightParent SemiCon /* {printf("<PrintfStmt>\n");} */
@@ -271,7 +272,7 @@ FuncRParamList: ExpWrapper { $$ = NULL; ASTNode* param = ASTNode_create("Param",
 
 Number: IntegerConst { $$ = $1;};
 
-Cond: Exp {print_tokens(@$.last_line, @$.last_column); printf("<Cond>\n");}
+Cond: ExpWrapper
     ;
 
 ConstExp: Exp {print_tokens(@$.last_line, @$.last_column); printf("<ConstExp>\n");}
