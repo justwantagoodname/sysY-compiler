@@ -53,8 +53,8 @@ Whitespaces [ \f\n\r\t\v]
 "&&"            {push_token("AND", yytext);            return And;     }
 "||"            {push_token("OR", yytext);             return Or;      }
 "while"         {push_token("WHILETK", yytext);        return While;   }
-"getint"        {push_token("GETINTTK", yytext);       return GetInt;  }
-"printf"        {push_token("PRINTFTK", yytext);       return Printf;  }
+    /* "getint"        {push_token("GETINTTK", yytext);       return GetInt;  } */
+    /* "printf"        {push_token("PRINTFTK", yytext);       return Printf;  } */
 "return"        {push_token("RETURNTK", yytext);       return Return;  }
 "+"             {push_token("PLUS", yytext);           return Plus;    }
 "-"             {push_token("MINU", yytext);           return Minus;   }

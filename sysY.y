@@ -169,7 +169,7 @@ FuncFParamList:  FuncFParam
               ;
 
 FuncFParam: PrimaryType Identifier {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");}
-          |  PrimaryType Identifier LeftBrack RightBrack {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
+          | PrimaryType Identifier LeftBrack RightBrack {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
           | PrimaryType Identifier LeftBrack RightBrack ArrayDecl {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
           ;
 
@@ -187,14 +187,12 @@ Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign", NULL); ASTN
     | SemiCon { $$ = ASTNode_create("NOP", NULL); }
     | ExpWrapper SemiCon { $$ = $1; }
     | Block { $$ = $1; /* TODO: Add new scope */ }
-    | IfStmt { $$ = $1;  }
-    | While LeftParent Cond RightParent Stmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
-    | Return Exp SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
-    | Return SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
-    | PrintfStmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
-    | LVal Assign GetInt LeftParent RightParent SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
-    | Break SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
-    | Continue SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
+    | IfStmt { $$ = $1; }
+    | While LeftParent Cond RightParent Stmt { $$ = createWhileNode($3, $5);}
+    | Return ExpWrapper SemiCon { $$ = ASTNode_create("Return", NULL); ASTNode_add_child($$, $2);}
+    | Return SemiCon {$$ = ASTNode_create("Return", NULL);}
+    | Break SemiCon { $$ = ASTNode_create("Break", NULL); }
+    | Continue SemiCon { $$ = ASTNode_create("Continue", NULL); }
     ;
 
 /* attach else to cloest if stmt */
@@ -248,7 +246,7 @@ Exp: Exp Or Exp       { $$ = createOpNode("Or", $1, $3);        }
    ;
 
 UnaryExp: PrimaryExp { $$ = $1; }
-        | Identifier LeftParent FuncRParams RightParent { $$ = ASTNode_create("FuncCall", NULL); ASTNode_add_attr_str($$, "name", $1); $$->children = $3; }
+        | Identifier LeftParent FuncRParams RightParent { $$ = ASTNode_create("Call", NULL); ASTNode_add_attr_str($$, "name", $1); $$->children = $3; }
         | UnaryOp UnaryExp { $$ = ASTNode_create($1, NULL); ASTNode_add_child($$, $2); }
         ; 
 
@@ -257,9 +255,9 @@ PrimaryExp: LVal { $$ = ASTNode_create("Fetch", NULL); ASTNode_add_child($$, $1)
           | LeftParent Exp RightParent {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
           ;
 
-UnaryOp: Plus {$$ = "UnPlus"; }
-       | Minus { $$ = "UnMinus"; }
-       | Not { $$ = "Not"; }
+UnaryOp: Plus   { $$ = "UnPlus";   }
+       | Minus  { $$ = "UnMinus"; }
+       | Not    { $$ = "Not";     }
        ;
 
 FuncRParams: /* empty */ { $$ = NULL; }
@@ -267,10 +265,18 @@ FuncRParams: /* empty */ { $$ = NULL; }
            ;
 
 FuncRParamList: ExpWrapper { $$ = NULL; ASTNode* param = ASTNode_create("Param", NULL); ASTNode_add_child(param, $1); $$ = addASTList($$, param); }
+              | StringConst { $$ = NULL; 
+                              ASTNode* param = ASTNode_create("Param", NULL); 
+                              char* strContent = trimQuoteStr($1); 
+                              ASTNode_add_attr_str(param, "value", strContent);
+                              free(strContent);
+                              $$ = addASTList($$, param); 
+                              }
               | FuncRParamList Comma ExpWrapper { $$ = $1; ASTNode* param = ASTNode_create("Param", NULL); ASTNode_add_child(param, $3); addASTList($$, param); }
               ;
 
-Number: IntegerConst { $$ = $1;};
+Number: IntegerConst { $$ = $1; }
+      ;
 
 Cond: ExpWrapper
     ;

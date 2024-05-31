@@ -1,9 +1,6 @@
 int a, b, c, d;
 
 int main() {
-    if (a == 1) {
-        a = a + 1;
-    } else {
-        a = a + 2;
-    }
+    printf("a = %d, b = %d, c = %d", a, b, c);
+    return 0;
 }
