@@ -28,11 +28,12 @@ typedef struct FunctionSymbol FunctionSymbol;
 
 FunctionSymbol *FunctionSymbol_create(const char *id, FuncType type, struct ValueSymbol *params, struct ASTNode *body);
 void FunctionSymbol_print(FunctionSymbol *fSymbol);
-
+// Each ARRAY type must follow by original type
 enum ValueType {
         ANY = 0, // For undetermined type 
+        ANY_ARRAY,
         INT,
-        CONST_INT,
+        INT_ARRAY,
         _ValueType_Count
 };
 typedef enum ValueType ValueType;
@@ -44,7 +45,13 @@ struct ValueSymbol {
     union {
         int intVal;
     } constVal; // store initial value or constant value
-    bool hasInitVal; // whether has initial value
+    bool hasInitVal;
+    bool isConst;
+
+    union {
+        struct ASTNode *arraySize; // For array type, store the expression of the array
+        int *arraySizeConst; // Will be all calculated in the semantic analysis
+    } extra;
 
     UT_hash_handle hh;
     struct ValueSymbol *next, *prev;
@@ -52,6 +59,7 @@ struct ValueSymbol {
 typedef struct ValueSymbol ValueSymbol;
 
 struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void *constValue);
+struct ValueSymbol *ValueSymbol_create_array(const char *id, enum ValueType type, struct ASTNode *arraySize, void* constValue);
 void ValueSymbol_print(struct ValueSymbol *vSymbol);
 
 struct Scope {

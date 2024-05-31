@@ -64,7 +64,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 %type <intValue> Number
 
 %type <astNode> CompUnit MainFuncDef Block BlockItem Stmt LVal 
-                Exp UnaryExp PrimaryExp ExpWrapper
+                ConstExp Exp UnaryExp PrimaryExp ExpWrapper ArrayDecl
                 IfStmt Cond FuncRParams FuncRParamList
 
 %type <strValue> UnaryOp
@@ -140,12 +140,12 @@ VarDefList: VarDef { $$ = addVSArray(NULL, $1); }
 
 VarDef: Identifier { $$ = ValueSymbol_create($1, ANY, NULL); }
       | Identifier Assign InitValue { $$ = ValueSymbol_create($1, ANY, NULL); }
-      | Identifier ArrayDecl { $$ = ValueSymbol_create($1, ANY, NULL); }
-      | Identifier ArrayDecl Assign InitValue { $$ = ValueSymbol_create($1, ANY, NULL); }
+      | Identifier ArrayDecl { $$ = ValueSymbol_create_array($1, ANY_ARRAY, $2, NULL); }
+      | Identifier ArrayDecl Assign InitValue { $$ = ValueSymbol_create_array($1, ANY_ARRAY, $2, NULL); }
       ;
 
-ArrayDecl: LeftBrack ConstExp RightBrack 
-         | LeftBrack ConstExp RightBrack ArrayDecl
+ArrayDecl: LeftBrack ConstExp RightBrack { $$ = addASTList(NULL, $2); } 
+         | ArrayDecl LeftBrack ConstExp RightBrack  {  $$ = addASTList($1, $3); }
          ;
 
 InitValue: Exp {print_tokens(@$.last_line, @$.last_column); printf("<InitVal>\n");};
@@ -271,7 +271,7 @@ Number: IntegerConst
 Cond: ExpWrapper
     ;
 
-ConstExp: Exp {print_tokens(@$.last_line, @$.last_column); printf("<ConstExp>\n");}
+ConstExp: ExpWrapper 
         ;
 %%
 

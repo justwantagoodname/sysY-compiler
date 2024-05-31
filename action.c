@@ -6,6 +6,7 @@
 ValueSymbol *addVSArray(struct ValueSymbol *array, struct ValueSymbol *vSymbol) {
     assert(vSymbol != NULL);
 
+    vSymbol->next = vSymbol->prev = NULL;
     DL_APPEND(array, vSymbol);
     return array;
 }
@@ -13,6 +14,7 @@ ValueSymbol *addVSArray(struct ValueSymbol *array, struct ValueSymbol *vSymbol) 
 FunctionSymbol *addFSArray(FunctionSymbol *array, FunctionSymbol *fSymbol) {
     assert(fSymbol != NULL);
     
+    fSymbol->next = fSymbol->prev = NULL;
     DL_APPEND(array, fSymbol);
     return array;
 }
@@ -22,7 +24,8 @@ void modifyVSType(struct ValueSymbol *array, enum ValueType type) {
 
     struct ValueSymbol *cur;
     DL_FOREACH(array, cur) {
-        cur->type = type;
+        if (cur->type == ANY_ARRAY) cur->type = type + 1; // to Array Version
+        else cur->type = type;
     }
 }
 
@@ -50,6 +53,8 @@ ASTNode *createOpNode(const char *op, ASTNode *left, ASTNode *right) {
 ASTNode *addASTList(ASTNode *list, ASTNode *target) {
     assert(target != NULL);
 
+    target->next = target->prev = NULL;
+    
     DL_APPEND(list, target);
 
     return list;

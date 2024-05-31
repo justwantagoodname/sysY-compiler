@@ -20,9 +20,14 @@ struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void
     } else {
         vSymbol->hasInitVal = true;
     }
-
-    if (type == CONST_INT || type == INT) {
+    switch (type)
+    {
+    case INT:
         vSymbol->constVal.intVal = *(int *)constValue;
+        break;
+    
+    default:
+        break;
     }
 
     return vSymbol;
@@ -30,15 +35,62 @@ struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void
 
 void ValueSymbol_print(struct ValueSymbol *self) {
     assert(self != NULL);
-    
-    if (self->type == CONST_INT) {
-        printf("<ConstInt id=\"%s\" value=\"%d\" />\n", self->id, self->constVal.intVal);
-    } else if (self->type == INT) {
-        printf("<Int id=\"%s\" />\n", self->id);
+    printf("<");
+    switch (self->type)
+    {
+    case INT:
+        printf("Int");
+        break;
+    case INT_ARRAY:
+        printf("IntArray");
+        break;
+
+    default:
+        printf("Any");
+        break;
+    }
+    if (self->isConst) printf(" const");
+
+    printf(" id=\"%s\"", self->id); 
+    if (self->hasInitVal) {
+        switch (self->type)
+        {
+        case INT:
+            printf(" value=\"%d\"", self->constVal.intVal);
+            break;
+        
+        default:
+            printf(" value");
+            break;
+        }
+    }
+    if (self->type == INT_ARRAY && self->extra.arraySize != NULL) {
+        printf(">\n");
+        ASTNode *cur = NULL;
+        DL_FOREACH(self->extra.arraySize, cur) ASTNode_print(cur);
+        printf("</IntArray>\n");
     } else {
-        printf("<Any id=\"%s\" />\n", self->id);
+        printf("/>\n");
     }
 
+}
+
+struct ValueSymbol *ValueSymbol_create_array(const char *id, enum ValueType type, struct ASTNode *arraySize, void* constValue) {
+    assert(id != NULL);
+
+    struct ValueSymbol *vSymbol = (struct ValueSymbol *)calloc(1, sizeof(struct ValueSymbol));
+    vSymbol->id = strdup(id);
+    vSymbol->type = type;
+    vSymbol->extra.arraySize = arraySize;
+
+    if (constValue == NULL) {
+        vSymbol->hasInitVal = false;
+        return vSymbol;
+    } else {
+        vSymbol->hasInitVal = true;
+    }
+
+    return vSymbol;
 }
 
 struct Scope *Scope_create(struct Scope *parent, const char *scopeId) {
