@@ -44,6 +44,8 @@ struct ValueSymbol {
 
     union {
         int intVal;
+        int *intArray;
+        struct ASTNode *initValue;
     } constVal; // store initial value or constant value
     bool hasInitVal;
     bool isConst;

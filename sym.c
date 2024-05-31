@@ -58,7 +58,7 @@ void ValueSymbol_print(struct ValueSymbol *self) {
         case INT:
             printf(" value=\"%d\"", self->constVal.intVal);
             break;
-        
+        case INT_ARRAY: break;
         default:
             printf(" value");
             break;
@@ -66,8 +66,8 @@ void ValueSymbol_print(struct ValueSymbol *self) {
     }
     if (self->type == INT_ARRAY && self->extra.arraySize != NULL) {
         printf(">\n");
-        ASTNode *cur = NULL;
-        DL_FOREACH(self->extra.arraySize, cur) ASTNode_print(cur);
+        ASTNode_print(self->extra.arraySize);
+        ASTNode_print(self->constVal.initValue);
         printf("</IntArray>\n");
     } else {
         printf("/>\n");
@@ -88,6 +88,7 @@ struct ValueSymbol *ValueSymbol_create_array(const char *id, enum ValueType type
         return vSymbol;
     } else {
         vSymbol->hasInitVal = true;
+        vSymbol->constVal.initValue = (ASTNode *)constValue;
     }
 
     return vSymbol;
