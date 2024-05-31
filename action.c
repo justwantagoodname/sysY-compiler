@@ -38,3 +38,11 @@ ASTNode *createOpNode(const char *op, ASTNode *left, ASTNode *right) {
 
     return node;
 }
+
+ASTNode *addASTList(ASTNode *list, ASTNode *target) {
+    assert(target != NULL);
+
+    DL_APPEND(list, target);
+
+    return list;
+}

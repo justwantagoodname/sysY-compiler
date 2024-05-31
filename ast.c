@@ -28,10 +28,13 @@ void ASTNode_print_impl(struct ASTNode *node, int depth) {
     DL_FOREACH(node->attrs, attr) {
         switch (attr->type) {
             case ATTR_TYPE_INT:
-                printf(" %s=\"%d\" ", attr->key, attr->value.int_value);
+                printf(" %s=\"%d\"", attr->key, attr->value.int_value);
                 break;
             case ATTR_TYPE_FLOAT:
-                printf(" %s=\"%f\" ", attr->key, attr->value.float_value);
+                printf(" %s=\"%f\"", attr->key, attr->value.float_value);
+                break;
+            case ATTR_TYPE_STR:
+                printf(" %s=\"%s\"", attr->key, attr->value.str_value);
                 break;
             default:
                 printf(" %s=\"UNKNOWN\" ", attr->key);
@@ -78,6 +81,17 @@ void ASTNode_add_attr_int(ASTNode *node, const char* key, int value) {
     attr->key = strdup(key);
     attr->value.int_value = value;
     attr->type = ATTR_TYPE_INT;
+
+    DL_APPEND(node->attrs, attr);
+}
+
+void ASTNode_add_attr_str(ASTNode *node, const char* key, const char* value) {
+    assert(node != NULL && key != NULL && value != NULL);
+
+    struct ASTAttribute *attr = (struct ASTAttribute *)calloc(1, sizeof(struct ASTAttribute));
+    attr->key = strdup(key);
+    attr->value.str_value = strdup(value);
+    attr->type = ATTR_TYPE_STR;
 
     DL_APPEND(node->attrs, attr);
 }

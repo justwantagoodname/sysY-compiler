@@ -14,4 +14,5 @@ ValueSymbol *appendVSList(ValueSymbol *array, ValueSymbol *array2);
 
 ASTNode *createOpNode(const char *op, ASTNode *left, ASTNode *right);
 
+ASTNode *addASTList(ASTNode *list, ASTNode *target);
 #endif

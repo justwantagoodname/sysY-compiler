@@ -63,8 +63,9 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %type <intValue> Number
 
-%type <astNode> CompUnit GlobalFuncDef MainFuncDef Block BlockItem Stmt 
-%type <astNode> Exp UnaryExp PrimaryExp 
+%type <astNode> CompUnit GlobalFuncDef MainFuncDef Block BlockItem Stmt LVal 
+                Exp UnaryExp PrimaryExp ExpWrapper
+                FuncRParams FuncRParamList
 
 %type <strValue> UnaryOp
 
@@ -181,9 +182,9 @@ BlockItem:  /* empty */ { $$ = ASTNode_create("Block", NULL); /* TODO: Add Scope
 PrimaryType: Int { $$ = INT; }
            ;
 
-Stmt: LVal Assign Exp SemiCon {$$ = ASTNode_create("Assign", NULL); /* ToDo: Add $1 */ ASTNode_add_child($$, $3);}
+Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign", NULL); ASTNode* dest = ASTNode_create("Dest", NULL); ASTNode_add_child(dest, $1); ASTNode_add_child($$, dest); ASTNode_add_child($$, $3);}
     | SemiCon { $$ = ASTNode_create("NOP", NULL); }
-    | Exp SemiCon { $$ = ASTNode_create("Exp", NULL); ASTNode_add_child($$, $1); }
+    | ExpWrapper SemiCon { $$ = $1; }
     | Block {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | IfStmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | While LeftParent Cond RightParent Stmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
@@ -215,8 +216,8 @@ PrintfVarArgs: PrintfVarArg /* {printf("<PrintfVarArgs>\n");} */
              | PrintfVarArg PrintfVarArgs /* {printf("<PrintfVarArgs>\n");} */
              ;
 
-LVal: Identifier {print_tokens(@$.last_line, @$.last_column); printf("<LVal>\n");}
-    | Identifier ArrayLocatorList {print_tokens(@$.last_line, @$.last_column); printf("<LVal>\n");}
+LVal: Identifier { $$ = ASTNode_create("Address", NULL); ASTNode_add_attr_str($$, "base", $1); }
+    | Identifier ArrayLocatorList { $$ = ASTNode_create("Fetch", NULL); ASTNode_add_attr_str($$, "base", $1); /* TODO: calc base */ }
     ;
 
 ArrayLocator: LeftBrack Exp RightBrack
@@ -226,7 +227,10 @@ ArrayLocatorList: ArrayLocator
                 | ArrayLocator ArrayLocatorList
                 ;
 
-Exp:  Exp Or Exp       { $$ = createOpNode("Or", $1, $3);        }
+ExpWrapper: Exp { $$ = ASTNode_create("Exp", NULL); ASTNode_add_child($$, $1); }
+          ;
+
+Exp: Exp Or Exp       { $$ = createOpNode("Or", $1, $3);        }
    | Exp And Exp       { $$ = createOpNode("And", $1, $3);       }
    | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     }
    | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     }
@@ -243,11 +247,11 @@ Exp:  Exp Or Exp       { $$ = createOpNode("Or", $1, $3);        }
    ;
 
 UnaryExp: PrimaryExp { $$ = $1; }
-        | Identifier LeftParent FuncRParams RightParent {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}
+        | Identifier LeftParent FuncRParams RightParent { $$ = ASTNode_create("FuncCall", NULL); ASTNode_add_attr_str($$, "name", $1); $$->children = $3; }
         | UnaryOp UnaryExp { $$ = ASTNode_create($1, NULL); ASTNode_add_child($$, $2); }
         ; 
 
-PrimaryExp: LVal {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
+PrimaryExp: LVal { $$ = ASTNode_create("Fetch", NULL); ASTNode_add_child($$, $1); }
           | Number { $$ = ASTNode_create("Number", NULL); ASTNode_add_attr_int($$, "value", $1);}
           | LeftParent Exp RightParent {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
           ;
@@ -257,12 +261,12 @@ UnaryOp: Plus {$$ = "UnPlus"; }
        | Not { $$ = "Not"; }
        ;
 
-FuncRParams: /* empty */ 
-           | FuncRParamList {print_tokens(@$.last_line, @$.last_column); printf("<FuncRParams>\n");}
+FuncRParams: /* empty */ { $$ = NULL; }
+           | FuncRParamList { $$ = $1; }
            ;
 
-FuncRParamList: Exp 
-              | Exp Comma FuncRParamList 
+FuncRParamList: ExpWrapper { $$ = NULL; ASTNode* param = ASTNode_create("Param", NULL); ASTNode_add_child(param, $1); $$ = addASTList($$, param); }
+              | FuncRParamList Comma ExpWrapper { $$ = $1; ASTNode* param = ASTNode_create("Param", NULL); ASTNode_add_child(param, $3); addASTList($$, param); }
               ;
 
 Number: IntegerConst { $$ = $1;};

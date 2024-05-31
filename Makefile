@@ -3,7 +3,7 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CFLAGS = 
+CFLAGS = -g 
 LDFLAGS = 
 
 UNAME := $(shell uname)
