@@ -8,7 +8,7 @@
 
 
 struct ASTNode *ASTNode_create(const char* id, struct Scope *scope) {
-    assert(id != NULL && scope != NULL);
+    assert(id != NULL);
 
     struct ASTNode *node = (struct ASTNode *)calloc(1, sizeof(struct ASTNode));
     node->id = strdup(id);
@@ -20,14 +20,12 @@ struct ASTNode *ASTNode_create(const char* id, struct Scope *scope) {
 void ASTNode_print_impl(struct ASTNode *node, int depth) {
     assert(node != NULL);
 
-#define INDENT do { for (int i = 0; i < depth; i++) putchar('\t'); } while (0);
-
-    // I Love XML. XD
-    INDENT printf("<%s>\n", node->id);
-    if (node->parent == NULL || (node->parent != NULL && node->parent->scope != node->scope)) {
-        Scope_print(node->scope);
+    if (node->children == NULL) {
+        printf("<%s />\n", node->id);
+        return;
     }
-    // Scope_print(node->scope);
+    // I Love XML. XD
+    printf("<%s>\n", node->id);
 
     // print children
     if (node->children) {
@@ -37,12 +35,19 @@ void ASTNode_print_impl(struct ASTNode *node, int depth) {
         }
     }
 
-    INDENT printf("</%s>\n", node->id);
-#undef INDENT
+    printf("</%s>\n", node->id);
 }
 
 void ASTNode_print(struct ASTNode *node) {
     assert(node != NULL);
 
     ASTNode_print_impl(node, 0);
+}
+
+void ASTNode_add_child(ASTNode *parent, ASTNode *child) {
+    assert(parent != NULL && child != NULL);
+
+    child->parent = parent;
+
+    DL_APPEND(parent->children, child);
 }

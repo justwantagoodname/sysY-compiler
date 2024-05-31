@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "lib/utlist.h"
+#include "sym.h"
 #include "y.tab.h"
-
 #include "token.h"
 
 extern YYLTYPE yylloc;
@@ -9,16 +11,18 @@ extern YYLTYPE yylloc;
 struct TokenInfo *head;
 
 void push_token(const char *name, const char* literal) {
-    return;
+#if 0
     struct TokenInfo *token = (struct TokenInfo *)malloc(sizeof(struct TokenInfo));
     token->name = name;
     token->literal = strdup(literal);
     token->line = yylloc.last_line;
     token->col = yylloc.last_column;
     DL_APPEND(head, token);
+#endif
 }
 
 void print_tokens(int line, int col) {
+#if 0
     struct TokenInfo *cur, *tmp;
     // printf("===Output===\n");
     // printf("%d %d ", line, col);
@@ -38,4 +42,5 @@ void print_tokens(int line, int col) {
     }
     // printf("%d %d ", line, col);
     // printf("===END===\n");
+#endif
 }

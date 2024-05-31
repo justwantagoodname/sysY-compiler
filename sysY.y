@@ -63,7 +63,8 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %type <intValue> Number
 
-%type <astNode> CompUnit GlobalFuncDef MainFuncDef
+%type <astNode> CompUnit GlobalFuncDef MainFuncDef Block BlockItem Stmt 
+%type <astNode> Exp AddExp MulExp UnaryExp LVal
 
 %type <valueSymbol> VarDecl VarDefList VarDef Decl GlobalDecl
 
@@ -75,10 +76,12 @@ void yyerror(struct ASTNode **cur, const char *s);
 CompUnit: GlobalDecl GlobalFuncDef MainFuncDef { Scope *global = Scope_create(NULL, "Global"); 
                                                  global->vSymbols = $1;
                                                  *root = $$ = ASTNode_create("CompUnit", global);
-                                                 printf("<CompUnit>\n"); }
+                                                 ASTNode_add_child($$, $3);
+                                                }
         ;
 
-MainFuncDef: Int Main LeftParent RightParent Block {print_tokens(@$.last_line, @$.last_column); printf("<MainFuncDef>\n");}
+MainFuncDef: Int Main LeftParent RightParent Block { $$ = ASTNode_create("Main", NULL); 
+                                                     ASTNode_add_child($$, $5); }
            ;
 
 GlobalDecl: /* empty */ { $$ = NULL; }
@@ -109,22 +112,21 @@ ConstInitValue: ConstExp {print_tokens(@$.last_line, @$.last_column); printf("<C
               ;
 
 ConstInitValList: /* empty */
-                | ConstInitValue /* {printf("<ConstInitValList>\n");} */
-                | ConstInitValList Comma ConstInitValue /* {printf("<ConstInitValList>\n");} */
+                | ConstInitValue
+                | ConstInitValList Comma ConstInitValue
                 ;
 
-VarDecl: PrimaryType VarDefList SemiCon { modifyVSType($2, $1); $$ = $2; print_tokens(@$.last_line, @$.last_column); printf("<VarDecl>\n");}
+VarDecl: PrimaryType VarDefList SemiCon { modifyVSType($2, $1); $$ = $2; }
        ;
 
 VarDefList: VarDef { $$ = addVSArray(NULL, $1); }
           | VarDefList Comma VarDef { $$ = addVSArray($1, $3);}
           ;
 
-VarDef: Identifier { $$ = ValueSymbol_create($1, ANY, NULL);
-                     print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n"); }
-      | Identifier Assign InitValue { $$ = ValueSymbol_create($1, ANY, NULL); print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
-      | Identifier ArrayDecl { $$ = ValueSymbol_create($1, ANY, NULL); print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
-      | Identifier ArrayDecl Assign InitValue { $$ = ValueSymbol_create($1, ANY, NULL); print_tokens(@$.last_line, @$.last_column); printf("<VarDef>\n");}
+VarDef: Identifier { $$ = ValueSymbol_create($1, ANY, NULL); }
+      | Identifier Assign InitValue { $$ = ValueSymbol_create($1, ANY, NULL); }
+      | Identifier ArrayDecl { $$ = ValueSymbol_create($1, ANY, NULL); }
+      | Identifier ArrayDecl Assign InitValue { $$ = ValueSymbol_create($1, ANY, NULL); }
       ;
 
 ArrayDecl: LeftBrack ConstExp RightBrack 
@@ -160,18 +162,18 @@ FuncFParam: PrimaryType Identifier {print_tokens(@$.last_line, @$.last_column); 
           | PrimaryType Identifier LeftBrack RightBrack ArrayDecl {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
           ;
 
-Block: LeftBrace BlockItem RightBrace {print_tokens(@$.last_line, @$.last_column); printf("<Block>\n");};
+Block: LeftBrace BlockItem RightBrace { $$ = $2; };
 
-BlockItem:  /* empty */
-         | BlockItem Decl 
-         | BlockItem Stmt 
+BlockItem:  /* empty */ { $$ = ASTNode_create("Block", NULL); /* TODO: Add Scope */ }
+         | BlockItem Decl { /* TODO: collect decls to scope */ }
+         | BlockItem Stmt { ASTNode_add_child($1, $2); $$ = $1; }
          ;
 
 PrimaryType: Int { $$ = INT; }
            ;
 
-Stmt: LVal Assign Exp SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
-    | SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
+Stmt: LVal Assign Exp SemiCon {$$ = ASTNode_create("Assign", NULL); /* ToDo: Add $1 */ ASTNode_add_child($$, $3);}
+    | SemiCon { $$ = ASTNode_create("NOP", NULL); }
     | Exp SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | Block {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | IfStmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
@@ -215,20 +217,28 @@ ArrayLocatorList: ArrayLocator
                 | ArrayLocator ArrayLocatorList
                 ;
 
-Exp: AddExp {print_tokens(@$.last_line, @$.last_column); printf("<Exp>\n");}
-   ;
+/* Exp: AddExp {$$ = ASTNode_create("Exp", NULL); } */
+   /* ; */
 
-AddExp: MulExp {print_tokens(@$.last_line, @$.last_column); printf("<AddExp>\n");}
-      | AddExp Plus MulExp {print_tokens(@$.last_line, @$.last_column); printf("<AddExp>\n");}
-      | AddExp Minus MulExp {print_tokens(@$.last_line, @$.last_column); printf("<AddExp>\n");}
+/* AddExp: MulExp { $$ = $1; printf("<AddExp>\n");}
+      | AddExp Plus MulExp { ASTNode_create("Add", NULL); ASTNode_add_child($1, $3); $$ = $1; }
+      | AddExp Minus MulExp { printf("<AddExp>\n");}
       ;
 
-MulExp: UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<MulExp>\n");}
+MulExp: UnaryExp { $$ = $1; printf("<MulExp>\n");}
       | MulExp Mult UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<MulExp>\n");}
       | MulExp Div UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<MulExp>\n");}
       | MulExp Mod UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<MulExp>\n");}
-      ;
+      ; */
 
+Exp: 
+    | Exp Plus Exp { $$ = ASTNode_create("Add", NULL); ASTNode_add_child($1, $3); }
+    | Exp Minus Exp { $$ = ASTNode_create("Sub", NULL); ASTNode_add_child($1, $3); }
+    | Exp Mult Exp { $$ = ASTNode_create("Mul", NULL); ASTNode_add_child($1, $3); }
+    | Exp Div Exp { $$ = ASTNode_create("Div", NULL); ASTNode_add_child($1, $3); }
+    | Exp Mod Exp { $$ = ASTNode_create("Mod", NULL); ASTNode_add_child($1, $3); }
+    | UnaryExp { $$ = $1; }
+    ;
 UnaryExp: PrimaryExp {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}
         | Identifier LeftParent FuncRParams RightParent {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}
         | UnaryOp UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}

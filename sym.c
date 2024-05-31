@@ -6,6 +6,7 @@
 #include "lib/utlist.h"
 #include "sym.h"
 
+/* deprecated */
 #define INDENT do { for (int i = 0; i < depth; i++) putchar('\t'); } while (0);
 
 struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void *constValue) {
@@ -31,7 +32,7 @@ struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void
 
 void ValueSymbol_print(struct ValueSymbol *self, int depth) {
     assert(self != NULL);
-    INDENT;
+    
     // print xml
     if (self->type == CONST_INT) {
         printf("<%s type=\"const_int\" value=\"%d\" />\n", self->id, self->constVal.intVal);

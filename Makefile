@@ -59,6 +59,8 @@ clean:
 dev:
 	echo *.c *.h sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-parser
 
+all: parser
+
 .PHONY: clean test-lex test-parser lexer parser dev zip
 
 .DEFAULT_GOAL = test-parser
