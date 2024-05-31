@@ -1,8 +1,9 @@
 %{
 
 #include "sysY.h"
-#include "y.tab.h"
 #include "token.h"
+#include "sym.h"
+#include "y.tab.h"
 
 
 
