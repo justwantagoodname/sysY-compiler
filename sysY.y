@@ -176,8 +176,15 @@ FuncFParamList: FuncFParam { $$ = addVSArray(NULL, $1); }
               ;
 
 FuncFParam: PrimaryType Identifier { $$ = ValueSymbol_create($2, $1, NULL); }
-          | PrimaryType Identifier LeftBrack RightBrack {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
-          | PrimaryType Identifier LeftBrack RightBrack ArrayDecl {print_tokens(@$.last_line, @$.last_column); printf("<FuncFParam>\n");} 
+          | PrimaryType Identifier LeftBrack RightBrack { ASTNode* len = ASTNode_create("Unknown", NULL); 
+                                                          ASTNode* decl = ASTNode_create("ArrayDecl", NULL);
+                                                          ASTNode_add_child(decl, len);
+                                                          $$ = ValueSymbol_create_array($2, $1 + 1, decl, NULL);
+                                                        } 
+          | PrimaryType Identifier LeftBrack RightBrack ArrayDecl { ASTNode* len = ASTNode_create("Unknown", NULL); 
+                                                                    ASTNode_lpush_child($5, len);
+                                                                    $$ = ValueSymbol_create_array($2, $1 + 1, $5, NULL);
+                                                                  } 
           ;
 
 Block: LeftBrace BlockItem RightBrace { $$ = $2; };

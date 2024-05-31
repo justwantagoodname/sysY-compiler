@@ -63,7 +63,7 @@ void ValueSymbol_print(struct ValueSymbol *self) {
     } else if (self->type == INT_ARRAY && self->extra.arraySize != NULL) {
         printf(">\n");
         ASTNode_print(self->extra.arraySize);
-        ASTNode_print(self->constVal.initValue);
+        if (self->hasInitVal) ASTNode_print(self->constVal.initValue);
         printf("</IntArray>\n");
     } else {
         printf("/>\n");

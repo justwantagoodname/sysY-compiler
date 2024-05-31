@@ -66,6 +66,14 @@ void ASTNode_print(struct ASTNode *node) {
     ASTNode_print_impl(node, 0);
 }
 
+void ASTNode_lpush_child(ASTNode *parent, ASTNode *child) {
+    assert(parent != NULL && child != NULL);
+
+    child->parent = parent;
+
+    DL_PREPEND(parent->children, child); 
+}
+
 void ASTNode_add_child(ASTNode *parent, ASTNode *child) {
     assert(parent != NULL && child != NULL);
 

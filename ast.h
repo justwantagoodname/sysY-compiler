@@ -39,6 +39,7 @@ struct ASTNode
 typedef struct ASTNode ASTNode;
 
 ASTNode *ASTNode_create(const char* id, struct Scope *scope);
+void ASTNode_lpush_child(ASTNode *parent, ASTNode *child);
 void ASTNode_add_child(ASTNode *parent, ASTNode *child);
 void ASTNode_add_attr_int(ASTNode *node, const char* key, int value);
 void ASTNode_add_attr_str(ASTNode *node, const char* key, const char* value);
