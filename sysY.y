@@ -185,7 +185,7 @@ PrimaryType: Int { $$ = INT; }
 Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign", NULL); ASTNode* dest = ASTNode_create("Dest", NULL); ASTNode_add_child(dest, $1); ASTNode_add_child($$, dest); ASTNode_add_child($$, $3);}
     | SemiCon { $$ = ASTNode_create("NOP", NULL); }
     | ExpWrapper SemiCon { $$ = $1; }
-    | Block {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
+    | Block { $$ = $1; /* TODO: Add new scope */ }
     | IfStmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | While LeftParent Cond RightParent Stmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | Return Exp SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
