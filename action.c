@@ -26,3 +26,15 @@ ValueSymbol *appendVSList(ValueSymbol *array, ValueSymbol *array2) {
 
     return array;
 }
+
+ASTNode *createOpNode(const char *op, ASTNode *left, ASTNode *right) {
+    assert(op != NULL);
+    assert(left != NULL);
+    assert(right != NULL);
+
+    ASTNode *node = ASTNode_create(op, NULL);
+    ASTNode_add_child(node, left);
+    ASTNode_add_child(node, right);
+
+    return node;
+}

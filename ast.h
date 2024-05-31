@@ -5,18 +5,40 @@
 
 #include "sym.h"
 
+enum AttributeType
+{
+    ATTR_TYPE_UNKNOWN,
+    ATTR_TYPE_INT,
+    ATTR_TYPE_FLOAT,
+};
+
+struct ASTAttribute
+{
+    const char* key;
+    union {
+        int int_value;
+        float float_value;
+    } value;
+    enum AttributeType type;
+    struct ASTAttribute *next, *prev;
+};
+typedef struct ASTAttribute ASTAttribute;
+
 struct ASTNode
 {
     const char* id;
     struct Scope *scope;
-    struct ASTNode *children, *parent;
+    
+    ASTAttribute *attrs;
 
+    struct ASTNode *children, *parent;
     struct ASTNode *next, *prev;
 };
 typedef struct ASTNode ASTNode;
 
 ASTNode *ASTNode_create(const char* id, struct Scope *scope);
 void ASTNode_add_child(ASTNode *parent, ASTNode *child);
+void ASTNode_add_attr_int(ASTNode *node, const char* key, int value);
 void ASTNode_print(struct ASTNode *node);
-
+bool ASTNode_id_is(ASTNode *node, const char* id);
 #endif

@@ -64,11 +64,17 @@ void yyerror(struct ASTNode **cur, const char *s);
 %type <intValue> Number
 
 %type <astNode> CompUnit GlobalFuncDef MainFuncDef Block BlockItem Stmt 
-%type <astNode> Exp AddExp MulExp UnaryExp LVal
+%type <astNode> Exp UnaryExp PrimaryExp UnaryOp 
 
 %type <valueSymbol> VarDecl VarDefList VarDef Decl GlobalDecl
 
 %type <valueType> PrimaryType
+%left Or
+%left And
+%left Equal NotEq
+%left Greater GreaterEq Less LessEq
+%left Plus Minus
+%left Div Mult Mod
 
 %parse-param {struct ASTNode **root}
 
@@ -174,7 +180,7 @@ PrimaryType: Int { $$ = INT; }
 
 Stmt: LVal Assign Exp SemiCon {$$ = ASTNode_create("Assign", NULL); /* ToDo: Add $1 */ ASTNode_add_child($$, $3);}
     | SemiCon { $$ = ASTNode_create("NOP", NULL); }
-    | Exp SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
+    | Exp SemiCon { $$ = ASTNode_create("Exp", NULL); ASTNode_add_child($$, $1); }
     | Block {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | IfStmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
     | While LeftParent Cond RightParent Stmt {print_tokens(@$.last_line, @$.last_column); printf("<Stmt>\n");}
@@ -217,32 +223,31 @@ ArrayLocatorList: ArrayLocator
                 | ArrayLocator ArrayLocatorList
                 ;
 
-/* Exp: AddExp {$$ = ASTNode_create("Exp", NULL); } */
-   /* ; */
-
-/* AddExp: MulExp { $$ = $1; printf("<AddExp>\n");}
-      | AddExp Plus MulExp { ASTNode_create("Add", NULL); ASTNode_add_child($1, $3); $$ = $1; }
-      | AddExp Minus MulExp { printf("<AddExp>\n");}
-      ;
-
-MulExp: UnaryExp { $$ = $1; printf("<MulExp>\n");}
-      | MulExp Mult UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<MulExp>\n");}
-      | MulExp Div UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<MulExp>\n");}
-      | MulExp Mod UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<MulExp>\n");}
-      ; */
-
-Exp: 
-    | Exp Plus Exp { $$ = ASTNode_create("Add", NULL); ASTNode_add_child($1, $3); }
-    | Exp Minus Exp { $$ = ASTNode_create("Sub", NULL); ASTNode_add_child($1, $3); }
-    | Exp Mult Exp { $$ = ASTNode_create("Mul", NULL); ASTNode_add_child($1, $3); }
-    | Exp Div Exp { $$ = ASTNode_create("Div", NULL); ASTNode_add_child($1, $3); }
-    | Exp Mod Exp { $$ = ASTNode_create("Mod", NULL); ASTNode_add_child($1, $3); }
-    | UnaryExp { $$ = $1; }
+Exp:  Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        }
+    | Exp And Exp       { $$ = createOpNode("And", $1, $3);       }
+    | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     }
+    | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     }
+    | Exp Less Exp      { $$ = createOpNode("Less", $1, $3);      }
+    | Exp Greater Exp   { $$ = createOpNode("Greater", $1, $3);   }
+    | Exp LessEq Exp    { $$ = createOpNode("LessEq", $1, $3);    }
+    | Exp GreaterEq Exp { $$ = createOpNode("GreaterEq", $1, $3); }
+    | Exp Plus Exp      { $$ = createOpNode("Plus", $1, $3);      }
+    | Exp Minus Exp     { $$ = createOpNode("Minus", $1, $3);     }
+    | Exp Mult Exp      { $$ = createOpNode("Mult", $1, $3);      }
+    | Exp Div Exp       { $$ = createOpNode("Div", $1, $3);       }
+    | Exp Mod Exp       { $$ = createOpNode("Mod", $1, $3);       }
+    | UnaryExp          { $$ = $1; }
     ;
-UnaryExp: PrimaryExp {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}
+
+UnaryExp: PrimaryExp { $$ = $1; }
         | Identifier LeftParent FuncRParams RightParent {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}
         | UnaryOp UnaryExp {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}
         ; 
+
+PrimaryExp: LVal {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
+          | Number { $$ = ASTNode_create("Number", NULL); ASTNode_add_attr_int($$, "value", $1);}
+          | LeftParent Exp RightParent {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
+          ;
 
 UnaryOp: Plus {print_tokens(@$.last_line, @$.last_column); printf("<UnaryOp>\n");}
        | Minus {print_tokens(@$.last_line, @$.last_column); printf("<UnaryOp>\n");}
@@ -257,36 +262,12 @@ FuncRParamList: Exp
               | Exp Comma FuncRParamList 
               ;
 
-PrimaryExp: LVal {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
-          | Number {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
-          | LeftParent Exp RightParent {print_tokens(@$.last_line, @$.last_column); printf("<PrimaryExp>\n");}
-          ;
+Number: IntegerConst { $$ = $1;};
 
-Number: IntegerConst { $$ = $1; print_tokens(@$.last_line, @$.last_column); printf("<Number>\n");};
+Cond: Exp {print_tokens(@$.last_line, @$.last_column); printf("<Cond>\n");}
+    ;
 
-Cond: LOrExp {print_tokens(@$.last_line, @$.last_column); printf("<Cond>\n");};
-
-LOrExp: LAndExp {print_tokens(@$.last_line, @$.last_column); printf("<LOrExp>\n");}
-      | LOrExp Or LAndExp {print_tokens(@$.last_line, @$.last_column); printf("<LOrExp>\n");}
-      ;
-
-LAndExp: EqExp {print_tokens(@$.last_line, @$.last_column); printf("<LAndExp>\n");}
-       | LAndExp And EqExp {print_tokens(@$.last_line, @$.last_column); printf("<LAndExp>\n");}
-       ;
-
-EqExp: RelExp {print_tokens(@$.last_line, @$.last_column); printf("<EqExp>\n");}
-     | EqExp Equal RelExp {print_tokens(@$.last_line, @$.last_column); printf("<EqExp>\n");}
-     | EqExp NotEq RelExp {print_tokens(@$.last_line, @$.last_column); printf("<EqExp>\n");}
-     ;
-
-RelExp: AddExp {print_tokens(@$.last_line, @$.last_column); printf("<RelExp>\n");}
-      | RelExp Less AddExp {print_tokens(@$.last_line, @$.last_column); printf("<RelExp>\n");}
-      | RelExp Greater AddExp {print_tokens(@$.last_line, @$.last_column); printf("<RelExp>\n");}
-      | RelExp LessEq AddExp {print_tokens(@$.last_line, @$.last_column); printf("<RelExp>\n");}
-      | RelExp GreaterEq AddExp {print_tokens(@$.last_line, @$.last_column); printf("<RelExp>\n");}
-      ;
-
-ConstExp: AddExp {print_tokens(@$.last_line, @$.last_column); printf("<ConstExp>\n");}
+ConstExp: Exp {print_tokens(@$.last_line, @$.last_column); printf("<ConstExp>\n");}
         ;
 %%
 
