@@ -224,20 +224,20 @@ ArrayLocatorList: ArrayLocator
                 ;
 
 Exp:  Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        }
-    | Exp And Exp       { $$ = createOpNode("And", $1, $3);       }
-    | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     }
-    | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     }
-    | Exp Less Exp      { $$ = createOpNode("Less", $1, $3);      }
-    | Exp Greater Exp   { $$ = createOpNode("Greater", $1, $3);   }
-    | Exp LessEq Exp    { $$ = createOpNode("LessEq", $1, $3);    }
-    | Exp GreaterEq Exp { $$ = createOpNode("GreaterEq", $1, $3); }
-    | Exp Plus Exp      { $$ = createOpNode("Plus", $1, $3);      }
-    | Exp Minus Exp     { $$ = createOpNode("Minus", $1, $3);     }
-    | Exp Mult Exp      { $$ = createOpNode("Mult", $1, $3);      }
-    | Exp Div Exp       { $$ = createOpNode("Div", $1, $3);       }
-    | Exp Mod Exp       { $$ = createOpNode("Mod", $1, $3);       }
-    | UnaryExp          { $$ = $1; }
-    ;
+   | Exp And Exp       { $$ = createOpNode("And", $1, $3);       }
+   | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     }
+   | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     }
+   | Exp Less Exp      { $$ = createOpNode("Less", $1, $3);      }
+   | Exp Greater Exp   { $$ = createOpNode("Greater", $1, $3);   }
+   | Exp LessEq Exp    { $$ = createOpNode("LessEq", $1, $3);    }
+   | Exp GreaterEq Exp { $$ = createOpNode("GreaterEq", $1, $3); }
+   | Exp Plus Exp      { $$ = createOpNode("Plus", $1, $3);      }
+   | Exp Minus Exp     { $$ = createOpNode("Minus", $1, $3);     }
+   | Exp Mult Exp      { $$ = createOpNode("Mult", $1, $3);      }
+   | Exp Div Exp       { $$ = createOpNode("Div", $1, $3);       }
+   | Exp Mod Exp       { $$ = createOpNode("Mod", $1, $3);       }
+   | UnaryExp          { $$ = $1; }
+   ;
 
 UnaryExp: PrimaryExp { $$ = $1; }
         | Identifier LeftParent FuncRParams RightParent {print_tokens(@$.last_line, @$.last_column); printf("<UnaryExp>\n");}
