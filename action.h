@@ -10,7 +10,7 @@ ValueSymbol *addVSArray(struct ValueSymbol *array, struct ValueSymbol *vSymbol);
 
 FunctionSymbol *addFSArray(FunctionSymbol *array, FunctionSymbol *fSymbol);
 
-void modifyVSType(struct ValueSymbol *array, enum ValueType type);
+void modifyVSType(struct ValueSymbol *array, enum ValueType type, bool isConst);
 
 ValueSymbol *appendVSList(ValueSymbol *array, ValueSymbol *array2);
 

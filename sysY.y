@@ -64,12 +64,15 @@ void yyerror(struct ASTNode **cur, const char *s);
 %type <intValue> Number
 
 %type <astNode> CompUnit MainFuncDef Block BlockItem Stmt LVal 
-                ConstExp Exp UnaryExp PrimaryExp ExpWrapper ArrayDecl InitValue InitValList
+                ConstExp Exp UnaryExp PrimaryExp ExpWrapper ArrayDecl InitValue InitValList ConstInitValue ConstInitValList
                 IfStmt Cond FuncRParams FuncRParamList
 
 %type <strValue> UnaryOp
 
-%type <valueSymbol> VarDecl VarDefList VarDef Decl GlobalDecl FuncFParams FuncFParamList FuncFParam
+%type <valueSymbol> VarDecl VarDefList VarDef 
+                    ConstDecl ConstDefList ConstDef 
+                    Decl GlobalDecl 
+                    FuncFParams FuncFParamList FuncFParam
 
 %type <funcSymbol> GlobalFuncDef FuncDef
 
@@ -107,31 +110,31 @@ GlobalFuncDef: /* empty */ { $$ = NULL; }
              | GlobalFuncDef FuncDef { $$ = addFSArray($1, $2);  }
              ;
 
-Decl: VarDecl { $$ = $1; }
-    | ConstDecl 
+Decl: VarDecl
+    | ConstDecl
     ;
 
-ConstDecl: Const PrimaryType ConstDefList SemiCon {print_tokens(@$.last_line, @$.last_column); printf("<ConstDecl>\n");}
+ConstDecl: Const PrimaryType ConstDefList SemiCon { modifyVSType($3, $2, true); $$ = $3; }
          ;
 
-ConstDefList: ConstDef
-            | ConstDefList Comma ConstDef
+ConstDefList: ConstDef { $$ = addVSArray(NULL, $1); }
+            | ConstDefList Comma ConstDef { $$ = addVSArray($1, $3);}
             ;
 
-ConstDef: Identifier Assign ConstInitValue {print_tokens(@$.last_line, @$.last_column); printf("<ConstDef>\n");}
-        | Identifier ArrayDecl Assign ConstInitValue {print_tokens(@$.last_line, @$.last_column); printf("<ConstDef>\n");}
+ConstDef: Identifier Assign ConstInitValue { $$ = ValueSymbol_create($1, ANY, $3); }
+        | Identifier ArrayDecl Assign ConstInitValue { $$ = ValueSymbol_create_array($1, ANY_ARRAY, $2, $4); }
         ;
 
-ConstInitValue: ConstExp {print_tokens(@$.last_line, @$.last_column); printf("<ConstInitVal>\n");}
-              | LeftBrace ConstInitValList RightBrace {print_tokens(@$.last_line, @$.last_column); printf("<ConstInitVal>\n");}
+ConstInitValue: ConstExp { $$ = ASTNode_create("ConstInitValue", NULL); ASTNode_add_child($$, $1); }
+              | LeftBrace ConstInitValList RightBrace { $$ = $2; }
               ;
 
-ConstInitValList: /* empty */
-                | ConstInitValue
-                | ConstInitValList Comma ConstInitValue
+ConstInitValList: /* empty */ { $$ = ASTNode_create("ConstInitValue", NULL); }
+                | ConstInitValue { $$ = ASTNode_create("ConstInitValue", NULL); ASTNode_add_child($$, $1);}
+                | ConstInitValList Comma ConstInitValue { $$ = $1; ASTNode_add_child($$, $3); }
                 ;
 
-VarDecl: PrimaryType VarDefList SemiCon { modifyVSType($2, $1); $$ = $2; }
+VarDecl: PrimaryType VarDefList SemiCon { modifyVSType($2, $1, false); $$ = $2; }
        ;
 
 VarDefList: VarDef { $$ = addVSArray(NULL, $1); }
@@ -139,7 +142,7 @@ VarDefList: VarDef { $$ = addVSArray(NULL, $1); }
           ;
 
 VarDef: Identifier { $$ = ValueSymbol_create($1, ANY, NULL); }
-      | Identifier Assign InitValue { $$ = ValueSymbol_create($1, ANY, NULL); }
+      | Identifier Assign InitValue { $$ = ValueSymbol_create($1, ANY, $3); }
       | Identifier ArrayDecl { $$ = ValueSymbol_create_array($1, ANY_ARRAY, $2, NULL); }
       | Identifier ArrayDecl Assign InitValue { $$ = ValueSymbol_create_array($1, ANY_ARRAY, $2, $4); }
       ;

@@ -14,20 +14,12 @@ struct ValueSymbol *ValueSymbol_create(const char* id, enum ValueType type, void
     vSymbol->id = strdup(id);
     vSymbol->type = type;
 
-    if (constValue == NULL) {
+        if (constValue == NULL) {
         vSymbol->hasInitVal = false;
         return vSymbol;
     } else {
         vSymbol->hasInitVal = true;
-    }
-    switch (type)
-    {
-    case INT:
-        vSymbol->constVal.intVal = *(int *)constValue;
-        break;
-    
-    default:
-        break;
+        vSymbol->constVal.initValue = (ASTNode *)constValue;
     }
 
     return vSymbol;
@@ -55,16 +47,20 @@ void ValueSymbol_print(struct ValueSymbol *self) {
     if (self->hasInitVal) {
         switch (self->type)
         {
-        case INT:
-            printf(" value=\"%d\"", self->constVal.intVal);
-            break;
+        case INT: break;
         case INT_ARRAY: break;
         default:
             printf(" value");
             break;
         }
     }
-    if (self->type == INT_ARRAY && self->extra.arraySize != NULL) {
+    if (self->type == INT && self->hasInitVal) {
+        printf(">\n");
+        ASTNode_print(self->constVal.initValue);
+        printf("</Int>\n");
+    } else if (self->type == INT && !self->hasInitVal) {
+        printf("/>\n");
+    } else if (self->type == INT_ARRAY && self->extra.arraySize != NULL) {
         printf(">\n");
         ASTNode_print(self->extra.arraySize);
         ASTNode_print(self->constVal.initValue);
