@@ -21,7 +21,7 @@ TEST_DIR=test
 
 GEN_FILES = lex.yy.c y.* $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.*
 
-SRC = lex.yy.c y.tab.c token.c sym.c ast.c action.c
+SRC = main.c lex.yy.c y.tab.c token.c sym.c ast.c action.c
 OBJ = $(SRC:.c=.o)
 
 lexer: $(TEST_DIR)/lexer
