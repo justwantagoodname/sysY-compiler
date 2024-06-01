@@ -45,40 +45,30 @@ ASTNode *createOpNode(const char *op, ASTNode *left, ASTNode *right) {
     assert(left != NULL);
     assert(right != NULL);
 
-    ASTNode *node = ASTNode_create(op, NULL);
+    ASTNode *node = ASTNode_create(op);
     ASTNode_add_child(node, left);
     ASTNode_add_child(node, right);
 
     return node;
 }
 
-ASTNode *addASTList(ASTNode *list, ASTNode *target) {
-    assert(target != NULL);
-
-    target->next = target->prev = NULL;
-
-    DL_APPEND(list, target);
-
-    return list;
-}
-
 ASTNode *createIfNode(ASTNode *cond, ASTNode *then, ASTNode *elseStmt) {
     assert(cond != NULL);
     assert(then != NULL);
 
-    ASTNode *node = ASTNode_create("If", NULL);
+    ASTNode *node = ASTNode_create("If");
 
     // wrapper cond in a condition node
-    ASTNode *condNode = ASTNode_create("Cond", NULL);
+    ASTNode *condNode = ASTNode_create("Cond");
     ASTNode_add_child(condNode, cond);
     ASTNode_add_child(node, condNode);
 
-    ASTNode *thenNode = ASTNode_create("Then", NULL);
+    ASTNode *thenNode = ASTNode_create("Then");
     ASTNode_add_child(thenNode, then);
     ASTNode_add_child(node, thenNode);
 
     if (elseStmt != NULL) {
-        ASTNode *elseNode = ASTNode_create("Else", NULL);
+        ASTNode *elseNode = ASTNode_create("Else");
         ASTNode_add_child(elseNode, elseStmt);
         ASTNode_add_child(node, elseNode);
     }
@@ -90,14 +80,14 @@ ASTNode *createWhileNode(ASTNode *cond, ASTNode *stmt) {
     assert(cond != NULL);
     assert(stmt != NULL);
 
-    ASTNode *node = ASTNode_create("While", NULL);
+    ASTNode *node = ASTNode_create("While");
 
     // wrapper cond in a condition node
-    ASTNode *condNode = ASTNode_create("Cond", NULL);
+    ASTNode *condNode = ASTNode_create("Cond");
     ASTNode_add_child(condNode, cond);
     ASTNode_add_child(node, condNode);
 
-    ASTNode *stmtNode = ASTNode_create("Stmt", NULL);
+    ASTNode *stmtNode = ASTNode_create("Stmt");
     ASTNode_add_child(stmtNode, stmt);
     ASTNode_add_child(node, stmtNode);
 

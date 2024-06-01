@@ -93,12 +93,12 @@ void yyerror(struct ASTNode **cur, const char *s);
 CompUnit: GlobalDecl GlobalFuncDef MainFuncDef { Scope *global = Scope_create(NULL, "Global"); 
                                                  global->vSymbols = $1;
                                                  global->fSymbols = $2;
-                                                 *root = $$ = ASTNode_create("CompUnit", global);
+                                                 *root = $$ = ASTNode_create("CompUnit");
                                                  ASTNode_add_child($$, $3);
                                                 }
         ;
 
-MainFuncDef: Int Main LeftParent RightParent Block { $$ = ASTNode_create("Main", NULL); 
+MainFuncDef: Int Main LeftParent RightParent Block { $$ = ASTNode_create("Main"); 
                                                      ASTNode_add_child($$, $5); }
            ;
 
@@ -125,12 +125,12 @@ ConstDef: Identifier Assign ConstInitValue { $$ = ValueSymbol_create($1, ANY, $3
         | Identifier ArrayDecl Assign ConstInitValue { $$ = ValueSymbol_create_array($1, ANY_ARRAY, $2, $4); }
         ;
 
-ConstInitValue: ConstExp { $$ = ASTNode_create("ConstInitValue", NULL); ASTNode_add_child($$, $1); }
+ConstInitValue: ConstExp { $$ = ASTNode_create("ConstInitValue"); ASTNode_add_child($$, $1); }
               | LeftBrace ConstInitValList RightBrace { $$ = $2; }
               ;
 
-ConstInitValList: /* empty */ { $$ = ASTNode_create("ConstInitValue", NULL); }
-                | ConstInitValue { $$ = ASTNode_create("ConstInitValue", NULL); ASTNode_add_child($$, $1);}
+ConstInitValList: /* empty */ { $$ = ASTNode_create("ConstInitValue"); }
+                | ConstInitValue { $$ = ASTNode_create("ConstInitValue"); ASTNode_add_child($$, $1);}
                 | ConstInitValList Comma ConstInitValue { $$ = $1; ASTNode_add_child($$, $3); }
                 ;
 
@@ -147,16 +147,16 @@ VarDef: Identifier { $$ = ValueSymbol_create($1, ANY, NULL); }
       | Identifier ArrayDecl Assign InitValue { $$ = ValueSymbol_create_array($1, ANY_ARRAY, $2, $4); }
       ;
 
-ArrayDecl: LeftBrack ConstExp RightBrack { $$ = ASTNode_create("ArrayDecl", NULL); ASTNode_add_child($$, $2); } 
+ArrayDecl: LeftBrack ConstExp RightBrack { $$ = ASTNode_create("ArrayDecl"); ASTNode_add_child($$, $2); } 
          | ArrayDecl LeftBrack ConstExp RightBrack  { $$ = $1; ASTNode_add_child($$, $3); }
          ;
 
-InitValue: ExpWrapper { $$ = ASTNode_create("InitValue", NULL); ASTNode_add_child($$, $1); }
+InitValue: ExpWrapper { $$ = ASTNode_create("InitValue"); ASTNode_add_child($$, $1); }
          | LeftBrace InitValList RightBrace { $$ = $2; }
          ;
 
-InitValList: /* empty */ { $$ = ASTNode_create("InitValue", NULL); }
-           | InitValue { $$ = ASTNode_create("InitValue", NULL); ASTNode_add_child($$, $1);}
+InitValList: /* empty */ { $$ = ASTNode_create("InitValue"); }
+           | InitValue { $$ = ASTNode_create("InitValue"); ASTNode_add_child($$, $1);}
            | InitValList Comma InitValue { $$ = $1; ASTNode_add_child($$, $3); }
            ;
 
@@ -176,12 +176,12 @@ FuncFParamList: FuncFParam { $$ = addVSArray(NULL, $1); }
               ;
 
 FuncFParam: PrimaryType Identifier { $$ = ValueSymbol_create($2, $1, NULL); }
-          | PrimaryType Identifier LeftBrack RightBrack { ASTNode* len = ASTNode_create("Unknown", NULL); 
-                                                          ASTNode* decl = ASTNode_create("ArrayDecl", NULL);
+          | PrimaryType Identifier LeftBrack RightBrack { ASTNode* len = ASTNode_create("Unknown"); 
+                                                          ASTNode* decl = ASTNode_create("ArrayDecl");
                                                           ASTNode_add_child(decl, len);
                                                           $$ = ValueSymbol_create_array($2, $1 + 1, decl, NULL);
                                                         } 
-          | PrimaryType Identifier LeftBrack RightBrack ArrayDecl { ASTNode* len = ASTNode_create("Unknown", NULL); 
+          | PrimaryType Identifier LeftBrack RightBrack ArrayDecl { ASTNode* len = ASTNode_create("Unknown"); 
                                                                     ASTNode_lpush_child($5, len);
                                                                     $$ = ValueSymbol_create_array($2, $1 + 1, $5, NULL);
                                                                   } 
@@ -189,7 +189,7 @@ FuncFParam: PrimaryType Identifier { $$ = ValueSymbol_create($2, $1, NULL); }
 
 Block: LeftBrace BlockItem RightBrace { $$ = $2; };
 
-BlockItem:  /* empty */ { $$ = ASTNode_create("Block", NULL); /* TODO: Add Scope */ }
+BlockItem:  /* empty */ { $$ = ASTNode_create("Block"); /* TODO: Add Scope */ }
          | BlockItem Decl { /* TODO: collect decls to scope */ }
          | BlockItem Stmt { ASTNode_add_child($1, $2); $$ = $1; }
          ;
@@ -197,16 +197,16 @@ BlockItem:  /* empty */ { $$ = ASTNode_create("Block", NULL); /* TODO: Add Scope
 PrimaryType: Int { $$ = INT; }
            ;
 
-Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign", NULL); ASTNode* dest = ASTNode_create("Dest", NULL); ASTNode_add_child(dest, $1); ASTNode_add_child($$, dest); ASTNode_add_child($$, $3);}
-    | SemiCon { $$ = ASTNode_create("NOP", NULL); }
+Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign"); ASTNode* dest = ASTNode_create("Dest"); ASTNode_add_child(dest, $1); ASTNode_add_child($$, dest); ASTNode_add_child($$, $3);}
+    | SemiCon { $$ = ASTNode_create("NOP"); }
     | ExpWrapper SemiCon { $$ = $1; }
     | Block { $$ = $1; /* TODO: Add new scope */ }
     | IfStmt { $$ = $1; }
     | While LeftParent Cond RightParent Stmt { $$ = createWhileNode($3, $5);}
-    | Return ExpWrapper SemiCon { $$ = ASTNode_create("Return", NULL); ASTNode_add_child($$, $2);}
-    | Return SemiCon {$$ = ASTNode_create("Return", NULL);}
-    | Break SemiCon { $$ = ASTNode_create("Break", NULL); }
-    | Continue SemiCon { $$ = ASTNode_create("Continue", NULL); }
+    | Return ExpWrapper SemiCon { $$ = ASTNode_create("Return"); ASTNode_add_child($$, $2);}
+    | Return SemiCon {$$ = ASTNode_create("Return");}
+    | Break SemiCon { $$ = ASTNode_create("Break"); }
+    | Continue SemiCon { $$ = ASTNode_create("Continue"); }
     ;
 
 /* attach else to cloest if stmt */
@@ -215,8 +215,8 @@ IfStmt: If LeftParent Cond RightParent Stmt { $$ = createIfNode($3, $5, NULL); }
       | If LeftParent Cond RightParent Stmt Else Stmt { $$ = createIfNode($3, $5, $7);} %dprec 1
       ;
 
-LVal: Identifier { $$ = ASTNode_create("Address", NULL); ASTNode_add_attr_str($$, "base", $1); }
-    | Identifier ArrayLocatorList { $$ = ASTNode_create("Fetch", NULL); ASTNode_add_attr_str($$, "base", $1); /* TODO: calc base */ }
+LVal: Identifier { $$ = ASTNode_create("Address"); ASTNode_add_attr_str($$, "base", $1); }
+    | Identifier ArrayLocatorList { $$ = ASTNode_create("Fetch"); ASTNode_add_attr_str($$, "base", $1); /* TODO: calc base */ }
     ;
 
 ArrayLocator: LeftBrack Exp RightBrack
@@ -226,7 +226,7 @@ ArrayLocatorList: ArrayLocator
                 | ArrayLocator ArrayLocatorList
                 ;
 
-ExpWrapper: Exp { $$ = ASTNode_create("Exp", NULL); ASTNode_add_child($$, $1); }
+ExpWrapper: Exp { $$ = ASTNode_create("Exp"); ASTNode_add_child($$, $1); }
           ;
 
 Exp: Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        }
@@ -246,12 +246,15 @@ Exp: Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        }
    ;
 
 UnaryExp: PrimaryExp { $$ = $1; }
-        | Identifier LeftParent FuncRParams RightParent { $$ = ASTNode_create("Call", NULL); ASTNode_add_attr_str($$, "name", $1); $$->children = $3; }
-        | UnaryOp UnaryExp { $$ = ASTNode_create($1, NULL); ASTNode_add_child($$, $2); }
+        | Identifier LeftParent FuncRParams RightParent { $$ = ASTNode_create("Call"); 
+                                                          ASTNode_add_attr_str($$, "name", $1); 
+                                                          ASTNode_move_children($3, $$);
+                                                          ASTNode_free($3); }
+        | UnaryOp UnaryExp { $$ = ASTNode_create($1); ASTNode_add_child($$, $2); }
         ; 
 
-PrimaryExp: LVal { $$ = ASTNode_create("Fetch", NULL); ASTNode_add_child($$, $1); }
-          | Number { $$ = ASTNode_create("Number", NULL); ASTNode_add_attr_int($$, "value", $1);}
+PrimaryExp: LVal { $$ = ASTNode_create("Fetch"); ASTNode_add_child($$, $1); }
+          | Number { $$ = ASTNode_create("Number"); ASTNode_add_attr_int($$, "value", $1);}
           | LeftParent Exp RightParent { $$ = $2; }
           ;
 
@@ -264,15 +267,21 @@ FuncRParams: /* empty */    { $$ = NULL;}
            | FuncRParamList { $$ = $1;  }
            ;
 
-FuncRParamList: ExpWrapper { $$ = NULL; ASTNode* param = ASTNode_create("Param", NULL); ASTNode_add_child(param, $1); $$ = addASTList($$, param); }
-              | StringConst { $$ = NULL; 
-                              ASTNode* param = ASTNode_create("Param", NULL); 
+FuncRParamList: ExpWrapper  { 
+                              $$ = ASTNode_create("ParamArray");
+                              ASTNode* param = ASTNode_create("Param"); 
+                              ASTNode_add_child($$, param);
+                              ASTNode_add_child(param, $1); 
+                            }
+              | StringConst { 
+                              $$ = ASTNode_create("ParamArray");
+                              ASTNode* param = ASTNode_create("Param"); 
+                              ASTNode_add_child($$, param);
                               char* strContent = trimQuoteStr($1); 
                               ASTNode_add_attr_str(param, "value", strContent);
                               free(strContent);
-                              $$ = addASTList($$, param); 
-                              }
-              | FuncRParamList Comma ExpWrapper { $$ = $1; ASTNode* param = ASTNode_create("Param", NULL); ASTNode_add_child(param, $3); addASTList($$, param); }
+                            }
+              | FuncRParamList Comma ExpWrapper { $$ = $1; ASTNode* param = ASTNode_create("Param"); ASTNode_add_child(param, $3); ASTNode_add_child($$, param); }
               ;
 
 Number: IntegerConst
@@ -325,7 +334,5 @@ int main(int argc, const char** argv) {
   if (result == 0) {
     printf("====AST Info====\n");
     ASTNode_print(root);
-    printf("====Symbol Table Info====\n");
-    Scope_print(root->scope);
   }
 }
