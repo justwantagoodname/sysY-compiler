@@ -19,34 +19,27 @@ endif
 ZIP = zip
 TEST_DIR=test
 
-GEN_FILES = lex.yy.c y.* $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.*
+GEN_FILES = lex.yy.c y.* $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* $(TEST_DIR)/compiler $(TEST_DIR)/compiler.*
 
-SRC = main.c lex.yy.c y.tab.c token.c sym.c ast.c action.c
+SRC = main.c sysY.yy.c sysY.tab.c token.c sym.c ast.c action.c
 OBJ = $(SRC:.c=.o)
 
-lexer: $(TEST_DIR)/lexer
-parser: $(TEST_DIR)/parser
+compiler: $(TEST_DIR)/compiler
 
-$(TEST_DIR)/lexer: lex.yy.o
-	$(CC) $^ -o $@ $(LDFLAGS)
-
-$(TEST_DIR)/parser:	$(OBJ)
+$(TEST_DIR)/compiler:	$(OBJ)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-lex.yy.c: y.tab.h sysY.l
-	$(LEX) sysY.l
+sysY.yy.c: sysY.tab.h sysY.l
+	$(LEX) -o $@ sysY.l
 
-y.tab.h y.tab.c: sysY.y
-	$(YACC) -vdt -b y sysY.y
+sysY.tab.h sysY.tab.c: sysY.y
+	$(YACC) -vdt -b sysY sysY.y
 
-test-lex: $(TEST_DIR)/lexer
-	$(CLEAR) && date && cd test && ./lexer
-
-test-parser: $(TEST_DIR)/parser
-	$(CLEAR) && date && cd test && ./parser -o -
+test-compiler: $(TEST_DIR)/compiler
+	$(CLEAR) && date && cd test && ./compiler -o -
 
 submission.zip: y.tab.h y.tab.c lex.yy.c
 	$(ZIP) submission.zip -r y.tab.h y.tab.c lex.yy.c $(wildcard *.c) $(wildcard *.h) lib
@@ -57,10 +50,10 @@ clean:
 	$(RM) -f $(GEN_FILES) $(OBJ) submission.zip
 
 dev:
-	echo *.c *.h sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-parser
+	echo *.c *.h sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-compiler
 
-all: parser
+all: compiler
 
-.PHONY: clean test-lex test-parser lexer parser dev zip
+.PHONY: clean dev zip test-compiler compiler
 
-.DEFAULT_GOAL = test-parser
+.DEFAULT_GOAL = test-compiler

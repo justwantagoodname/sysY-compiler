@@ -1,7 +1,4 @@
-
-int f(int a[], int b[][10][20]) {
-
-}
+int a, b, c;
 
 int main() {
     printf("Hello", 1, 2);

@@ -1,8 +1,10 @@
-y.*
+*.tab.*
+*.output
 *.zip
 *.yy.c
 *.o
 test/lexer
 test/parser
+test/compiler
 test/*.exe
 test/output.*

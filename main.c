@@ -1,5 +1,4 @@
 #include "sysY.h"
-#include "token.h"
 #include "sym.h"
 #include "ast.h"
 #include "action.h"

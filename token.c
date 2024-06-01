@@ -1,14 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "lib/utlist.h"
-#include "sym.h"
-#include "y.tab.h"
+/* Deprecated */
 #include "token.h"
-
-extern YYLTYPE yylloc;
-
-struct TokenInfo *head;
 
 void push_token(const char *name, const char* literal) {
 #if 0

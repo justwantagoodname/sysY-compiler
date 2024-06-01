@@ -3,9 +3,7 @@
 #include "sysY.h"
 #include "token.h"
 #include "sym.h"
-#include "y.tab.h"
-
-
+#include "sysY.tab.h"
 
 #define YY_USER_ACTION \
     do { \
@@ -92,30 +90,3 @@ Whitespaces [ \f\n\r\t\v]
 int yywrap() {
     return 1;
 }
-
-
-
-#ifdef CC_LAB_LEXICAL
-int main(int argc, char *argv[]) {
-    if (argc == 2) {
-        filename = argv[1];
-    }
-
-    yyin = fopen(filename, "r");
-    yyout = fopen("output.txt", "w");
-
-#if 0
-    char c;
-    while ((c = fgetc(yyin)) != EOF) {
-        if (c == '\n') continue;
-        printf("%c", c);
-    }
-    printf("\n");
-    rewind(yyin);
-#endif
-
-    yylex();
-    return 0;
-}
-
-#endif
