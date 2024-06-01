@@ -19,7 +19,7 @@ endif
 ZIP = zip
 TEST_DIR=test
 
-GEN_FILES = lex.yy.c y.* $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* $(TEST_DIR)/compiler $(TEST_DIR)/compiler.*
+GEN_FILES = lex.yy.c y.* $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* $(TEST_DIR)/compiler $(TEST_DIR)/compiler.* submission.zip
 
 SRC = main.c sysY.yy.c sysY.tab.c token.c sym.c ast.c action.c
 OBJ = $(SRC:.c=.o)
@@ -47,7 +47,7 @@ submission.zip: y.tab.h y.tab.c lex.yy.c
 zip: submission.zip
 
 clean:
-	$(RM) -f $(GEN_FILES) $(OBJ) submission.zip
+	$(RM) $(GEN_FILES) $(OBJ)
 
 dev:
 	echo *.c *.h sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-compiler
