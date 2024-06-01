@@ -19,7 +19,7 @@ endif
 ZIP = zip
 TEST_DIR=test
 
-GEN_FILES = lex.yy.c y.* $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* $(TEST_DIR)/compiler $(TEST_DIR)/compiler.* submission.zip
+GEN_FILES = sysY.yy.c sysY.tab.c sysY.tab.h sysY.output $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* $(TEST_DIR)/compiler $(TEST_DIR)/compiler.* submission.zip
 
 SRC = main.c sysY.yy.c sysY.tab.c token.c sym.c ast.c action.c
 OBJ = $(SRC:.c=.o)
