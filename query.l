@@ -31,7 +31,6 @@ String \".*\"
 
 char* stringBody(const char* text) {
     size_t len = strlen(text);
-    // 分配新的字符串，长度为原字符串长度减去2（去掉双引号），并添加终止符
     char* result = (char*)malloc((len - 1) * sizeof(char));
     strncpy(result, text + 1, len - 2);
     result[len - 2] = '\0';

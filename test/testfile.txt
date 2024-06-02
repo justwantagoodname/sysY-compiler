@@ -1,5 +1,6 @@
 int a, b, c;
 
 int main() {
-    printf("Hello", 1, 2);
+    add(1);
+    1 + 1;
 }

@@ -1,10 +1,33 @@
 %{
 #include "sysY.h"
+#include "ast.h"
+int count = 0;
+
+struct SearchParam {
+  const char* id;
+};
+typedef struct SearchParam SearchParam;
+
+typedef QueryResult* (*SearchFunc)(QueryResult*, const SearchParam*);
+
+#define moveList(src, dest) do { if ((src) != (dest)) freeList(&(dest)); (dest) = (src); (src) = NULL; } while(0);
+#define copyList(src, dest) do { \
+                                  if ((src) != (dest)) { \
+                                    freeList(&(dest));   \
+                                    QueryResult *cur = NULL; \
+                                    DL_FOREACH((src), (cur)) { QueryResult *record = QueryResult_create(cur->node); DL_APPEND((dest), record); } \
+                                  }} while (0);
+void freeList(QueryResult **list);
+void execSearch(QueryResult **list, QueryResult **result, SearchFunc func, const SearchParam *param);
+QueryResult* searchChildName(QueryResult* cur, const SearchParam* param);
 %}
 %define api.pure full
 %define api.prefix {qq}
 
 %param {yyscan_t scanner}
+
+%parse-param {struct QueryResult **result}
+%parse-param {struct QueryResult **last}
 
 %code requires {
   typedef void* yyscan_t;
@@ -12,7 +35,7 @@
 
 %code {
   int qqlex(QQSTYPE* yylval, yyscan_t scanner);
-  void qqerror(yyscan_t scanner, const char* msg);
+  void qqerror(yyscan_t scanner, QueryResult **result, QueryResult **last, const char* msg);
 }
 
 %union {
@@ -26,12 +49,17 @@
 %type <string> AttrName
 %%
 
-Query: %empty
-     | Query Selector
+Query: %empty { printf("Start Traveling...\n"); }
+     | Query Selector { printf("Finish %d\n", ++count); }
 
-Selector: NodeName { /* find child with id 'NodeName' or '*' for all */ }
-        | Slash    { /* ref current Node do nothing. */ }
-        | DoubleSlash NodeName { /* find id with 'NodeName' in descendents */ }
+Selector: NodeName AttrSelector { moveList(*result, *last);
+                                  SearchParam param; param.id = $1;
+                                  execSearch(last, result, searchChildName, &param);
+                                  copyList(*result, *last);
+                                  }
+        | Slash    { moveList(*last, *result);
+                     printf("Return current\n"); /* ref current node do nothing just return result. */ }
+        | DoubleSlash NodeName AttrSelector { /* find id with 'NodeName' in descendents */ }
 
 AttrSelector: %empty
             | LeftBracket Number RightBracket {  }
@@ -44,6 +72,43 @@ AttrOptions: At AttrName Equal String
 
 %%
 
-void qqerror(yyscan_t scanner, const char* msg) {
+void qqerror(yyscan_t scanner, QueryResult **result, QueryResult **last, const char* msg) {
   fprintf(stderr, "%s\n", msg);
+}
+
+void freeList(QueryResult **list) {
+  QueryResult *cur = NULL, *tmp = NULL;
+  DL_FOREACH_SAFE(*list, cur, tmp) {
+    DL_DELETE(*list, cur);
+    free(cur);
+  }
+  *list = NULL;
+}
+
+void execSearch(QueryResult **list, QueryResult **result, SearchFunc func, const SearchParam *param) {
+  assert(func != NULL);
+  assert(*result == NULL);
+  
+  if (*list == NULL) return;
+
+  QueryResult *cur = NULL;
+  DL_FOREACH(*list, cur) {
+    QueryResult *curResult = func(cur, param);
+
+    
+
+    if (curResult) DL_CONCAT(*result, curResult);
+  }
+}
+
+QueryResult *searchChildName(QueryResult* cur, const SearchParam* param) {
+  QueryResult* ret = NULL;
+  ASTNode *child = NULL;
+  DL_FOREACH(cur->node->children, child) {
+    if (ASTNode_id_is(child, param->id)) {
+      QueryResult *record = QueryResult_create(child);
+      DL_APPEND(ret, record);
+    }
+  }
+  return ret;
 }

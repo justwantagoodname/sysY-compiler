@@ -64,5 +64,6 @@ struct QueryResult {
 };
 typedef struct QueryResult QueryResult;
 
+QueryResult *QueryResult_create(ASTNode *node);
 QueryResult *ASTNode_querySelector(ASTNode *node, const char* selector);
 #endif

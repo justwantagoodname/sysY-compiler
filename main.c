@@ -8,8 +8,6 @@ extern int yyparse(struct ASTNode **root);
 extern FILE *yyin;
 
 int main(int argc, const char** argv) {
-  ASTNode_querySelector(NULL, "test");
-  
   const char *filename = "testfile.txt";
   const char* output = "output.txt";
   for (int i = 0;i < argc; i++) {
@@ -44,6 +42,15 @@ int main(int argc, const char** argv) {
   int result = yyparse(&root);
   if (result == 0) {
     printf("====AST Info====\n");
-    ASTNode_print(root);
+    // ASTNode_print(root);
+    QueryResult* result = ASTNode_querySelector(root, "/Main/Block"), *cur = NULL;
+
+    int count = 0;
+    DL_FOREACH(result, cur) {
+      printf("=== Result %d ===\n", ++count);
+      ASTNode_print(cur->node);
+      printf("=======\n");
+    }
   }
+  return 0;
 }

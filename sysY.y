@@ -7,7 +7,7 @@
 #include "action.h"
 #include "lib/uthash.h"
 
-int count;
+
 
 void yyerror(struct ASTNode **cur, const char *s);
 %}
