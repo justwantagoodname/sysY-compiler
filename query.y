@@ -17,13 +17,30 @@
 
 %union {
   char* string;
+  int number;
 }
 
-%token <string> NodeName
-
+%token <string> NodeName String
+%token <number> Number
+%token Slash DoubleSlash LeftBracket RightBracket At Equal Comma
+%type <string> AttrName
 %%
 
-Query: NodeName { printf("NodeName: %s\n", $1); }
+Query: %empty
+     | Query Selector
+
+Selector: NodeName { /* find child with id 'NodeName' or '*' for all */ }
+        | Slash    { /* ref current Node do nothing. */ }
+        | DoubleSlash NodeName { /* find id with 'NodeName' in descendents */ }
+
+AttrSelector: %empty
+            | LeftBracket Number RightBracket {  }
+            | LeftBracket AttrOptions RightBracket {}
+
+AttrName: NodeName
+
+AttrOptions: At AttrName Equal String
+           | AttrOptions Comma At AttrName Equal String
 
 %%
 

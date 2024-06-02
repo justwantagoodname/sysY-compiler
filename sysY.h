@@ -7,8 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
-extern char *yytext;
-extern FILE *yyin;
+#include <assert.h>
 
 #endif

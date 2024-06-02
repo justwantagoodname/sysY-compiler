@@ -5,10 +5,11 @@
 #include "lib/uthash.h"
 
 extern int yyparse(struct ASTNode **root);
+extern FILE *yyin;
 
 int main(int argc, const char** argv) {
   ASTNode_querySelector(NULL, "test");
-  return 0;
+  
   const char *filename = "testfile.txt";
   const char* output = "output.txt";
   for (int i = 0;i < argc; i++) {
