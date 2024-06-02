@@ -4,6 +4,7 @@
 #define AST_H
 
 #include <stdbool.h>
+#include "lib/uthash.h"
 
 enum AttributeType
 {
@@ -55,4 +56,13 @@ void ASTNode_move_children(ASTNode *from, ASTNode *to);
 void ASTNode_free(ASTNode *node);
     /* Operators */
 bool ASTNode_id_is(ASTNode *node, const char* id);
+
+    /* AST Query */
+struct QueryResult {
+    ASTNode *node;
+    struct QueryResult *next, *prev;
+};
+typedef struct QueryResult QueryResult;
+
+QueryResult *ASTNode_querySelector(ASTNode *node, const char* selector);
 #endif

@@ -11,7 +11,4 @@
 extern char *yytext;
 extern FILE *yyin;
 
-
-int yylex(void);
-
 #endif

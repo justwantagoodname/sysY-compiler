@@ -21,22 +21,28 @@ TEST_DIR=test
 
 GEN_FILES = *.yy.c *.tab.* *.output $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* $(TEST_DIR)/compiler $(TEST_DIR)/compiler.* submission.zip
 
-SRC = main.c sysY.yy.c sysY.tab.c token.c sym.c ast.c action.c
+SRC = main.c sysY.yy.c sysY.tab.c query.yy.c query.tab.c token.c sym.c ast.c action.c ast_query.c
 OBJ = $(SRC:.c=.o)
 
 compiler: $(TEST_DIR)/compiler
 
-$(TEST_DIR)/compiler:	$(OBJ)
+$(TEST_DIR)/compiler: $(OBJ)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+query.tab.h query.tab.c: query.y
+	$(YACC) -vd -b query query.y
+
+query.yy.c: query.l query.tab.h
+	$(LEX) -o $@ query.l
+
 sysY.yy.c: sysY.tab.h sysY.l
 	$(LEX) -o $@ sysY.l
 
 sysY.tab.h sysY.tab.c: sysY.y
-	$(YACC) -vdt -b sysY sysY.y
+	$(YACC) -vd -b sysY sysY.y
 
 test-compiler: $(TEST_DIR)/compiler
 	$(CLEAR) && date && cd test && ./compiler -o -
