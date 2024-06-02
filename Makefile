@@ -56,7 +56,7 @@ clean:
 	$(RM) $(GEN_FILES) $(OBJ)
 
 dev:
-	echo *.c *.h sysY.* $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-compiler
+	echo *.c *.h *.y *.l $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-compiler
 
 all: compiler
 
