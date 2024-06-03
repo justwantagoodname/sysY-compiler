@@ -20,6 +20,7 @@ typedef QueryResult* (*SearchFunc)(QueryResult*, const SearchParam*);
 void freeList(QueryResult **list);
 void execSearch(QueryResult **list, QueryResult **result, SearchFunc func, const SearchParam *param);
 QueryResult* searchChildName(QueryResult* cur, const SearchParam* param);
+QueryResult *searchDescendentName(QueryResult* cur, const SearchParam* param);
 %}
 %define api.pure full
 %define api.prefix {qq}
@@ -52,14 +53,21 @@ QueryResult* searchChildName(QueryResult* cur, const SearchParam* param);
 Query: %empty { printf("Start Traveling...\n"); }
      | Query Selector { printf("Finish %d\n", ++count); }
 
-Selector: NodeName AttrSelector { moveList(*result, *last);
+Selector: NodeName AttrSelector { freeList(result);
+                                  printf("Search for child %s\n", $1);
                                   SearchParam param; param.id = $1;
                                   execSearch(last, result, searchChildName, &param);
                                   copyList(*result, *last);
                                   }
-        | Slash    { moveList(*last, *result);
+        | Slash    { copyList(*last, *result);
                      printf("Return current\n"); /* ref current node do nothing just return result. */ }
-        | DoubleSlash NodeName AttrSelector { /* find id with 'NodeName' in descendents */ }
+        | DoubleSlash NodeName AttrSelector { /* find id with 'NodeName' in descendents */
+                                              freeList(result);
+                                              printf("Search for descendent %s\n", $2);
+                                              SearchParam param; param.id = $2;
+                                              execSearch(last, result, searchDescendentName, &param);
+                                              copyList(*result, *last);
+                                              }
 
 AttrSelector: %empty
             | LeftBracket Number RightBracket {  }
@@ -94,21 +102,44 @@ void execSearch(QueryResult **list, QueryResult **result, SearchFunc func, const
   QueryResult *cur = NULL;
   DL_FOREACH(*list, cur) {
     QueryResult *curResult = func(cur, param);
-
-    
-
     if (curResult) DL_CONCAT(*result, curResult);
   }
 }
 
 QueryResult *searchChildName(QueryResult* cur, const SearchParam* param) {
+  assert(cur != NULL && param != NULL);
+
   QueryResult* ret = NULL;
   ASTNode *child = NULL;
+  bool isAny = strcmp(param->id, "*") == 0;
   DL_FOREACH(cur->node->children, child) {
-    if (ASTNode_id_is(child, param->id)) {
+    if (isAny || ASTNode_id_is(child, param->id)) {
       QueryResult *record = QueryResult_create(child);
       DL_APPEND(ret, record);
     }
   }
   return ret;
+}
+
+QueryResult *searchDescendentNameRecursive(ASTNode* cur, const SearchParam* param) {
+  assert(cur != NULL && param != NULL);
+
+  QueryResult* ret = NULL;
+  ASTNode *child = NULL;
+  bool isAny = strcmp(param->id, "*") == 0;
+  DL_FOREACH(cur->children, child) {
+    if (isAny || ASTNode_id_is(child, param->id)) {
+      QueryResult *record = QueryResult_create(child);
+      DL_APPEND(ret, record);
+    }
+    QueryResult *sub = searchDescendentNameRecursive(child, param);
+    if (sub) DL_CONCAT(ret, sub);
+  }
+  return ret;
+}
+
+QueryResult *searchDescendentName(QueryResult* cur, const SearchParam* param) {
+  assert(cur != NULL && param != NULL);
+
+  return searchDescendentNameRecursive(cur->node, param);
 }
