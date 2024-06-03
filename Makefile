@@ -3,63 +3,95 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CFLAGS = -g -Wall 
+CFLAGS = -I$(BUILD_DIR) -g -Wall 
 LDFLAGS = 
+JOBS := 4
 
 UNAME := $(shell uname)
 
+BUILD_DIR = build
+
 ifeq ($(UNAME), Linux)
     LDFLAGS += -lfl
+	JOBS := $(shell nproc)
 endif
 
 ifeq ($(UNAME), Darwin)
     LDFLAGS += -ll -ly
+	JOBS := $(shell sysctl -n hw.ncpu)
 endif
 
 ZIP = zip
 TEST_DIR=test
 
-GEN_FILES = *.yy.c *.tab.* *.output $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* $(TEST_DIR)/compiler $(TEST_DIR)/compiler.* submission.zip
+GEN_FILES = *.lex.* *.yy.* *.tab.* *.output $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* $(TEST_DIR)/compiler $(TEST_DIR)/compiler.* submission.zip
 
-SRC = main.c sysY.yy.c sysY.tab.c query.yy.c query.tab.c token.c sym.c ast.c action.c ast_query.c
-OBJ = $(SRC:.c=.o)
+Y_FILES = $(shell find . -type f -name "*.y")
+L_FILES = $(shell find . -type f -name "*.l")
+H_FILES = $(shell find . -type f -name "*.h")
+C_FILES = $(shell find . -type f -name "*.c")
+CXX_FILES = $(shell find . -type f -name "*.cc")
 
-compiler: $(TEST_DIR)/compiler
+BISON_C_FILES = $(Y_FILES:.y=.tab.c)
+BISON_H_FILES = $(Y_FILES:.y=.tab.h)
+FLEX_C_FILES = $(L_FILES:.l=.lex.c)
 
-$(TEST_DIR)/compiler: $(OBJ)
+ALL_C_FILES = $(C_FILES) $(BISON_C_FILES) $(FLEX_C_FILES)
+
+O_FILES = $(addprefix $(BUILD_DIR)/, $(ALL_C_FILES:.c=.o) $(CC_FILES:.cc=.o))
+
+# SRC = main.c sysY.yy.c sysY.tab.c query.yy.c query.tab.c token.c sym.c ast.c action.c ast_query.c
+# OBJ = $(SRC:.c=.o)
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+compiler: $(BUILD_DIR)/compiler
+
+$(BUILD_DIR)/compiler: $(O_FILES)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+# Compile .c files into .o files
+$(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-query.tab.h query.tab.c: query.y
-	$(YACC) -vd -b query query.y
+# Compile .cc files into .o files
+$(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
+	$(CXX) $(CFLAGS) -c -o $@ $<
 
-query.yy.c: query.l query.tab.h
-	$(LEX) -o $@ query.l
+bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
 
-sysY.yy.c: sysY.tab.h sysY.l
-	$(LEX) -o $@ sysY.l
+flex-files: $(FLEX_C_FILES) bison-files
 
-sysY.tab.h sysY.tab.c: sysY.y
-	$(YACC) -vd -b sysY sysY.y
+gen-files: bison-files flex-files
 
-test-compiler: $(TEST_DIR)/compiler
-	$(CLEAR) && date && cd test && ./compiler -o -
+%.tab.c %.tab.h: %.y | $(BUILD_DIR)
+	$(YACC) -b $* -d -o $*.tab.c $<
 
-submission.zip: y.tab.h y.tab.c lex.yy.c
+%.lex.c: %.l | $(BUILD_DIR)
+	$(LEX) -o $*.lex.c $<
+
+test-compiler: compiler
+	$(CLEAR) && date && cd $(BUILD_DIR) && ./compiler -i ../$(TEST_DIR)/testfile.txt -o -
+
+submission.zip: gen-files $(C_FILES) $(H_FILES) $(FLEX_C_FILES) $(L_FILES)
 	$(ZIP) submission.zip -r y.tab.h y.tab.c lex.yy.c $(wildcard *.c) $(wildcard *.h) lib
 
 zip: submission.zip
 
 clean:
-	$(RM) $(GEN_FILES) $(OBJ)
+	$(RM) $(GEN_FILES) $(O_FILES) $(BUILD_DIR)/compiler
+
+requirements:
+	ifeq ($(UNAME), Linux)
+		sudo apt-get -y install build-essential flex bison entr
+	endif
 
 dev:
 	echo *.c *.h *.y *.l $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-compiler
 
 all: compiler
 
-.PHONY: clean dev zip test-compiler compiler
+.PHONY: clean dev zip test-compiler compiler bison-files flex-files gen-files requirements
 
-.DEFAULT_GOAL = test-compiler
+.DEFAULT_GOAL := all

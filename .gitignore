@@ -2,7 +2,9 @@
 *.output
 *.zip
 *.yy.c
+*.lex.*
 *.o
+build/
 test/lexer
 test/parser
 test/compiler
