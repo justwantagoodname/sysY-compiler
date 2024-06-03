@@ -20,6 +20,7 @@
         }\
     } while (0);
 
+extern void yyerror(struct ASTNode **cur, const char *s);
 %}
 
 IntConst [1-9][0-9]*|0

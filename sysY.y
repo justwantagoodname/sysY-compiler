@@ -12,6 +12,10 @@
 void yyerror(struct ASTNode **cur, const char *s);
 %}
 
+%code requires {
+  extern int yylex();
+}
+
 %locations
 
 %glr-parser

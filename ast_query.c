@@ -2,6 +2,10 @@
 #include "ast.h"
 #include "query.tab.h"
 
+extern void qqlex_init(yyscan_t *scanner);
+extern void qq_scan_string(const char *str, yyscan_t scanner);
+extern void qqlex_destroy(yyscan_t scanner);
+
 QueryResult *QueryResult_create(ASTNode *node) {
     QueryResult *result = (QueryResult*) calloc(1, sizeof(QueryResult));
     result->node = node;
