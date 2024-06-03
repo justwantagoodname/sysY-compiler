@@ -50,6 +50,9 @@ void ASTNode_add_attr_float(ASTNode *node, const char* key, float value);
 bool ASTNode_get_attr_int(ASTNode *node, const char* key, int *value);
 bool ASTNode_get_attr_str(ASTNode *node, const char* key, const char **value);
 bool ASTNode_get_attr_float(ASTNode *node, const char* key, float *value);
+bool ASTNode_attr_eq_int(ASTNode *node, const char* key, int value);
+bool ASTNode_attr_eq_str(ASTNode *node, const char* key, const char* value);
+bool ASTNode_attr_eq_float(ASTNode *node, const char* key, float value);
     /* Utils */
 void ASTNode_print(struct ASTNode *node);
 void ASTNode_move_children(ASTNode *from, ASTNode *to);
@@ -66,4 +69,29 @@ typedef struct QueryResult QueryResult;
 
 QueryResult *QueryResult_create(ASTNode *node);
 QueryResult *ASTNode_querySelector(ASTNode *node, const char* selector);
+
+enum AttrOptionType {
+  AttrOptionTypeString,
+  AttrOptionTypeNumber
+};
+
+struct AttrOption {
+  bool logicAnd; // true of `lastOption` && this
+  char* name;
+  union {
+    char* str;
+    double num;
+  } value;
+  const enum AttrOptionType type;
+  struct AttrOption* next, *prev;
+};
+typedef struct AttrOption AttrOption;
+
+
+struct SearchParam {
+  const char* id;
+  AttrOption* options;
+  int index;
+};
+typedef struct SearchParam SearchParam;
 #endif

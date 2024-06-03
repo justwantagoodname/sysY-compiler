@@ -1,5 +1,6 @@
 %{
 #include "sysY.h"
+#include "ast.h"
 #include "query.tab.h"
 
 #define YYSTYPE QQSTYPE
@@ -14,7 +15,7 @@ char* stringBody(const char* text);
 %option outfile="query.yy.c"
 
 NodeName [a-zA-Z_][a-zA-Z0-9_]*
-String \".*\"
+String \'.*\'
 
 %%
 [[:digit:]]+ { (*yylval).number = atoi(yytext); return Number; }
@@ -27,6 +28,7 @@ String \".*\"
 "@"     { return At; }
 ","     { return Comma; }
 "="     { return Equal; }
+"|"     { return Or; }
 %%
 
 char* stringBody(const char* text) {

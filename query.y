@@ -3,10 +3,33 @@
 #include "ast.h"
 int count = 0;
 
-struct SearchParam {
-  const char* id;
-};
-typedef struct SearchParam SearchParam;
+AttrOption* AttrOption_create_str(const char* name, const char* value) {
+  assert(name != NULL);
+
+  AttrOption* ret = (AttrOption*)calloc(1, sizeof(AttrOption));
+  ret->name = strdup(name);
+  ret->value.str = strdup(value);
+  return ret;
+}
+
+AttrOption* AttrOption_create_num(const char* name, double value) {
+  assert(name != NULL);
+
+  AttrOption* ret = (AttrOption*)calloc(1, sizeof(AttrOption));
+  ret->name = strdup(name);
+  ret->value.num = value;
+  return ret;
+}
+
+AttrOption* AttrOption_push_with_logic(AttrOption* list, AttrOption* lastOption, bool logicAnd) {
+  assert(lastOption != NULL);
+
+  lastOption->logicAnd = logicAnd;
+  lastOption->next = NULL;
+  lastOption->prev = NULL;
+  DL_APPEND(list, lastOption);
+  return list;
+}
 
 typedef QueryResult* (*SearchFunc)(QueryResult*, const SearchParam*);
 
@@ -27,8 +50,8 @@ QueryResult *searchDescendentName(QueryResult* cur, const SearchParam* param);
 
 %param {yyscan_t scanner}
 
-%parse-param {struct QueryResult **result}
-%parse-param {struct QueryResult **last}
+%parse-param {QueryResult **result}
+%parse-param {QueryResult **last}
 
 %code requires {
   typedef void* yyscan_t;
@@ -42,12 +65,17 @@ QueryResult *searchDescendentName(QueryResult* cur, const SearchParam* param);
 %union {
   char* string;
   int number;
+  struct AttrOption* attrOption;
+  struct SearchParam searchParam;
+  int index;
 }
 
 %token <string> NodeName String
 %token <number> Number
-%token Slash DoubleSlash LeftBracket RightBracket At Equal Comma
+%token Slash DoubleSlash LeftBracket RightBracket At Equal Comma Or
 %type <string> AttrName
+%type <attrOption> AttrOption AttrOptions
+%type <searchParam> AttrSelector
 %%
 
 Query: %empty { printf("Start Traveling...\n"); }
@@ -55,7 +83,8 @@ Query: %empty { printf("Start Traveling...\n"); }
 
 Selector: NodeName AttrSelector { freeList(result);
                                   printf("Search for child %s\n", $1);
-                                  SearchParam param; param.id = $1;
+                                  SearchParam param; 
+                                  param.id = $1; param.options = $2.options; param.index = $2.index;
                                   execSearch(last, result, searchChildName, &param);
                                   copyList(*result, *last);
                                   }
@@ -64,20 +93,24 @@ Selector: NodeName AttrSelector { freeList(result);
         | DoubleSlash NodeName AttrSelector { /* find id with 'NodeName' in descendents */
                                               freeList(result);
                                               printf("Search for descendent %s\n", $2);
-                                              SearchParam param; param.id = $2;
+                                              SearchParam param; 
+                                              param.id = $2; param.options = $3.options; param.index = -1;
                                               execSearch(last, result, searchDescendentName, &param);
                                               copyList(*result, *last);
                                               }
 
-AttrSelector: %empty
-            | LeftBracket Number RightBracket {  }
-            | LeftBracket AttrOptions RightBracket {}
+AttrSelector: %empty { $$.id = NULL; $$.options = NULL; $$.index = -1; }
+            | LeftBracket Number RightBracket { $$.index = $2; }
+            | LeftBracket AttrOptions RightBracket { $$.options = $2; }
 
 AttrName: NodeName
 
-AttrOptions: At AttrName Equal String
-           | AttrOptions Comma At AttrName Equal String
+AttrOptions: AttrOption { $$ = AttrOption_push_with_logic(NULL, $1, false); }
+           | AttrOptions Comma AttrOption { $$ = AttrOption_push_with_logic($1, $3, true); }
+           | AttrOptions Or AttrOption { $$ = AttrOption_push_with_logic($1, $3, false); }
 
+AttrOption: At AttrName Equal String { $$ = AttrOption_create_str($2, $4); }
+          | At AttrName Equal Number { $$ = AttrOption_create_num($2, $4); }
 %%
 
 void qqerror(yyscan_t scanner, QueryResult **result, QueryResult **last, const char* msg) {
@@ -106,17 +139,44 @@ void execSearch(QueryResult **list, QueryResult **result, SearchFunc func, const
   }
 }
 
+bool AttrOption_test(AttrOption* option, ASTNode* node) {
+  assert(node != NULL);
+
+  if (option == NULL) return true;
+
+  bool ret = false;
+  AttrOption* cur = NULL;
+  DL_FOREACH(option, cur) {
+    bool result = false;
+    if (cur->type == AttrOptionTypeString) {
+      result = ASTNode_attr_eq_str(node, cur->name, cur->value.str);
+    } else {
+      result = ASTNode_attr_eq_int(node, cur->name, cur->value.num)
+              || ASTNode_attr_eq_float(node, cur->name, (float) cur->value.num); 
+    }
+    if (cur->logicAnd) {
+      ret = ret && result;
+    } else {
+      ret = ret || result;
+    }
+  }
+  return ret;
+}
+
 QueryResult *searchChildName(QueryResult* cur, const SearchParam* param) {
   assert(cur != NULL && param != NULL);
 
   QueryResult* ret = NULL;
   ASTNode *child = NULL;
+  int childIndex = 0;
   bool isAny = strcmp(param->id, "*") == 0;
   DL_FOREACH(cur->node->children, child) {
     if (isAny || ASTNode_id_is(child, param->id)) {
       QueryResult *record = QueryResult_create(child);
-      DL_APPEND(ret, record);
+      if (param->index == -1 || param->index == childIndex) 
+        DL_APPEND(ret, record);
     }
+    ++childIndex;
   }
   return ret;
 }

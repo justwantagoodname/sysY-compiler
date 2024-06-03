@@ -229,3 +229,35 @@ void ASTNode_free(ASTNode *node) {
     free((char *)node->id);
     free(node);
 }
+
+bool ASTNode_attr_eq_int(ASTNode *node, const char* key, int value) {
+    assert(node != NULL && key != NULL);
+
+    ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    if (attr != NULL && attr->type == ATTR_TYPE_INT) {
+        return attr->value.int_value == value;
+    } else {
+        return false;
+    } 
+}
+
+bool ASTNode_attr_eq_str(ASTNode *node, const char* key, const char* value) {
+    assert(node != NULL && key != NULL && value != NULL);
+
+    ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    if (attr != NULL && attr->type == ATTR_TYPE_STR) {
+        return strcmp(attr->value.str_value, value) == 0;
+    } else {
+        return false;
+    }
+}
+bool ASTNode_attr_eq_float(ASTNode *node, const char* key, float value) {
+    assert(node != NULL && key != NULL);
+
+    ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    if (attr != NULL && attr->type == ATTR_TYPE_FLOAT) {
+        return attr->value.float_value == value;
+    } else {
+        return false;
+    }
+}
