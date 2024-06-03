@@ -95,13 +95,15 @@ Selector: NodeName AttrSelector { freeList(result);
                                               printf("Search for descendent %s\n", $2);
                                               SearchParam param; 
                                               param.id = $2; param.options = $3.options; param.index = -1;
+                                              if ($3.index != -1) { qqerror(scanner, result, last, "WARN: Index is not allowed in descendent search."); }
                                               execSearch(last, result, searchDescendentName, &param);
                                               copyList(*result, *last);
                                               }
 
 AttrSelector: %empty { $$.id = NULL; $$.options = NULL; $$.index = -1; }
-            | LeftBracket Number RightBracket { $$.index = $2; }
-            | LeftBracket AttrOptions RightBracket { $$.options = $2; }
+            /* | LeftBracket AttrOptions RightBracket LeftBracket Number RightBracket { $$.options = $2; $$.index = $5; } */
+            | LeftBracket AttrOptions RightBracket { $$.options = $2; $$.index = -1; }
+            | LeftBracket Number RightBracket { $$.id = NULL; $$.options = NULL; $$.index = $2; }
 
 AttrName: NodeName
 
@@ -173,8 +175,10 @@ QueryResult *searchChildName(QueryResult* cur, const SearchParam* param) {
   DL_FOREACH(cur->node->children, child) {
     if (isAny || ASTNode_id_is(child, param->id)) {
       QueryResult *record = QueryResult_create(child);
-      if (param->index == -1 || param->index == childIndex) 
+      if ((param->index == -1 || param->index == childIndex)
+          && AttrOption_test(param->options, child)) { 
         DL_APPEND(ret, record);
+      }
     }
     ++childIndex;
   }
@@ -190,7 +194,7 @@ QueryResult *searchDescendentNameRecursive(ASTNode* cur, const SearchParam* para
   DL_FOREACH(cur->children, child) {
     if (isAny || ASTNode_id_is(child, param->id)) {
       QueryResult *record = QueryResult_create(child);
-      DL_APPEND(ret, record);
+      if (AttrOption_test(param->options, child)) DL_APPEND(ret, record);
     }
     QueryResult *sub = searchDescendentNameRecursive(child, param);
     if (sub) DL_CONCAT(ret, sub);
