@@ -21,6 +21,8 @@ String \'.*\'
 [[:digit:]]+ { (*yylval).number = atoi(yytext); return Number; }
 {NodeName}|"*" { (*yylval).string = strdup(yytext); return NodeName; }
 {String}    {(*yylval).string = stringBody(yytext); return String;}
+"ancestor::" { (*yylval).string = strdup(yytext); return Prefix; }
+"parent::"  { (*yylval).string = strdup(yytext); return Prefix; }
 "/"     { return Slash; }
 "//"    { return DoubleSlash; }
 "["     { return LeftBracket; }

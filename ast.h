@@ -92,6 +92,7 @@ struct SearchParam {
   const char* id;
   AttrOption* options;
   int index;
+  const char* prefix;
 };
 typedef struct SearchParam SearchParam;
 #endif

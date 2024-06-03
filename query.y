@@ -44,6 +44,8 @@ void freeList(QueryResult **list);
 void execSearch(QueryResult **list, QueryResult **result, SearchFunc func, const SearchParam *param);
 QueryResult* searchChildName(QueryResult* cur, const SearchParam* param);
 QueryResult *searchDescendentName(QueryResult* cur, const SearchParam* param);
+QueryResult *searchParent(QueryResult* cur, const SearchParam* param);
+QueryResult *searchAncestor(QueryResult* cur, const SearchParam* param);
 %}
 %define api.pure full
 %define api.prefix {qq}
@@ -63,29 +65,35 @@ QueryResult *searchDescendentName(QueryResult* cur, const SearchParam* param);
 }
 
 %union {
-  char* string;
+  const char* string;
   int number;
   struct AttrOption* attrOption;
   struct SearchParam searchParam;
   int index;
 }
 
-%token <string> NodeName String
+%token <string> NodeName String Prefix
 %token <number> Number
 %token Slash DoubleSlash LeftBracket RightBracket At Equal Comma Or
 %type <string> AttrName
 %type <attrOption> AttrOption AttrOptions
 %type <searchParam> AttrSelector
+%type <string> SelectorPrefix
 %%
 
 Query: %empty { printf("Start Traveling...\n"); }
      | Query Selector { printf("Finish %d\n", ++count); }
 
-Selector: NodeName AttrSelector { freeList(result);
-                                  printf("Search for child %s\n", $1);
+SelectorPrefix: %empty { $$ = ""; }
+              | Prefix { $$ = $1; printf("Selector Prefix: %s\n", $1); }
+
+Selector: SelectorPrefix NodeName AttrSelector { freeList(result);
+                                  printf("Search for child %s\n", $2);
                                   SearchParam param; 
-                                  param.id = $1; param.options = $2.options; param.index = $2.index;
-                                  execSearch(last, result, searchChildName, &param);
+                                  param.id = $2; param.options = $3.options; param.index = $3.index;
+                                  if (strcmp($1, "parent::") == 0) execSearch(last, result, searchParent, &param);
+                                  else if (strcmp($1, "ancestor::") == 0) execSearch(last, result, searchAncestor, &param);
+                                  else execSearch(last, result, searchChildName, &param);
                                   copyList(*result, *last);
                                   }
         | Slash    { copyList(*last, *result);
@@ -206,4 +214,31 @@ QueryResult *searchDescendentName(QueryResult* cur, const SearchParam* param) {
   assert(cur != NULL && param != NULL);
 
   return searchDescendentNameRecursive(cur->node, param);
+}
+
+QueryResult *searchParent(QueryResult* cur, const SearchParam* param) {
+  assert(cur != NULL && param != NULL);
+
+  QueryResult* ret = NULL;
+  ASTNode *parent = cur->node->parent;
+  if (parent && (strcmp(param->id, "*") == 0 || ASTNode_id_is(parent, param->id))) {
+    QueryResult *record = QueryResult_create(parent);
+    if (AttrOption_test(param->options, parent)) DL_APPEND(ret, record);
+  }
+  return ret;
+}
+
+QueryResult *searchAncestor(QueryResult* cur, const SearchParam* param) {
+  assert(cur != NULL && param != NULL);
+
+  QueryResult* ret = NULL;
+  ASTNode *parent = cur->node->parent;
+  while (parent) {
+    if (strcmp(param->id, "*") == 0 || ASTNode_id_is(parent, param->id)) {
+      QueryResult *record = QueryResult_create(parent);
+      if (AttrOption_test(param->options, parent)) DL_APPEND(ret, record);
+    }
+    parent = parent->parent;
+  }
+  return ret;
 }
