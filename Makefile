@@ -9,7 +9,7 @@ JOBS := 4
 
 UNAME := $(shell uname)
 
-INCLUDE_DIR = -Iinclude -Ilib
+INCLUDE_DIR = -Iinclude -Ilib -Ifronted/parser
 BUILD_DIR = build
 
 ifeq ($(UNAME), Linux)
@@ -47,15 +47,15 @@ $(BUILD_DIR):
 compiler: $(BUILD_DIR)/compiler
 
 $(BUILD_DIR)/compiler: $(O_FILES)
-	$(CC) $^ -o $@ $(LDFLAGS)
+	$(CC) $(addprefix $(BUILD_DIR)/, $(notdir $^)) -o $@ $(LDFLAGS)
 
 # Compile .c files into .o files
 $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(INCLUDE_DIR) -c -o $@ $<
+	$(CC) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
 # Compile .cc files into .o files
 $(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
-	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $@ $<
+	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
 bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
 
@@ -79,6 +79,9 @@ zip: submission.zip
 
 clean:
 	$(RM) $(GEN_FILES) $(O_FILES) $(BUILD_DIR)/compiler
+	find $(BUILD_DIR) -type f -name "*.o" -delete
+	find . -type f -name "*.lex.*" -delete
+	find . -type f -name "*.tab.*" -delete
 
 requirements:
 	ifeq ($(UNAME), Linux)
