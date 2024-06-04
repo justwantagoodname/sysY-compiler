@@ -59,6 +59,8 @@ bool ASTNode_attr_eq_float(ASTNode *node, const char* key, float value);
     /* Utils */
 void ASTNode_print(struct ASTNode *node);
 void ASTNode_move_children(ASTNode *from, ASTNode *to);
+void ASTNode_copy_children(ASTNode *from, ASTNode *to);
+ASTNode *ASTNode_clone(ASTNode *node);
 void ASTNode_free(ASTNode *node);
     /* Operators */
 bool ASTNode_id_is(ASTNode *node, const char* id);
@@ -72,6 +74,7 @@ typedef struct QueryResult QueryResult;
 
 QueryResult *QueryResult_create(ASTNode *node);
 QueryResult *ASTNode_querySelector(ASTNode *node, const char* selector);
+ASTNode *ASTNode_querySelectorOne(ASTNode *node, const char* selector);
 
 enum AttrOptionType {
   AttrOptionTypeString,

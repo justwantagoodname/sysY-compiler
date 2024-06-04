@@ -13,5 +13,7 @@ ASTNode *createIfNode(ASTNode *cond, ASTNode *then, ASTNode *elseStmt);
 
 ASTNode *createWhileNode(ASTNode *cond, ASTNode *stmt);
 
+ASTNode *collectDecl(ASTNode *scope_node, ASTNode *decls);
+
 char* trimQuoteStr(const char *str);
 #endif

@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include "lib/uthash.h"
-#include "lib/utlist.h"
+#include "sysY.h"
 #include "action.h"
 
 void modifyValueType(ASTNode *value_defs, const char* type) {
@@ -75,4 +73,22 @@ char* trimQuoteStr(const char *str) {
     strncpy(newStr, str + 1, len - 2);
 
     return newStr;    
+}
+
+ASTNode *collectDecl(ASTNode *scope_node, ASTNode *decls) {
+    assert(scope_node != NULL);
+    assert(decls != NULL);
+
+    ASTNode *scope_decl = ASTNode_querySelectorOne(scope_node, "/Decl");
+    ASTNode *block = ASTNode_querySelectorOne(scope_node, "/Block");
+    if (ASTNode_id_is(decls, "VarTemp")) {
+        ASTNode_copy_children(decls, block);
+        ASTNode_move_children(decls, scope_decl);
+    } else if (ASTNode_id_is(decls, "ConstantTemp")) {
+        ASTNode_move_children(decls, scope_decl);    
+    } else {
+        fprintf(stderr, "Error! Decl with %s", decls->id);
+    }
+    ASTNode_free(decls);
+    return scope_node;
 }

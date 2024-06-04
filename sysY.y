@@ -69,6 +69,7 @@ void yyerror(struct ASTNode **cur, const char *s);
                 VarDecl VarDefList VarDef 
                 ConstDecl ConstDefList ConstDef 
                 Decl GlobalDecl 
+                ArrayLocator ArrayLocatorList
 
 %type <strValue> UnaryOp
 
@@ -208,9 +209,12 @@ FuncFParam: PrimaryType Identifier  { $$ = ASTNode_create_attr("Param", 2, "type
 
 Block: LeftBrace BlockItem RightBrace { $$ = $2; };
 
-BlockItem:  /* empty */ { $$ = ASTNode_create("Block"); /* TODO: Add Scope */ }
-         | BlockItem Decl { /* TODO: collect decls to scope */ }
-         | BlockItem Stmt { ASTNode_add_child($1, $2); $$ = $1; }
+BlockItem:  /* empty */ { $$ = ASTNode_create("Scope"); ASTNode_add_nchild($$, 2, ASTNode_create("Decl"), ASTNode_create("Block")); }
+         | BlockItem Decl { $$ = collectDecl($1, $2); }
+         | BlockItem Stmt { $$ = $1;
+                            ASTNode* block = ASTNode_querySelectorOne($$, "/Block"); 
+                            ASTNode_add_child(block, $2); 
+                          }
          ;
 
 PrimaryType: Int { $$ = "Int"; }
@@ -219,7 +223,7 @@ PrimaryType: Int { $$ = "Int"; }
 Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign"); ASTNode* dest = ASTNode_create("Dest"); ASTNode_add_child(dest, $1); ASTNode_add_child($$, dest); ASTNode_add_child($$, $3);}
     | SemiCon { $$ = ASTNode_create("NOP"); }
     | ExpWrapper SemiCon { $$ = $1; }
-    | Block { $$ = $1; /* TODO: Add new scope */ }
+    | Block { $$ = $1; }
     | IfStmt { $$ = $1; }
     | While LeftParent Cond RightParent Stmt { $$ = createWhileNode($3, $5);}
     | Return ExpWrapper SemiCon { $$ = ASTNode_create("Return"); ASTNode_add_child($$, $2);}
@@ -235,14 +239,14 @@ IfStmt: If LeftParent Cond RightParent Stmt { $$ = createIfNode($3, $5, NULL); }
       ;
 
 LVal: Identifier { $$ = ASTNode_create("Address"); ASTNode_add_attr_str($$, "base", $1); }
-    | Identifier ArrayLocatorList { $$ = ASTNode_create("Fetch"); ASTNode_add_attr_str($$, "base", $1); /* TODO: calc base */ }
+    | Identifier ArrayLocatorList { $$ = ASTNode_create("Fetch"); ASTNode_add_attr_str($$, "base", $1); ASTNode_add_child($$, $2); /* TODO: calc base */ }
     ;
 
-ArrayLocator: LeftBrack Exp RightBrack
+ArrayLocator: LeftBrack Exp RightBrack { $$ = ASTNode_create("Dimension"); ASTNode_add_child($$, $2); }
             ;
 
-ArrayLocatorList: ArrayLocator
-                | ArrayLocator ArrayLocatorList
+ArrayLocatorList: ArrayLocator { $$ = ASTNode_create("Locator"); ASTNode_add_child($$, $1); }
+                | ArrayLocatorList ArrayLocator { $$ = $1; ASTNode_add_child($$, $2); }
                 ;
 
 ExpWrapper: Exp { $$ = ASTNode_create("Exp"); ASTNode_add_child($$, $1); }

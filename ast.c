@@ -11,6 +11,29 @@ struct ASTNode *ASTNode_create(const char* id) {
     return node;
 }
 
+ASTAttribute *ASTAttribute_clone(ASTAttribute *attr) {
+    assert(attr != NULL);
+
+    ASTAttribute *clone = (ASTAttribute *)calloc(1, sizeof(ASTAttribute));
+    clone->key = strdup(attr->key);
+    clone->type = attr->type;
+    switch (attr->type) {
+        case ATTR_TYPE_INT:
+            clone->value.int_value = attr->value.int_value;
+            break;
+        case ATTR_TYPE_FLOAT:
+            clone->value.float_value = attr->value.float_value;
+            break;
+        case ATTR_TYPE_STR:
+            clone->value.str_value = strdup(attr->value.str_value);
+            break;
+        default:
+            break;
+    }
+
+    return clone;
+}
+
 ASTNode *ASTNode_create_attr(const char* id, int attr_count, ...) {
     assert(id != NULL);
     ASTNode* root = ASTNode_create(id);
@@ -72,11 +95,9 @@ void ASTNode_print_impl(struct ASTNode *node) {
     }
 
     // print children
-    if (node->children) {
-        struct ASTNode *cur = NULL;
-        DL_FOREACH(node->children, cur) {
-            ASTNode_print_impl(cur);
-        }
+    struct ASTNode *cur = NULL;
+    DL_FOREACH(node->children, cur) {
+        ASTNode_print_impl(cur);
     }
 
     printf("</%s>\n", node->id);
@@ -218,6 +239,12 @@ bool ASTNode_id_is(ASTNode *node, const char* id) {
     return strcmp(node->id, id) == 0;
 }
 
+/**
+ * @brief Move children from -> to, No node construction in procedure.
+ * 
+ * @param from From Node children will be empty after move.
+ * @param to To Node
+ */
 void ASTNode_move_children(ASTNode *from, ASTNode *to) {
     assert(from != NULL && to != NULL);
 
@@ -230,17 +257,45 @@ void ASTNode_move_children(ASTNode *from, ASTNode *to) {
     from->children = NULL;
 }
 
+void ASTNode_copy_children(ASTNode *from, ASTNode *to) {
+    assert(from != NULL && to != NULL);
+    ASTNode *cur = NULL;
+    DL_FOREACH(from->children, cur) {
+        ASTNode* cloned = ASTNode_clone(cur);
+        DL_APPEND(to->children, cloned);
+    }
+}
+
+ASTNode *ASTNode_clone(ASTNode *node) {
+    assert(node != NULL);
+
+    ASTNode* ret = ASTNode_create(node->id);
+
+    ASTAttribute *attr = NULL, *tmp = NULL;
+    HASH_ITER(hh, node->attrs, attr, tmp) {
+        ASTAttribute *clone_attr = ASTAttribute_clone(attr);
+        HASH_ADD_STR(ret->attrs, key, clone_attr);    
+    }
+
+    ASTNode* cur = NULL;
+    DL_FOREACH(node->children, cur) {
+        ASTNode* cloned_child = ASTNode_clone(cur);
+        ASTNode_add_child(ret, cloned_child);
+    }
+    return ret;
+}
+
 void ASTNode_free(ASTNode *node) {
     assert(node != NULL);
 
-    struct ASTAttribute *attr, *tmp;
+    struct ASTAttribute *attr = NULL, *tmp = NULL;
     HASH_ITER(hh, node->attrs, attr, tmp) {
-        HASH_DEL(node->attrs, attr);
         free((char *)attr->key);
         if (attr->type == ATTR_TYPE_STR) {
             free((char *)attr->value.str_value);
         }
         free(attr);
+        HASH_DEL(node->attrs, attr);
     }
 
     struct ASTNode *cur, *tmp2;

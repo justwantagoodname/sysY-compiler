@@ -27,3 +27,12 @@ QueryResult *ASTNode_querySelector(ASTNode *node, const char* selector) {
 
     return execResult ? NULL : result;
 }
+
+ASTNode *ASTNode_querySelectorOne(ASTNode *node, const char* selector) {
+    QueryResult *result = ASTNode_querySelector(node, selector);
+    if (result == NULL) return NULL;
+    ASTNode *nodeResult = result->node;
+    free(result);
+    return nodeResult;
+}
+
