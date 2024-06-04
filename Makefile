@@ -3,7 +3,7 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CFLAGS = -I$(BUILD_DIR) -g -Wall 
+CFLAGS = -g -Wall 
 LDFLAGS = 
 JOBS := 4
 
@@ -30,7 +30,7 @@ Y_FILES = $(shell find . -type f -name "*.y")
 L_FILES = $(shell find . -type f -name "*.l")
 H_FILES = $(shell find . -type f -name "*.h")
 C_FILES = $(shell find . -type f -name "*.c")
-CXX_FILES = $(shell find . -type f -name "*.cc")
+CC_FILES = $(shell find . -type f -name "*.cc")
 
 BISON_C_FILES = $(Y_FILES:.y=.tab.c)
 BISON_H_FILES = $(Y_FILES:.y=.tab.h)
@@ -39,9 +39,6 @@ FLEX_C_FILES = $(L_FILES:.l=.lex.c)
 ALL_C_FILES = $(C_FILES) $(BISON_C_FILES) $(FLEX_C_FILES)
 
 O_FILES = $(addprefix $(BUILD_DIR)/, $(ALL_C_FILES:.c=.o) $(CC_FILES:.cc=.o))
-
-# SRC = main.c sysY.yy.c sysY.tab.c query.yy.c query.tab.c token.c sym.c ast.c action.c ast_query.c
-# OBJ = $(SRC:.c=.o)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -88,7 +85,8 @@ requirements:
 	endif
 
 dev:
-	echo *.c *.h *.y *.l $(TEST_DIR)/testfile.txt | tr '[:blank:]' '\n' | $(WATCHER) make test-compiler
+	echo $(L_FILES) $(Y_FILES) $(C_FILES) $(CC_FILES) $(TEST_DIR)/testfile.txt \
+		 | tr '[:blank:]' '\n' | $(WATCHER) -cs 'make -j$(JOBS) test-compiler'
 
 all: compiler
 
