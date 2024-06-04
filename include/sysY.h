@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include "lib/utlist.h"
-#include "lib/uthash.h"
+#include "utlist.h"
+#include "uthash.h"
 
 #endif

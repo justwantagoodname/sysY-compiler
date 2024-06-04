@@ -3,7 +3,7 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include <stddef.h>
+#include "sysY.h"
 
 struct TokenInfo {
     const char *name;

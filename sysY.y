@@ -4,9 +4,6 @@
 #include "token.h"
 #include "ast.h"
 #include "action.h"
-#include "lib/uthash.h"
-
-
 
 void yyerror(struct ASTNode **cur, const char *s);
 %}

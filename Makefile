@@ -9,6 +9,7 @@ JOBS := 4
 
 UNAME := $(shell uname)
 
+INCLUDE_DIR = -Iinclude -Ilib
 BUILD_DIR = build
 
 ifeq ($(UNAME), Linux)
@@ -24,13 +25,13 @@ endif
 ZIP = zip
 TEST_DIR=test
 
-GEN_FILES = *.lex.* *.yy.* *.tab.* *.output $(TEST_DIR)/lexer.* $(TEST_DIR)/lexer $(TEST_DIR)/output.txt $(TEST_DIR)/parser $(TEST_DIR)/parser.* $(TEST_DIR)/compiler $(TEST_DIR)/compiler.* submission.zip
+GEN_FILES = *.lex.* *.yy.* *.tab.* *.output submission.zip
 
-Y_FILES = $(shell find . -type f -name "*.y")
-L_FILES = $(shell find . -type f -name "*.l")
-H_FILES = $(shell find . -type f -name "*.h")
-C_FILES = $(shell find . -type f -name "*.c")
-CC_FILES = $(shell find . -type f -name "*.cc")
+Y_FILES = $(shell find . -type f -name "*.y" | sed 's/^\.\///')
+L_FILES = $(shell find . -type f -name "*.l" | sed 's/^\.\///')
+H_FILES = $(shell find . -type f -name "*.h" | sed 's/^\.\///')
+C_FILES = $(shell find . -type f -name "*.c" | sed 's/^\.\///')
+CC_FILES = $(shell find . -type f -name "*.cc" | sed 's/^\.\///')
 
 BISON_C_FILES = $(Y_FILES:.y=.tab.c)
 BISON_H_FILES = $(Y_FILES:.y=.tab.h)
@@ -50,11 +51,11 @@ $(BUILD_DIR)/compiler: $(O_FILES)
 
 # Compile .c files into .o files
 $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(INCLUDE_DIR) -c -o $@ $<
 
 # Compile .cc files into .o files
 $(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
-	$(CXX) $(CFLAGS) -c -o $@ $<
+	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $@ $<
 
 bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
 
@@ -82,6 +83,11 @@ clean:
 requirements:
 	ifeq ($(UNAME), Linux)
 		sudo apt-get -y install build-essential flex bison entr
+	endif
+
+	ifeq ($(UNAME), Darwin)
+		xcode-select --install
+		brew install flex bison entr
 	endif
 
 dev:
