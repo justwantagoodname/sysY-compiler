@@ -1,7 +1,10 @@
+const int d = 1;
+const int e = 2;
+int a = 1, b = 2;
+int c;
 int f() {
     
 }
 int main() {
-    add(1, 2);
-    minus(1, 2);
+    int a = 1;
 }

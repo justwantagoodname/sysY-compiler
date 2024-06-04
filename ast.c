@@ -1,13 +1,6 @@
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "sysY.h"
 #include <stdarg.h>
-#include "lib/utlist.h"
-#include "lib/uthash.h"
-#include "sym.h"
 #include "ast.h"
-
-
 
 struct ASTNode *ASTNode_create(const char* id) {
     assert(id != NULL);
@@ -18,11 +11,33 @@ struct ASTNode *ASTNode_create(const char* id) {
     return node;
 }
 
-ASTNode *ASTNode_create_attr(const char* id, ...) {
+ASTNode *ASTNode_create_attr(const char* id, int attr_count, ...) {
     assert(id != NULL);
-
+    ASTNode* root = ASTNode_create(id);
+    va_list args;
+    va_start(args, attr_count);
+    for (int i = 0; i < attr_count; i++) {
+        const char *key = va_arg(args, const char *);
+        const char *value = va_arg(args, const char *);
+        ASTNode_add_attr_str(root, key, value);
+    }
+    return root;
 }
 
+void ASTNode_add_nchild(ASTNode *parent, int n, ...) {
+    assert(parent != NULL);
+
+    va_list args;
+    va_start(args, n);
+
+    for (int i = 0; i < n; i++) {
+        ASTNode *child = va_arg(args, ASTNode *);
+        assert(child != NULL);
+        ASTNode_add_child(parent, child);
+    }
+
+    va_end(args);
+}
 
 // I Love XML. XD
 void ASTNode_print_impl(struct ASTNode *node) {

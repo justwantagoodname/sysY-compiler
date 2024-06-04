@@ -3,34 +3,6 @@
 #include "lib/utlist.h"
 #include "action.h"
 
-ValueSymbol *addVSArray(struct ValueSymbol *array, struct ValueSymbol *vSymbol) {
-    assert(vSymbol != NULL);
-
-    vSymbol->next = vSymbol->prev = NULL;
-    DL_APPEND(array, vSymbol);
-    return array;
-}
-
-FunctionSymbol *addFSArray(FunctionSymbol *array, FunctionSymbol *fSymbol) {
-    assert(fSymbol != NULL);
-    
-    fSymbol->next = fSymbol->prev = NULL;
-    DL_APPEND(array, fSymbol);
-    return array;
-}
-
-void modifyVSType(struct ValueSymbol *array, enum ValueType type, bool isConst) {
-    assert(array != NULL);
-
-    struct ValueSymbol *cur;
-    DL_FOREACH(array, cur) {
-        if (cur->type == ANY_ARRAY) cur->type = type + 1; // to Array Version
-        else cur->type = type;
-        if (isConst) cur->isConst = true;
-        else cur->isConst = false;
-    }
-}
-
 void modifyValueType(ASTNode *value_defs, const char* type) {
     assert(value_defs != NULL);
     assert(type != NULL);
@@ -39,15 +11,6 @@ void modifyValueType(ASTNode *value_defs, const char* type) {
     DL_FOREACH(value_defs->children, child) {
         ASTNode_add_attr_str(child, "type", type);
     }
-}
-
-ValueSymbol *appendVSList(ValueSymbol *array, ValueSymbol *array2) {
-    assert(array2 != NULL);
-
-    struct ValueSymbol *cur;
-    LL_CONCAT(array, array2);
-
-    return array;
 }
 
 ASTNode *createOpNode(const char *op, ASTNode *left, ASTNode *right) {

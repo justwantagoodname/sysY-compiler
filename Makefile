@@ -88,8 +88,11 @@ dev:
 	echo $(L_FILES) $(Y_FILES) $(C_FILES) $(CC_FILES) $(TEST_DIR)/testfile.txt \
 		 | tr '[:blank:]' '\n' | $(WATCHER) -cs 'make -j$(JOBS) test-compiler'
 
+debug: compiler
+	$(GDB) $(BUILD_DIR)/compiler -ex "run -i $(TEST_DIR)/testfile.txt -o -"
+
 all: compiler
 
-.PHONY: clean dev zip test-compiler compiler bison-files flex-files gen-files requirements
+.PHONY: clean dev zip test-compiler compiler bison-files flex-files gen-files requirements debug
 
 .DEFAULT_GOAL := all

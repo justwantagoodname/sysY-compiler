@@ -1,8 +1,6 @@
 #include "sysY.h"
-#include "sym.h"
 #include "ast.h"
 #include "action.h"
-#include "lib/uthash.h"
 
 extern int yyparse(struct ASTNode **root);
 extern FILE *yyin;
