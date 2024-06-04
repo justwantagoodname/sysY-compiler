@@ -8,9 +8,7 @@
 
 ValueSymbol *addVSArray(struct ValueSymbol *array, struct ValueSymbol *vSymbol);
 
-FunctionSymbol *addFSArray(FunctionSymbol *array, FunctionSymbol *fSymbol);
-
-void modifyVSType(struct ValueSymbol *array, enum ValueType type, bool isConst);
+void modifyValueType(ASTNode *value_defs, const char* type);
 
 ValueSymbol *appendVSList(ValueSymbol *array, ValueSymbol *array2);
 

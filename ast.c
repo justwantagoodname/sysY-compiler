@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include "lib/utlist.h"
 #include "lib/uthash.h"
 #include "sym.h"
@@ -16,6 +17,12 @@ struct ASTNode *ASTNode_create(const char* id) {
 
     return node;
 }
+
+ASTNode *ASTNode_create_attr(const char* id, ...) {
+    assert(id != NULL);
+
+}
+
 
 // I Love XML. XD
 void ASTNode_print_impl(struct ASTNode *node) {

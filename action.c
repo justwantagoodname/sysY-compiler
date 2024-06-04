@@ -31,6 +31,16 @@ void modifyVSType(struct ValueSymbol *array, enum ValueType type, bool isConst) 
     }
 }
 
+void modifyValueType(ASTNode *value_defs, const char* type) {
+    assert(value_defs != NULL);
+    assert(type != NULL);
+
+    ASTNode *child = NULL;
+    DL_FOREACH(value_defs->children, child) {
+        ASTNode_add_attr_str(child, "type", type);
+    }
+}
+
 ValueSymbol *appendVSList(ValueSymbol *array, ValueSymbol *array2) {
     assert(array2 != NULL);
 

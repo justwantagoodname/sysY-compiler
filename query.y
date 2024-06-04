@@ -81,14 +81,14 @@ QueryResult *searchAncestor(QueryResult* cur, const SearchParam* param);
 %type <string> SelectorPrefix
 %%
 
-Query: %empty { printf("Start Traveling...\n"); }
-     | Query Selector { printf("Finish %d\n", ++count); }
+Query: %empty { /* printf("Start Traveling...\n"); */ }
+     | Query Selector { /* printf("Finish %d\n", ++count); */ }
 
 SelectorPrefix: %empty { $$ = ""; }
-              | Prefix { $$ = $1; printf("Selector Prefix: %s\n", $1); }
+              | Prefix { $$ = $1; /* printf("Selector Prefix: %s\n", $1); */ }
 
 Selector: SelectorPrefix NodeName AttrSelector { freeList(result);
-                                  printf("Search for child %s\n", $2);
+                                  // printf("Search for child %s\n", $2);
                                   SearchParam param; 
                                   param.id = $2; param.options = $3.options; param.index = $3.index;
                                   if (strcmp($1, "parent::") == 0) execSearch(last, result, searchParent, &param);
@@ -97,10 +97,10 @@ Selector: SelectorPrefix NodeName AttrSelector { freeList(result);
                                   copyList(*result, *last);
                                   }
         | Slash    { copyList(*last, *result);
-                     printf("Return current\n"); /* ref current node do nothing just return result. */ }
+                     /* printf("Return current\n"); ref current node do nothing just return result. */ }
         | DoubleSlash NodeName AttrSelector { /* find id with 'NodeName' in descendents */
                                               freeList(result);
-                                              printf("Search for descendent %s\n", $2);
+                                              // printf("Search for descendent %s\n", $2);
                                               SearchParam param; 
                                               param.id = $2; param.options = $3.options; param.index = -1;
                                               if ($3.index != -1) { qqerror(scanner, result, last, "WARN: Index is not allowed in descendent search."); }

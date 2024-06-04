@@ -1,5 +1,6 @@
-int a, b, c;
-
+int f() {
+    
+}
 int main() {
     add(1, 2);
     minus(1, 2);

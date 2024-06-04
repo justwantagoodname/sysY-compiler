@@ -43,7 +43,7 @@ int main(int argc, const char** argv) {
   if (result == 0) {
     printf("====AST Info====\n");
     // ASTNode_print(root);
-    QueryResult* result = ASTNode_querySelector(root, "/Main/Block/ancestor::CompUnit"), *cur = NULL;
+    QueryResult* result = ASTNode_querySelector(root, "/"), *cur = NULL;
 
     int count = 0;
     DL_FOREACH(result, cur) {
