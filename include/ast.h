@@ -85,6 +85,7 @@ QueryResult *ASTNode_querySelectorf(ASTNode *node, const char* fmt, ...);
 ASTNode *ASTNode_querySelectorfOne(ASTNode *node, const char* fmt, ...);
 
 enum AttrOptionType {
+  AttrOptionTypeExists,
   AttrOptionTypeString,
   AttrOptionTypeNumber
 };
@@ -96,7 +97,7 @@ struct AttrOption {
     char* str;
     double num;
   } value;
-  const enum AttrOptionType type;
+  enum AttrOptionType type;
   struct AttrOption* next, *prev;
 };
 typedef struct AttrOption AttrOption;

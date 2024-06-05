@@ -3,33 +3,10 @@
 #include "ast.h"
 int count = 0;
 
-AttrOption* AttrOption_create_str(const char* name, const char* value) {
-  assert(name != NULL);
-
-  AttrOption* ret = (AttrOption*)calloc(1, sizeof(AttrOption));
-  ret->name = strdup(name);
-  ret->value.str = strdup(value);
-  return ret;
-}
-
-AttrOption* AttrOption_create_num(const char* name, double value) {
-  assert(name != NULL);
-
-  AttrOption* ret = (AttrOption*)calloc(1, sizeof(AttrOption));
-  ret->name = strdup(name);
-  ret->value.num = value;
-  return ret;
-}
-
-AttrOption* AttrOption_push_with_logic(AttrOption* list, AttrOption* lastOption, bool logicAnd) {
-  assert(lastOption != NULL);
-
-  lastOption->logicAnd = logicAnd;
-  lastOption->next = NULL;
-  lastOption->prev = NULL;
-  DL_APPEND(list, lastOption);
-  return list;
-}
+AttrOption* AttrOption_create_has(const char* name);
+AttrOption* AttrOption_create_str(const char* name, const char* value);
+AttrOption* AttrOption_create_num(const char* name, double value);
+AttrOption* AttrOption_push_with_logic(AttrOption* list, AttrOption* lastOption, bool logicAnd);
 
 typedef QueryResult* (*SearchFunc)(QueryResult*, const SearchParam*);
 
@@ -124,11 +101,51 @@ AttrOptions: AttrOption { $$ = AttrOption_push_with_logic(NULL, $1, false); }
            | AttrOptions Or AttrOption { $$ = AttrOption_push_with_logic($1, $3, false); }
 
 AttrOption: At AttrName Equal String { $$ = AttrOption_create_str($2, $4); }
+          | At AttrName { $$ = AttrOption_create_has($2); }
           | At AttrName Equal Number { $$ = AttrOption_create_num($2, $4); }
 %%
 
 void qqerror(yyscan_t scanner, QueryResult **result, QueryResult **last, const char* msg) {
   fprintf(stderr, "%s\n", msg);
+}
+
+AttrOption* AttrOption_create_has(const char* name) {
+  assert(name != NULL);
+
+  AttrOption* ret = (AttrOption*)calloc(1, sizeof(AttrOption));
+  ret->name = strdup(name);
+  ret->type = AttrOptionTypeExists;
+  return ret;
+}
+
+AttrOption* AttrOption_create_str(const char* name, const char* value) {
+  assert(name != NULL);
+
+  AttrOption* ret = (AttrOption*)calloc(1, sizeof(AttrOption));
+  ret->name = strdup(name);
+  ret->value.str = strdup(value);
+  ret->type = AttrOptionTypeString;
+  return ret;
+}
+
+AttrOption* AttrOption_create_num(const char* name, double value) {
+  assert(name != NULL);
+
+  AttrOption* ret = (AttrOption*)calloc(1, sizeof(AttrOption));
+  ret->name = strdup(name);
+  ret->value.num = value;
+  ret->type = AttrOptionTypeNumber;
+  return ret;
+}
+
+AttrOption* AttrOption_push_with_logic(AttrOption* list, AttrOption* lastOption, bool logicAnd) {
+  assert(lastOption != NULL);
+
+  lastOption->logicAnd = logicAnd;
+  lastOption->next = NULL;
+  lastOption->prev = NULL;
+  DL_APPEND(list, lastOption);
+  return list;
 }
 
 void freeList(QueryResult **list) {
@@ -162,7 +179,9 @@ bool AttrOption_test(AttrOption* option, ASTNode* node) {
   AttrOption* cur = NULL;
   DL_FOREACH(option, cur) {
     bool result = false;
-    if (cur->type == AttrOptionTypeString) {
+    if (cur->type == AttrOptionTypeExists) {
+      result = ASTNode_has_attr(node, cur->name);
+    } else if (cur->type == AttrOptionTypeString) {
       result = ASTNode_attr_eq_str(node, cur->name, cur->value.str);
     } else {
       result = ASTNode_attr_eq_int(node, cur->name, cur->value.num)
@@ -224,10 +243,10 @@ QueryResult *searchDescendentNameRecursive(ASTNode* cur, const SearchParam* para
         if (param->index == *queryCount) break; // never break on -1
       }
     }
-    if (*queryCount < param->index + 1 || param->index == -1) {
+    /* if (*queryCount < param->index + 1 || param->index == -1) { */
       QueryResult *sub = searchDescendentNameRecursive(child, param, queryCount);
       if (sub) DL_CONCAT(ret, sub);
-    }
+    /* } */
   }
   return ret;
 }
