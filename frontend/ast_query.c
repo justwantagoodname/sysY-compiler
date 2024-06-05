@@ -14,7 +14,7 @@ QueryResult *QueryResult_create(ASTNode *node) {
 
 QueryResult *ASTNode_querySelector(ASTNode *node, const char* selector) {
     assert(selector != NULL);
-    printf("Querying selector: %s\n", selector);
+    // printf("Querying selector: %s\n", selector);
     QueryResult* result = NULL, *last = NULL;
 
     DL_APPEND(last, QueryResult_create(node));
