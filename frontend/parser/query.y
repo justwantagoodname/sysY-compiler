@@ -79,6 +79,8 @@ QueryResult *searchAncestor(QueryResult* cur, const SearchParam* param);
 %type <attrOption> AttrOption AttrOptions
 %type <searchParam> AttrSelector
 %type <string> SelectorPrefix
+
+%left Or Comma
 %%
 
 Query: %empty { /* printf("Start Traveling...\n"); */ }

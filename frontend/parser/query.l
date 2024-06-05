@@ -14,7 +14,7 @@ char* stringBody(const char* text);
 %option bison-bridge 
 
 NodeName [a-zA-Z_][a-zA-Z0-9_]*
-String \'.*\'
+String \'[^\']*\'
 
 %%
 [[:digit:]]+ { (*yylval).number = atoi(yytext); return Number; }
