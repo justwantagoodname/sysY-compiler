@@ -13,15 +13,15 @@ char* stringBody(const char* text);
 %option reentrant
 %option bison-bridge 
 
-NodeName [a-zA-Z_][a-zA-Z0-9_]*
+NodeName [a-zA-Z_][a-zA-Z0-9_]*|\.|\.\.|\*
 String \'[^\']*\'
+Prefix "ancestor::"|"parent::"
 
 %%
-[[:digit:]]+ { (*yylval).number = atoi(yytext); return Number; }
-{NodeName}|"*" { (*yylval).string = strdup(yytext); return NodeName; }
-{String}    {(*yylval).string = stringBody(yytext); return String;}
-"ancestor::" { (*yylval).string = strdup(yytext); return Prefix; }
-"parent::"  { (*yylval).string = strdup(yytext); return Prefix; }
+[[:digit:]]+    { (*yylval).number = atoi(yytext); return Number; }
+{NodeName}      { (*yylval).string = strdup(yytext); return NodeName; }
+{String}        {(*yylval).string = stringBody(yytext); return String;}
+{Prefix}    { (*yylval).string = strdup(yytext); return Prefix; }
 "/"     { return Slash; }
 "//"    { return DoubleSlash; }
 "["     { return LeftBracket; }
@@ -30,6 +30,7 @@ String \'[^\']*\'
 ","     { return Comma; }
 "="     { return Equal; }
 "|"     { return Or; }
+.       { printf("Unrecognized character: '%s'.Maybe Error in our lexer?\n", yytext); return -1;}
 %%
 
 char* stringBody(const char* text) {
