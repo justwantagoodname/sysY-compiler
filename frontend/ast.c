@@ -1,6 +1,8 @@
 #include "sysY.h"
 #include <stdarg.h>
+#include <unistd.h>
 #include "ast.h"
+#include <sys/types.h>
 
 struct ASTNode *ASTNode_create(const char* id) {
     assert(id != NULL);
@@ -63,50 +65,79 @@ void ASTNode_add_nchild(ASTNode *parent, int n, ...) {
 }
 
 // I Love XML. XD
-void ASTNode_print_impl(struct ASTNode *node) {
+void ASTNode_print_impl(struct ASTNode *node, FILE *stream) {
     assert(node != NULL);
 
-    printf("<%s", node->id);
+    fprintf(stream, "<%s", node->id);
 
     // print attributes
     ASTAttribute *attr = NULL;
     for (attr = node->attrs; attr != NULL; attr = attr->hh.next) {
         switch (attr->type) {
             case ATTR_TYPE_INT:
-                printf(" %s=\"%d\"", attr->key, attr->value.int_value);
+                fprintf(stream, " %s=\"%d\"", attr->key, attr->value.int_value);
                 break;
             case ATTR_TYPE_FLOAT:
-                printf(" %s=\"%f\"", attr->key, attr->value.float_value);
+                fprintf(stream, " %s=\"%f\"", attr->key, attr->value.float_value);
                 break;
             case ATTR_TYPE_STR:
-                printf(" %s=\"%s\"", attr->key, attr->value.str_value);
+                fprintf(stream, " %s=\"%s\"", attr->key, attr->value.str_value);
                 break;
             default:
-                printf(" %s=\"UNKNOWN\" ", attr->key);
+                fprintf(stream, " %s=\"UNKNOWN\" ", attr->key);
                 break;
         }
     }
 
     if (node->children == NULL) {
-        printf(" />\n");
+        fprintf(stream, " />\n");
         return;
     } else {
-        printf(">\n");
+        fprintf(stream, ">\n");
     }
 
     // print children
     struct ASTNode *cur = NULL;
     DL_FOREACH(node->children, cur) {
-        ASTNode_print_impl(cur);
+        ASTNode_print_impl(cur, stream);
     }
 
-    printf("</%s>\n", node->id);
+    fprintf(stream, "</%s>\n", node->id);
 }
+#ifdef XML_PP
+void ASTNode_pretty_print(ASTNode* node) {
+    assert(node != NULL);
+    
+    int fd[2];
+    pipe(fd);
+    // create a process and call xmllint --format -
+    // pip the fd[1] to stdin after fork and exec
+    pid_t pid = fork();
+    if (pid == 0) {
+        // child
+        close(fd[1]);
+        dup2(fd[0], STDIN_FILENO);
+        close(fd[0]);
+        execlp("xmllint", "xmllint", "--format", "-", NULL);
+        perror("execlp");
+        exit(1);
+    } else {
+        close(fd[0]);
+        FILE *stream = fdopen(fd[1], "w");
+        ASTNode_print_impl(node, stream);
+        fclose(stream);
+        waitpid(pid, NULL, 0);
+    }
+}
+#endif
 
 void ASTNode_print(struct ASTNode *node) {
     assert(node != NULL);
-
-    ASTNode_print_impl(node);
+#ifndef XML_PP
+    ASTNode_print_impl(node, stdout);
+#else
+    ASTNode_pretty_print(node);
+#endif
 }
 
 void ASTNode_lpush_child(ASTNode *parent, ASTNode *child) {

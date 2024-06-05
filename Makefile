@@ -3,7 +3,7 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CFLAGS = -g -Wall 
+CFLAGS = -g -Wall -DXML_PP
 LDFLAGS = 
 JOBS := 4
 
@@ -85,7 +85,7 @@ clean:
 
 requirements:
 ifeq ($(UNAME), Linux) 
-		sudo apt-get -y install build-essential flex bison entr 
+		sudo apt-get -y install build-essential flex bison entr libxml2-utils
 endif
 
 ifeq ($(UNAME), Darwin)
