@@ -84,14 +84,14 @@ clean:
 	find . -type f -name "*.tab.*" -delete
 
 requirements:
-	ifeq ($(UNAME), Linux)
-		sudo apt-get -y install build-essential flex bison entr
-	endif
+ifeq ($(UNAME), Linux) 
+		sudo apt-get -y install build-essential flex bison entr 
+endif
 
-	ifeq ($(UNAME), Darwin)
+ifeq ($(UNAME), Darwin)
 		xcode-select --install
 		brew install flex bison entr
-	endif
+endif
 
 dev:
 	echo $(L_FILES) $(Y_FILES) $(C_FILES) $(CC_FILES) $(TEST_DIR)/testfile.txt \
