@@ -9,7 +9,7 @@ JOBS := 4
 
 UNAME := $(shell uname)
 
-INCLUDE_DIR = -Iinclude -Ilib -Ifronted/parser
+INCLUDE_DIR = -Iinclude -Ilib -Ifrontend/parser
 BUILD_DIR = build
 
 ifeq ($(UNAME), Linux)
