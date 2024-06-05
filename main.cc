@@ -1,9 +1,10 @@
 #include "sysY.h"
 #include "ast.h"
-#include "action.h"
 
-extern int yyparse(struct ASTNode **root);
-extern FILE *yyin;
+extern "C" {
+  extern int yyparse(struct ASTNode **root);
+  extern FILE *yyin;
+}
 
 int main(int argc, const char** argv) {
   const char *filename = "testfile.txt";

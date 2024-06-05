@@ -5,6 +5,10 @@
 
 #include "sysY.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum AttributeType
 {
     ATTR_TYPE_UNKNOWN,
@@ -100,4 +104,9 @@ struct SearchParam {
   const char* prefix;
 };
 typedef struct SearchParam SearchParam;
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

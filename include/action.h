@@ -5,6 +5,10 @@
 
 #include "ast.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void modifyValueType(ASTNode *value_defs, const char* type);
 
 ASTNode *createOpNode(const char *op, ASTNode *left, ASTNode *right);
@@ -16,4 +20,9 @@ ASTNode *createWhileNode(ASTNode *cond, ASTNode *stmt);
 ASTNode *collectDecl(ASTNode *scope_node, ASTNode *decls);
 
 char* trimQuoteStr(const char *str);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
