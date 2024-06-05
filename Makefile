@@ -64,7 +64,7 @@ flex-files: $(FLEX_C_FILES) bison-files
 gen-files: bison-files flex-files
 
 %.tab.c %.tab.h: %.y | $(BUILD_DIR)
-	$(YACC) -b $* -d -o $*.tab.c $<
+	$(YACC) -v -b $* -d -o $*.tab.c $<
 
 %.lex.c: %.l | $(BUILD_DIR)
 	$(LEX) -o $*.lex.c $<

@@ -53,6 +53,7 @@ void ASTNode_add_child(ASTNode *parent, ASTNode *child);
 void ASTNode_add_attr_int(ASTNode *node, const char* key, int value);
 void ASTNode_add_attr_str(ASTNode *node, const char* key, const char* value);
 void ASTNode_add_attr_float(ASTNode *node, const char* key, float value);
+bool ASTNode_has_attr(ASTNode *node, const char* key);
 bool ASTNode_get_attr_int(ASTNode *node, const char* key, int *value);
 bool ASTNode_get_attr_str(ASTNode *node, const char* key, const char **value);
 bool ASTNode_get_attr_float(ASTNode *node, const char* key, float *value);

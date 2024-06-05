@@ -338,6 +338,13 @@ void ASTNode_free(ASTNode *node) {
     free(node);
 }
 
+bool ASTNode_has_attr(ASTNode *node, const char* key) {
+    assert(node != NULL && key != NULL);
+
+    ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    return attr != NULL;
+}
+
 bool ASTNode_attr_eq_int(ASTNode *node, const char* key, int value) {
     assert(node != NULL && key != NULL);
 
