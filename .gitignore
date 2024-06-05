@@ -10,3 +10,10 @@ test/parser
 test/compiler
 test/*.exe
 test/output.*
+.vs/
+sysY-compiler/
+x64/
+*.filters
+*.sln
+*.user
+*.vcxproj
