@@ -140,6 +140,15 @@ void ASTNode_print(struct ASTNode *node) {
 #endif
 }
 
+size_t ASTNode_children_size(ASTNode *node) {
+    assert(node != NULL);
+
+    size_t count = 0;
+    struct ASTNode *cur = NULL;
+    DL_COUNT(node->children, cur, count);
+    return count;
+}
+
 void ASTNode_lpush_child(ASTNode *parent, ASTNode *child) {
     assert(parent != NULL && child != NULL);
 

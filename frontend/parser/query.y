@@ -90,7 +90,7 @@ Selector: SelectorPrefix NodeName AttrSelector { freeList(result);
                                               }
 
 AttrSelector: %empty { $$.id = NULL; $$.options = NULL; $$.index = -1; }
-            /* | LeftBracket AttrOptions RightBracket LeftBracket Number RightBracket { $$.options = $2; $$.index = $5; } */
+            | LeftBracket AttrOptions RightBracket LeftBracket Number RightBracket { $$.options = $2; $$.index = $5; }
             | LeftBracket AttrOptions RightBracket { $$.options = $2; $$.index = -1; }
             | LeftBracket Number RightBracket { $$.id = NULL; $$.options = NULL; $$.index = $2; }
 

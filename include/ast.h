@@ -46,6 +46,7 @@ typedef struct ASTNode ASTNode;
 ASTNode *ASTNode_create(const char* id);
 ASTNode *ASTNode_create_attr(const char* id, int attr_count, ...);
     /* Children */
+size_t ASTNode_children_size(ASTNode *node);
 void ASTNode_add_nchild(ASTNode *parent, int n, ...);
 void ASTNode_lpush_child(ASTNode *parent, ASTNode *child);
 void ASTNode_add_child(ASTNode *parent, ASTNode *child);

@@ -42,15 +42,14 @@ int main(int argc, const char** argv) {
   int result = yyparse(&root);
   if (result == 0) {
     printf("====AST Info====\n");
-    // ASTNode_print(root);
-    QueryResult* result = ASTNode_querySelector(root, "//Var[@name='a'|@name='b']"), *cur = NULL;
+    QueryResult* result = ASTNode_querySelector(root, "//Exp"), *cur = NULL;
 
     int count = 0;
     DL_FOREACH(result, cur) {
       printf("=== Result %d ===\n", ++count);
       ASTNode_print(cur->node);
       printf("=== Simplify ====\n");
-      // ASTNode_print(ExpNode_simplify(cur->node));
+      ASTNode_print(ExpNode_simplify(cur->node));
       printf("========\n"); 
     }
   }

@@ -3,7 +3,7 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CFLAGS = -g -Wall -DXML_PP
+CFLAGS = -g -Wall 
 LDFLAGS = 
 JOBS := 4
 
