@@ -44,6 +44,7 @@ int main(int argc, const char** argv) {
   if (result == 0) {
     ConstNode_unfold(root);
     printf("====AST Info====\n");
+    ASTNode_print(root);
 
 #if 0
     QueryResult* result = ASTNode_querySelector(root, "//Scope//Decl"), *cur = NULL;

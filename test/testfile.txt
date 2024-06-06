@@ -1,4 +1,5 @@
-const int a = 1 + 2 + 3, b = a + 3;
+const int b = 2;
+// const int a[b][b] = {{1, 2}, {3, 4}};
+int a = b;
 int main() {
-    a + 1;
 }
