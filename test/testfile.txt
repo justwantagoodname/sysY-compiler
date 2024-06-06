@@ -1,3 +1,4 @@
+const int a = 1 + 2 + 3, b = a + 3;
 int main() {
-    1 || 0;
+    a + 1;
 }

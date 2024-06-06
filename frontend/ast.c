@@ -306,6 +306,16 @@ void ASTNode_copy_children(ASTNode *from, ASTNode *to) {
     }
 }
 
+void ASTNode_replace(ASTNode *after, ASTNode *before) {
+    assert(before != NULL && after != NULL);
+    assert(after->parent == NULL);
+
+    after->parent = before->parent;
+    
+    if (after->parent) 
+        DL_REPLACE_ELEM(after->parent->children, before, after);
+}
+
 ASTNode *ASTNode_clone(ASTNode *node) {
     assert(node != NULL);
 

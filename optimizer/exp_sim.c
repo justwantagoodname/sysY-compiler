@@ -56,6 +56,28 @@ sim_result_t ExpNode_op_calc(const char *op, double left, double right)
     }
     return 0; // Error
 }
+ASTNode* ExpNode_fetch_const(const ASTNode* node) {
+    assert(node != NULL);
+    assert(ASTNode_id_is(node, "Fetch"));
+
+    ASTNode* base_node = ASTNode_querySelectorOne(node, "//*[@base][0]");
+    const char* base_name = NULL;    
+    ASTNode_get_attr_str(base_node, "base", &base_name);
+    
+    assert(base_name != NULL);
+
+    ASTNode* target = ASTNode_querySelectorfOne(node, "/ancestor::Scope//Const[@name='%s'][0]", base_name);
+
+    assert(target != NULL);
+    assert(ASTNode_id_is(target, "Const"));
+
+    ASTNode* value = ASTNode_querySelectorOne(target, "//Exp/Number");
+    ASTNode_print(value);
+
+    assert(ASTNode_id_is(value, "Number"));
+
+    return ASTNode_clone(value);
+}
 
 ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp);
 ASTNode *ExpNode_simplify_unary_operater(const ASTNode *exp);
@@ -110,6 +132,8 @@ ASTNode *ExpNode_simplify_unary_operater(const ASTNode *exp)
         ASTNode_free(ret);
         ret = ASTNode_create("Number");
         ASTNode_add_attr_int(ret, "value", -value);
+    } else if (ASTNode_id_is(exp, "Fetch")) {
+        return ExpNode_fetch_const(exp);
     }
 
 postcondition:
