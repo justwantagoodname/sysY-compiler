@@ -334,7 +334,6 @@ void ASTNode_free(ASTNode *node) {
         if (attr->type == ATTR_TYPE_STR) {
             free((char *)attr->value.str_value);
         }
-        free(attr);
         HASH_DEL(node->attrs, attr);
     }
 
