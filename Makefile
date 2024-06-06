@@ -57,7 +57,9 @@ $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
 	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
-bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
+# Compile .hpp files into .o files
+$(BUILD_DIR)/%.o: %.hpp gen-files | $(BUILD_DIR)
+	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
 flex-files: $(FLEX_C_FILES) bison-files
 
