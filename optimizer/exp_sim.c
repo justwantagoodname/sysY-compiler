@@ -3,74 +3,175 @@
 
 typedef double sim_result_t;
 
-bool ExpNode_is_atomic(ASTNode* node) {
+bool ExpNode_is_atomic(const ASTNode *node)
+{
     assert(node != NULL);
-    return strcmp(node->id, "Number") == 0;
+
+    return ASTNode_id_is(node, "Number") || ASTNode_has_attr(node, "value");
 }
 
-const char* op_literal[] = {"Plus", "Minus", "Mult", "Div", "Mod", "And", "Or"};
+const char *op_literal[] = {"Plus", "Minus", "Mult",
+                            "Div", "Mod", "And",
+                            "Or", "Equal", "NotEq",
+                            "Less", "LessEq", "Greater",
+                            "GreaterEq"};
 
-sim_result_t ExpNode_op_calc(const char* op, double left, double right) {
+sim_result_t ExpNode_op_calc(const char *op, double left, double right)
+{
     assert(op != NULL);
-    for (int i = 0; i < sizeof(op_literal) / sizeof(op_literal[0]); i++) {
-        if (strcmp(op, op_literal[i]) == 0) {
-            switch (i) {
-                case 0: return left + right;
-                case 1: return left - right;
-                case 2: return left * right;
-                case 3: return left / right;
-                case 4: return (int)left % (int)right;
-                case 5: return left && right;
-                case 6: return left || right;
+    for (int i = 0; i < sizeof(op_literal) / sizeof(op_literal[0]); i++)
+    {
+        if (strcmp(op, op_literal[i]) == 0)
+        {
+            switch (i)
+            {
+            case 0:
+                return left + right;
+            case 1:
+                return left - right;
+            case 2:
+                return left * right;
+            case 3:
+                return left / right;
+            case 4:
+                return (int)left % (int)right;
+            case 5:
+                return left && right;
+            case 6:
+                return left || right;
+            case 7:
+                return left == right;
+            case 8:
+                return left != right;
+            case 9:
+                return left < right;
+            case 10:
+                return left <= right;
+            case 11:
+                return left > right;
+            case 12:
+                return left >= right;
             }
         }
     }
+    return 0; // Error
 }
 
-ASTNode* ExpNode_simplify_impl(ASTNode* exp) {
-    assert(exp != NULL);
-    assert(ASTNode_children_size(exp) <= 2);
-    
-    if (ExpNode_is_atomic(exp)) return ASTNode_clone(exp);
-    
-    ASTNode* left = ASTNode_querySelectorOne(exp, "/*[0]");
-    ASTNode* right = ASTNode_querySelectorOne(exp, "/*[1]");
-    
-    left = ExpNode_simplify_impl(left);
-    right = ExpNode_simplify_impl(right);
+ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp);
+ASTNode *ExpNode_simplify_unary_operater(const ASTNode *exp);
+ASTNode *ExpNode_simplify_recursive(const ASTNode *node)
+{
+    assert(node != NULL);
 
-    bool left_atomic = ExpNode_is_atomic(left),
-         right_atomic = ExpNode_is_atomic(right);
-    int left_value, right_value;
+    int child = ASTNode_children_size(node);
+    ASTNode *ret = NULL;
 
-    if (left_atomic && right_atomic) {
-        ASTNode_get_attr_int(left, "value", &left_value);
-        ASTNode_get_attr_int(right, "value", &right_value);
-        
-        sim_result_t sim_val = ExpNode_op_calc(exp->id, left_value, right_value);
-        ASTNode* ret = ASTNode_create("Number");
-        ASTNode_add_attr_int(ret, "value", sim_val);
-        
-        return ret;
-    } else if (left_atomic) {
-
-    } else if (right_atomic) {
-
-    } else {
-        
+    printf("Sim: %s with %d\n", node->id, child);
+    switch (child)
+    {
+    case 1:
+    {
+        ret = ExpNode_simplify_unary_operater(node);
+        break;
+    }
+    case 2:
+    {
+        ret = ExpNode_simplify_binary_operater(node);
+        break;
+    }
+    default:
+    {
+        // If we can't handle the expression, just clone it
+        ret = ASTNode_clone(node);
+        break;
+    }
     }
 
-    ASTNode* ret = ASTNode_clone(exp);
-
+    assert(ret != NULL);
     return ret;
 }
 
-ASTNode* ExpNode_simplify(ASTNode* exp) {
+ASTNode *ExpNode_simplify_unary_operater(const ASTNode *exp)
+{
+    assert(exp != NULL);
+    assert(ASTNode_children_size(exp) == 1);
+    ASTNode *ret = NULL;
+
+    if (ExpNode_is_atomic(exp)) {
+        ret = ASTNode_clone(exp); 
+    } else if (ASTNode_id_is(exp, "UnPlus")) {
+        ASTNode *child = ASTNode_querySelectorOne(exp, "/*");
+        ret = ExpNode_simplify_recursive(child);
+    } else if (ASTNode_id_is(exp, "UnMinus")) {
+        ASTNode *child = ASTNode_querySelectorOne(exp, "/*");
+        ret = ExpNode_simplify_recursive(child);
+        int value = -1;
+        ASTNode_get_attr_int(ret, "value", &value);
+        ASTNode_free(ret);
+        ret = ASTNode_create("Number");
+        ASTNode_add_attr_int(ret, "value", -value);
+    }
+
+postcondition:
+    assert(ret != NULL);
+    return ret;
+}
+
+ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp)
+{
+    assert(ASTNode_children_size(exp) <= 2);
+
+    if (ExpNode_is_atomic(exp))
+        return ASTNode_clone(exp);
+
+    const ASTNode *left = ASTNode_querySelectorOne(exp, "/*[0]");
+    const ASTNode *right = ASTNode_querySelectorOne(exp, "/*[1]");
+
+    ASTNode *sim_left = ExpNode_simplify_recursive(left);
+    ASTNode *sim_right = ExpNode_simplify_recursive(right);
+
+    ASTNode_print(sim_left);
+    ASTNode_print(sim_right);
+    bool left_atomic = ExpNode_is_atomic(sim_left),
+         right_atomic = ExpNode_is_atomic(sim_right);
+
+    /* Obvisually, we can only handle float this time */
+    int left_value = -1, right_value = -1;
+
+    ASTNode *ret = NULL;
+    if (left_atomic && right_atomic)
+    {
+
+        ASTNode_get_attr_int(sim_left, "value", &left_value);
+        ASTNode_get_attr_int(sim_right, "value", &right_value);
+
+        ASTNode_free(sim_left);
+        ASTNode_free(sim_right);
+
+        sim_result_t sim_val = ExpNode_op_calc(exp->id, left_value, right_value);
+        ret = ASTNode_create("Number");
+        ASTNode_add_attr_int(ret, "value", (int)sim_val);
+        printf("Sim A ConstExp with %d %s %d = %lf\n",
+               left_value, exp->id, right_value, sim_val);
+    }
+
+    assert(ret != NULL);
+    return ret;
+}
+
+/**
+ * Simplify the expression node
+ * @note This function won't change the orignal node but return a new one
+ */
+ASTNode *ExpNode_simplify(const ASTNode *exp)
+{
     assert(exp != NULL);
     assert(ASTNode_id_is(exp, "Exp"));
-    ASTNode* child = ASTNode_querySelectorOne(exp, "/*");
 
-    ASTNode* simplified_child = ExpNode_simplify_impl(child);
+    ASTNode *child = ASTNode_querySelectorOne(exp, "/*");
+
+    ASTNode *simplified_child = ExpNode_simplify_recursive(child);
+
     ASTNode *new_exp = ASTNode_create("Exp");
     ASTNode_add_child(new_exp, simplified_child);
     return new_exp;

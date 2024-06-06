@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-ASTNode* ExpNode_simplify(ASTNode* exp);
+ASTNode* ExpNode_simplify(const ASTNode* exp);
 
 #ifdef __cplusplus
 }
