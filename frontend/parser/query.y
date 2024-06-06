@@ -46,6 +46,7 @@ QueryResult* searchChildName(QueryResult* cur, const SearchParam* param);
 QueryResult *searchDescendentName(QueryResult* cur, const SearchParam* param);
 QueryResult *searchParent(QueryResult* cur, const SearchParam* param);
 QueryResult *searchAncestor(QueryResult* cur, const SearchParam* param);
+QueryResult *searchCurrentName(QueryResult* cur, const SearchParam* param);
 %}
 %define api.pure full
 %define api.prefix {qq}
@@ -93,8 +94,9 @@ Selector: SelectorPrefix NodeName AttrSelector { freeList(result);
                                   // printf("Search for child %s\n", $2);
                                   SearchParam param; 
                                   param.id = $2; param.options = $3.options; param.index = $3.index;
-                                  if (strcmp($1, "parent::") == 0) execSearch(last, result, searchParent, &param);
+                                  if (strcmp($1, "parent::") == 0 || strcmp($2, "..") == 0) execSearch(last, result, searchParent, &param);
                                   else if (strcmp($1, "ancestor::") == 0) execSearch(last, result, searchAncestor, &param);
+                                  else if (strcmp($2, ".") == 0) execSearch(last, result, searchCurrentName, &param);
                                   else execSearch(last, result, searchChildName, &param);
                                   copyList(*result, *last);
                                   }
@@ -104,8 +106,8 @@ Selector: SelectorPrefix NodeName AttrSelector { freeList(result);
                                               freeList(result);
                                               // printf("Search for descendent %s\n", $2);
                                               SearchParam param; 
-                                              param.id = $2; param.options = $3.options; param.index = -1;
-                                              if ($3.index != -1) { qqerror(scanner, result, last, "WARN: Index is not allowed in descendent search."); }
+                                              param.id = $2; param.options = $3.options; param.index = $3.index;
+                                              // if ($3.index != -1) { qqerror(scanner, result, last, "WARN: Index is not allowed in descendent search."); }
                                               execSearch(last, result, searchDescendentName, &param);
                                               copyList(*result, *last);
                                               }
@@ -175,55 +177,76 @@ bool AttrOption_test(AttrOption* option, ASTNode* node) {
   return ret;
 }
 
+QueryResult *searchCurrentName(QueryResult* cur, const SearchParam* param) {
+  assert(cur != NULL && param != NULL);
+
+  QueryResult* ret = NULL;
+  if (AttrOption_test(param->options, cur->node)) {
+    QueryResult *record = QueryResult_create(cur->node);
+    DL_APPEND(ret, record);
+  }
+  return ret;
+}
+
 QueryResult *searchChildName(QueryResult* cur, const SearchParam* param) {
   assert(cur != NULL && param != NULL);
 
   QueryResult* ret = NULL;
   ASTNode *child = NULL;
   int childIndex = 0;
+  
   bool isAny = strcmp(param->id, "*") == 0;
   DL_FOREACH(cur->node->children, child) {
-    if (isAny || ASTNode_id_is(child, param->id)) {
-      QueryResult *record = QueryResult_create(child);
-      if ((param->index == -1 || param->index == childIndex)
-          && AttrOption_test(param->options, child)) { 
+    if ((isAny || ASTNode_id_is(child, param->id)) && AttrOption_test(param->options, child)) {
+      if ((param->index == -1 || param->index == childIndex)) { 
+        QueryResult *record = QueryResult_create(child);
         DL_APPEND(ret, record);
+        if (param->index == childIndex) break; // never break on -1
       }
+      ++childIndex;
     }
-    ++childIndex;
   }
   return ret;
 }
 
-QueryResult *searchDescendentNameRecursive(ASTNode* cur, const SearchParam* param) {
+QueryResult *searchDescendentNameRecursive(ASTNode* cur, const SearchParam* param, int *queryCount) {
   assert(cur != NULL && param != NULL);
 
   QueryResult* ret = NULL;
   ASTNode *child = NULL;
   bool isAny = strcmp(param->id, "*") == 0;
   DL_FOREACH(cur->children, child) {
-    if (isAny || ASTNode_id_is(child, param->id)) {
-      QueryResult *record = QueryResult_create(child);
-      if (AttrOption_test(param->options, child)) DL_APPEND(ret, record);
+    if ((isAny || ASTNode_id_is(child, param->id)) && AttrOption_test(param->options, child)) {
+      (*queryCount)++;
+      if (param->index == *queryCount - 1 || param->index == -1) {
+        QueryResult *record = QueryResult_create(child);
+        DL_APPEND(ret, record);
+        if (param->index == *queryCount) break; // never break on -1
+      }
     }
-    QueryResult *sub = searchDescendentNameRecursive(child, param);
-    if (sub) DL_CONCAT(ret, sub);
+    if (*queryCount < param->index + 1 || param->index == -1) {
+      QueryResult *sub = searchDescendentNameRecursive(child, param, queryCount);
+      if (sub) DL_CONCAT(ret, sub);
+    }
   }
   return ret;
 }
 
 QueryResult *searchDescendentName(QueryResult* cur, const SearchParam* param) {
   assert(cur != NULL && param != NULL);
-
-  return searchDescendentNameRecursive(cur->node, param);
+  int queryCount = 0; // Current Nodes Size
+  return searchDescendentNameRecursive(cur->node, param, &queryCount);
 }
 
 QueryResult *searchParent(QueryResult* cur, const SearchParam* param) {
   assert(cur != NULL && param != NULL);
-
+  
   QueryResult* ret = NULL;
   ASTNode *parent = cur->node->parent;
-  if (parent && (strcmp(param->id, "*") == 0 || ASTNode_id_is(parent, param->id))) {
+  if (parent 
+      && (strcmp(param->id, "..") == 0 
+          || strcmp(param->id, "*") == 0 
+          || ASTNode_id_is(parent, param->id))) {
     QueryResult *record = QueryResult_create(parent);
     if (AttrOption_test(param->options, parent)) DL_APPEND(ret, record);
   }

@@ -1,6 +1,8 @@
+#include <stdarg.h>
 #include "sysY.h"
 #include "ast.h"
 #include "query.tab.h"
+
 
 extern void qqlex_init(yyscan_t *scanner);
 extern void qq_scan_string(const char *str, yyscan_t scanner);
@@ -36,3 +38,24 @@ ASTNode *ASTNode_querySelectorOne(ASTNode *node, const char* selector) {
     return nodeResult;
 }
 
+QueryResult *ASTNode_querySelectorf(ASTNode *node, const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char *selector = NULL;
+    vasprintf(&selector, fmt, args);
+    va_end(args);
+    QueryResult *result = ASTNode_querySelector(node, selector);
+    free(selector);
+    return result;
+}
+
+ASTNode *ASTNode_querySelectorfOne(ASTNode *node, const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char *selector = NULL;
+    vasprintf(&selector, fmt, args);
+    va_end(args);
+    ASTNode *result = ASTNode_querySelectorOne(node, selector);
+    free(selector);
+    return result;
+}
