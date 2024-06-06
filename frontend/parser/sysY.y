@@ -118,7 +118,9 @@ ConstDef: Identifier Assign ConstInitValue {
                                            }
         | Identifier ArrayDecl Assign ConstInitValue { 
                                                        $$ = ASTNode_create_attr("Const", 2, "name", $1, "array", "true"); 
-                                                       ASTNode_add_child($$, $4); 
+                                                       ASTNode* as = ASTNode_create("ArraySize");
+                                                       ASTNode_move_children($2, as);
+                                                       ASTNode_add_nchild($$, 2, as, $4);
                                                       }
         ;
 
