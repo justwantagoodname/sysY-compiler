@@ -1,10 +1,15 @@
+#include <stdarg.h>
+
 #include "sysY.h"
 #include "ast.h"
 
-#include <stdarg.h>
-
-
 ASTAttribute* _ASTNode_get_attr_or_null(ASTNode* node, const char* key);
+
+extern "C" {
+	extern int yyparse(struct ASTNode** root);
+	extern FILE* yyin;
+}
+
 /// <summary>
 /// token½ÚµãÔªËØ
 /// </summary>
@@ -12,35 +17,18 @@ class Element {
 private:
 	ASTNode* node;
 public:
+	Element() = delete;
 
-	//ASTNode* ASTNode_create(const char* id);
-	//ASTNode* ASTNode_create_attr(const char* id, int attr_count, ...);
-	///* Children */
-	//void ASTNode_add_nchild(ASTNode* parent, int n, ...);
-	//void ASTNode_lpush_child(ASTNode* parent, ASTNode* child);
-	//void ASTNode_add_child(ASTNode* parent, ASTNode* child);
-	///* Attributes */
-	//void ASTNode_add_attr_int(ASTNode* node, const char* key, int value);
-	//void ASTNode_add_attr_str(ASTNode* node, const char* key, const char* value);
-	//void ASTNode_add_attr_float(ASTNode* node, const char* key, float value);
-	//bool ASTNode_get_attr_int(ASTNode* node, const char* key, int* value);
-	//bool ASTNode_get_attr_str(ASTNode* node, const char* key, const char** value);
-	//bool ASTNode_get_attr_float(ASTNode* node, const char* key, float* value);
-	//bool ASTNode_attr_eq_int(ASTNode* node, const char* key, int value);
-	//bool ASTNode_attr_eq_str(ASTNode* node, const char* key, const char* value);
-	//bool ASTNode_attr_eq_float(ASTNode* node, const char* key, float value);
-	///* Utils */
-	//void ASTNode_print(struct ASTNode* node);
-	//void ASTNode_move_children(ASTNode* from, ASTNode* to);
-	//void ASTNode_copy_children(ASTNode* from, ASTNode* to);
-	//ASTNode* ASTNode_clone(ASTNode* node);
-	//void ASTNode_free(ASTNode* node);
-	///* Operators */
-	//bool ASTNode_id_is(ASTNode* node, const char* id);
-
-	//QueryResult* QueryResult_create(ASTNode* node);
-	//QueryResult* ASTNode_querySelector(ASTNode* node, const char* selector);
-	//ASTNode* ASTNode_querySelectorOne(ASTNode* node, const char* selector);
+	static Element CreateByFile(const char* filename) {
+		yyin = fopen(filename, "r");
+		ASTNode* node = NULL;
+		int i = yyparse(&node);
+		if (i != 0) {
+			node = NULL;
+			throw "Error";
+		}
+		return Element(node);
+	}
 
 	Element(ASTNode* n) {
 		node = n;
@@ -105,7 +93,7 @@ public:
 		return ASTNode_querySelectorOne(node, key);
 	}
 
-	QueryResult* q(const char* key) const{
+	QueryResult* q(const char* key) const {
 		return ASTNode_querySelector(node, key);
 	}
 
@@ -261,4 +249,76 @@ public:
 		return ASTNode_querySelectorOne(node, selector);
 	}
 
+};
+
+class Query {
+private:
+	QueryResult* result;
+public:
+	Query(QueryResult* res) {
+		result = res;
+	}
+
+	Query(ASTNode* node) {
+		result = QueryResult_create(node);
+	}
+
+	operator QueryResult* () {
+		return result;
+	}
+
+	Query& operator+= (const Query&& q) {
+		DL_CONCAT(result, q.result);
+		return *this;
+	}
+
+	Query operator/ (const char* select) const {
+		char* sel = strcat("/", select);
+		QueryResult* cur;
+		QueryResult* ans = NULL;
+		DL_FOREACH(result, cur) {
+			QueryResult* res = ASTNode_querySelector(cur->node, sel);
+			if (res) {
+				DL_CONCAT(ans, res);
+			}
+		}
+		return ans;
+	}
+
+	Query operator[] (const char* key) const {
+		QueryResult* cur;
+		QueryResult* ans = NULL;
+		DL_FOREACH(result, cur) {
+			ASTAttribute* res = _ASTNode_get_attr_or_null(cur->node, key);
+			if (res) {
+				DL_APPEND(ans, cur);
+			}
+		}
+		return ans;
+	}
+
+	struct iter {
+		QueryResult* it;
+		iter(QueryResult* q) : it(q) {}
+
+		iter& operator ++() {
+			it = it->next;
+		}
+
+		bool operator!=(iter& other) {
+			return other.it != it;
+		}
+
+		Element operator*() {
+			return Element(it->node);
+		}
+	};
+
+	iter begin() {
+		return result;
+	}
+
+	iter end() {
+		return NULL;
+	}
 };

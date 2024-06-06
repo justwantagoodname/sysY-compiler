@@ -7,6 +7,7 @@ int f() {
 }
 int main() {
     const int b = 2;
+    int c[100][200];
     int a = 1;
     a = 1 + 1;
     a[100][200][300] = 2;

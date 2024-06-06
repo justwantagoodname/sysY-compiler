@@ -9,7 +9,7 @@ JOBS := 4
 
 UNAME := $(shell uname)
 
-INCLUDE_DIR = -Iinclude -Ilib -Ifrontend/parser
+INCLUDE_DIR = -Iinclude -Ilib -Ifrontend/parser -Ipackage
 BUILD_DIR = build
 
 ifeq ($(UNAME), Linux)
@@ -32,6 +32,7 @@ L_FILES = $(shell find . -type f -name "*.l" | sed 's/^\.\///')
 H_FILES = $(shell find . -type f -name "*.h" | sed 's/^\.\///')
 C_FILES = $(shell find . -type f -name "*.c" | sed 's/^\.\///')
 CC_FILES = $(shell find . -type f -name "*.cc" | sed 's/^\.\///')
+HPP_FILES = $(shell find . -type f -name "*.hpp" | sed 's/^\.\///')
 
 BISON_C_FILES = $(Y_FILES:.y=.tab.c)
 BISON_H_FILES = $(Y_FILES:.y=.tab.h)
@@ -47,7 +48,7 @@ $(BUILD_DIR):
 compiler: $(BUILD_DIR)/compiler
 
 $(BUILD_DIR)/compiler: $(O_FILES)
-	$(CC) $(addprefix $(BUILD_DIR)/, $(notdir $^)) -o $@ $(LDFLAGS)
+	$(CXX) $(addprefix $(BUILD_DIR)/, $(notdir $^)) -o $@ $(LDFLAGS)
 
 # Compile .c files into .o files
 $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
@@ -55,10 +56,6 @@ $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
 
 # Compile .cc files into .o files
 $(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
-	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
-
-# Compile .hpp files into .o files
-$(BUILD_DIR)/%.o: %.hpp gen-files | $(BUILD_DIR)
 	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
 flex-files: $(FLEX_C_FILES) bison-files
@@ -74,7 +71,7 @@ gen-files: bison-files flex-files
 test-compiler: compiler
 	$(CLEAR) && date && cd $(BUILD_DIR) && ./compiler -i ../$(TEST_DIR)/testfile.txt -o -
 
-submission.zip: gen-files $(C_FILES) $(H_FILES) $(FLEX_C_FILES) $(L_FILES)
+submission.zip: gen-files $(C_FILES) $(H_FILES) $(HPP_FILES) $(FLEX_C_FILES) $(L_FILES)
 	$(ZIP) submission.zip -r y.tab.h y.tab.c lex.yy.c $(wildcard *.c) $(wildcard *.h) lib
 
 zip: submission.zip
