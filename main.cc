@@ -54,7 +54,8 @@ int main(int argc, const char** argv) {
 #endif
 #if 1
   Element root = Element::CreateByFile(filename);
-  Query result = (root("//Decl") / "*")["array"];
+  Query result = root("//Plus");
+  result[0].table("a").print();
 
   int count = 0;
   for (auto cur : result) {

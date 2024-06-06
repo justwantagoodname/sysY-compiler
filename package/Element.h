@@ -57,6 +57,8 @@ public:
 	Query createQueryResult();
 	Query querySelector(const char* selector);
 	Element querySelectorOne(const char* selector);
+
+	Element table(const char* key);
 };
 
 #endif // ELEMENT_H

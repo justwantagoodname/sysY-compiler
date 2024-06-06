@@ -237,3 +237,12 @@ Query Element::querySelector(const char* selector) {
 Element Element::querySelectorOne(const char* selector) {
     return ASTNode_querySelectorOne(node, selector);
 }
+
+Element Element::table(const char* key)
+{  
+    char* selector = (char*)malloc(strlen(key) + 25);
+    sprintf(selector, "ancestor::Scope/Decl/*[@name='%s']", key);
+    Element e = this->qo(selector);
+    ::free(selector);
+    return e;
+}
