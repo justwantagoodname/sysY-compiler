@@ -4,7 +4,7 @@ LEX = flex
 YACC = bison
 
 CFLAGS = -g -DXML_PP
-CXXFLAGS = -g -std=c++11
+CXXFLAGS = -g -std=c++17
 LDFLAGS = 
 JOBS := 4
 
