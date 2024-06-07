@@ -1,5 +1,6 @@
 #include "sysY.h"
 #include "ast.h"
+#include "exp_sim.h"
 
 typedef double sim_result_t;
 
@@ -203,6 +204,7 @@ ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* ta
     assert(ASTNode_id_is(fetch, "Fetch"));
     assert(ASTNode_id_is(target, "Const"));
 
+    /* 化简Fetch元素的每一个层取址表达式 */
     QueryResult* iter = NULL;
     QueryResult* locator_dims = ASTNode_querySelector(fetch, "//Locator/Dimension/*");
     ASTNode* locator_sims = ASTNode_create("Locator"); // Simplified each dimension
@@ -217,12 +219,20 @@ ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* ta
         ASTNode_add_child(locator_sims, sim_dim);
     }
 
+    /* 如果不是常量那就仅仅化简取地址表达式 */
     if (!const_foldable) {
         assert(locator_sims != NULL);
         return locator_sims;
     }
 
-    // Check index range
+    /* 开始从常量数组中取值 */
+
+    // 先检查常量数组的初始化表达式是否已经是规范形式 (一维表示)
+
+    if (ArrayInitNode_need_flatten(target)) {
+        ArrayInitNode_flatten(target);
+    }
+
     ASTNode* array_size = ASTNode_querySelectorOne(target, "/ArraySize");
 
     assert(ASTNode_children_size(array_size) == ASTNode_children_size(locator_sims));
@@ -242,7 +252,6 @@ ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* ta
             ASTNode_add_attr_int(ret, "value", 0);
             return ret;
         } else {
-            
         }
     }
 }

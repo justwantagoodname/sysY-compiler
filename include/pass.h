@@ -8,7 +8,6 @@ extern "C" {
 #endif
 
 #include "ast.h"
-void ArrayInitNode_expand(ASTNode* root);
 
 void ConstNode_unfold(ASTNode* root);
 

@@ -11,6 +11,9 @@ extern "C" {
 
 ASTNode* ExpNode_simplify(const ASTNode* exp);
 
+void ArrayInitNode_flatten(ASTNode* decl);
+bool ArrayInitNode_need_flatten(ASTNode* root);
+
 #ifdef __cplusplus
 }
 #endif

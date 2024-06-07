@@ -3,7 +3,8 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CFLAGS = -g -Wall 
+CFLAGS = -g -DXML_PP
+CXXFLAGS = -g -std=c++11
 LDFLAGS = 
 JOBS := 4
 
@@ -47,7 +48,7 @@ $(BUILD_DIR):
 compiler: $(BUILD_DIR)/compiler
 
 $(BUILD_DIR)/compiler: $(O_FILES)
-	$(CC) $(addprefix $(BUILD_DIR)/, $(notdir $^)) -o $@ $(LDFLAGS)
+	$(CXX) $(addprefix $(BUILD_DIR)/, $(notdir $^)) -o $@ $(LDFLAGS)
 
 # Compile .c files into .o files
 $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
@@ -55,7 +56,7 @@ $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
 
 # Compile .cc files into .o files
 $(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
-	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
 bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
 

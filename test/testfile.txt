@@ -1,5 +1,17 @@
-// const int a[2] = {1, 2, 3, 4};
-const int a[2] = {3, 4};
+// const int a[2][2] = {1, 2, 3, 4};
+//const int a[3][2] = {{1,2},{3,4},{5,6}};
+//const int a[3][2] = {1,2,3,4,5,6};
+//const int a[3][2] = {1,2,{3,4},5,6};
+// const int a[3][2] = {{1, 2},{3}, {5}};
+// const int a[3][2] = {1,2,{3},5};
+// const int a[3][2] = {{},{3,4},5,6};
+//const int a[3][2] = {};
+// const int a[3][2] = {0};
+
+
+// This a extreme case
+const int a[1000][1000][1000] = {{}, {}, 1};
+const int b = a[0];
 
 int main() {
 }
