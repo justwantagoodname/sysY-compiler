@@ -1,5 +1,7 @@
-# SysY Compiler
-Hope I can finish it...
+# SysY Compiler ![Build](https://github.com/justwantagoodname/sysY-compiler/actions/workflows/c-cpp.yml/badge.svg)
+Hope we can finish it...   
+
+![Mirror](https://github.com/justwantagoodname/sysY-compiler/actions/workflows/mirror.yml/badge.svg)
 
 # Usage
 ## 在 `Ubuntu` 与 `Debian` 发行版下安装编译环境
