@@ -1,9 +1,10 @@
 name: Mirror to Remote Gitlab Repository
 
-on:
+on: 
     push:
         branches:
             - main
+    workflow_dispatch:
 
 jobs:
     mirror:
