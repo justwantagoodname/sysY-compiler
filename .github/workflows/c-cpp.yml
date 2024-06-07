@@ -17,4 +17,4 @@ jobs:
     - name: make
       run: make
     - name: test-compiler
-      run: make test-compiler
+      run: TERM=xterm && make test-compiler
