@@ -1,6 +1,7 @@
 #include "sysY.h"
 #include "ast.h"
 #include "exp_sim.h"
+#include "utils.h"
 
 #include <vector>
 
@@ -115,12 +116,72 @@ void ArrayInitNode_flatten(ASTNode* decl) {
 
     ASTNode* linear_init = ASTNode_create_attr("ConstInitValue", 2, "array", "true", "flatten", "true");
 
-    ASTNode_print(init_value);
-
     ArrayInitNode_flattener(dim_sizes, init_value, linear_init, 0, dim_sizes[0]);
 
     ASTNode_replace(linear_init, init_value);
     ASTNode_free(init_value);
     ASTNode_print(linear_init);
-    assert(0);
+}
+
+/**
+ * 用一个数组locator来获取常量数组的值 
+ * @note locator 中的每一个维度都必须是一个Number节点, decl中的ArraySize节点必须是Number节点, ConstInitValue 都必须展平过
+ * @return 成功取值时返回一个复制过的Number节点，否则返回NULL
+ */
+
+ASTNode* ArrayInitNode_get_value_by_linear_index(ASTNode* decl, ASTNode* locator) {
+    assert(decl != NULL);
+    assert(ASTNode_id_is(decl, "Const"));
+    assert(ASTNode_id_is(locator, "Locator"));
+
+    // 检查locator 引用的常量数组是否在范围内
+    QueryResult* dims = ASTNode_querySelector(decl, "/ArraySize//Number"), *iter = NULL;
+    std::vector<int> dim_sizes; // 申明大小
+
+    DL_FOREACH(dims, iter) {
+        int dim_size = -1;
+        ASTNode_get_attr_int(iter->node, "value", &dim_size);
+        dim_sizes.push_back(dim_size);
+    }
+
+    std::vector<int> locator_access_size;
+    QueryResult* locator_dims = ASTNode_querySelector(locator, "/Dimension/Number");
+    iter = NULL;
+    DL_FOREACH(locator_dims, iter) {
+        int dim_size = -1;
+        ASTNode_get_attr_int(iter->node, "value", &dim_size);
+        locator_access_size.push_back(dim_size);
+    }
+
+    assert(locator_access_size.size() == dim_sizes.size());
+
+    for (int i = 0;i < dim_sizes.size(); i++) {
+        assert(0 <= locator_access_size[i] && locator_access_size[i] < dim_sizes[i]);
+    }
+
+    // 计算线性索引
+    size_t linear_index = multi_dimensional_index_to_linear_index(dim_sizes, locator_access_size);
+
+    // 获取初始化列表
+    QueryResult * init_list = ASTNode_querySelector(decl, "/ConstInitValue[@array,@flatten]/Number");
+    iter = NULL;
+
+    assert(init_list != NULL);
+
+    int current_index = 0;
+    DL_FOREACH(init_list, iter) {
+        int value = -1, repeat = -1;
+        ASTNode_get_attr_int(iter->node, "value", &value);
+        ASTNode_get_attr_int(iter->node, "repeat", &repeat);
+
+        if (current_index + repeat > linear_index) {
+            const char* type;
+            ASTNode_get_attr_str(decl, "type", &type);
+            ASTNode* ret = ASTNode_create_attr("Number", 1, "type", type);
+            ASTNode_add_attr_int(ret, "value", value);
+            return ret;
+        }
+        current_index += repeat;
+    }
+    return NULL;
 }

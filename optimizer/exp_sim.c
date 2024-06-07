@@ -233,27 +233,11 @@ ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* ta
         ArrayInitNode_flatten(target);
     }
 
-    ASTNode* array_size = ASTNode_querySelectorOne(target, "/ArraySize");
+    ASTNode* number = ArrayInitNode_get_value_by_linear_index(target, locator_sims);
 
-    assert(ASTNode_children_size(array_size) == ASTNode_children_size(locator_sims));
-    /* 理论上这里应该检查是否引用了越界的数组 */
-    assert(array_size != NULL);
+    assert(number != NULL);
 
-    QueryResult* access_index = ASTNode_querySelector(locator_sims, "//Number");
-    ASTNode* current_level = target;
-
-    DL_FOREACH(access_index, iter) {
-        int access = -1;
-        ASTNode_get_attr_int(access_index->node, "value", &access);
-
-        ASTNode* init_list = ASTNode_querySelectorfOne(current_level, "/ConstInitValue[%d]", access);
-        if (init_list == NULL) {
-            ASTNode* ret = ASTNode_create("Number");
-            ASTNode_add_attr_int(ret, "value", 0);
-            return ret;
-        } else {
-        }
-    }
+    return number;
 }
 
 ASTNode* ExpNode_calc_partial(const ASTNode* exp, const ASTNode* sim_left, const ASTNode* sim_right, const bool left_atomic, const bool right_atomic) {
