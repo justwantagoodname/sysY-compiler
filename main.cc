@@ -57,6 +57,10 @@ int main(int argc, const char** argv) {
   Query result = root("//Plus");
   result[0].table("a").print();
 
+  for (auto i : result[0]) {
+      printf("<%s%s>\n", i.id(), i.flag ? "/" : "");
+  }
+
   int count = 0;
   for (auto cur : result) {
       printf("=== Result %d ===\n", ++count);

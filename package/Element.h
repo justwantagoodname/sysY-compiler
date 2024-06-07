@@ -11,9 +11,13 @@ private:
 	ASTNode* node;
 
 public:
+	bool flag = false;
+
+public:
 	Element();
 	static Element CreateByFile(const char* filename);
 	Element(ASTNode* n);
+	Element(ASTNode* n, bool f);
 	Element(const Element& e);
 	Element(const char* id);
 	Element(const char* id, int attr_count, ...);
@@ -52,6 +56,7 @@ public:
 	Element& move_children_from(ASTNode* from);
 	Element& copy_children_by(ASTNode* from);
 	Element clone();
+	const char* id();
 	bool id_is(const char* id);
 	void free();
 	Query createQueryResult();
@@ -59,6 +64,19 @@ public:
 	Element querySelectorOne(const char* selector);
 
 	Element table(const char* key);
+
+	struct iter {
+		ASTNode* it;
+		bool flag = false;
+		iter(ASTNode* q);
+		iter& operator ++();
+		bool operator!=(iter& other);
+		Element operator*();
+		operator Element();
+	};
+
+	iter begin();
+	iter end();
 };
 
 #endif // ELEMENT_H
