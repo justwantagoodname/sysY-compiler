@@ -17,7 +17,7 @@ jobs:
             
             - uses: yesolutions/mirror-action@master
               with:
-                REMOTE: 'https://gitlab.eduxiji.net/T202411065203807/chilletcompiler.git'
+                REMOTE: ${{ vars.GIT_REPO_URL }}
                 GIT_USERNAME: ${{ vars.GIT_USERNAME }}
                 GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
                 PUSH_ALL_REFS: "false"
