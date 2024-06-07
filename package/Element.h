@@ -57,6 +57,7 @@ public:
 	Query createQueryResult();
 	Query querySelector(const char* selector);
 	Element querySelectorOne(const char* selector);
+    ASTNode *unwrap();
 };
 
 #endif // ELEMENT_H

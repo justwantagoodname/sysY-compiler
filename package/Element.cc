@@ -237,3 +237,7 @@ Query Element::querySelector(const char* selector) {
 Element Element::querySelectorOne(const char* selector) {
     return ASTNode_querySelectorOne(node, selector);
 }
+
+ASTNode* Element::unwrap() {
+    return node;
+}

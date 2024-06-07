@@ -39,37 +39,20 @@ int main(int argc, const char** argv) {
   printf("\n");
   rewind(yyin);
 #endif
-#if 0
-  struct ASTNode *root = NULL;
-  int result = yyparse(&root);
-  if (result == 0) {
-    ConstNode_unfold(root); 
-    // printf("====AST Info====\n");
-    ASTNode_print(root);
-#if 0
-    QueryResult* result = ASTNode_querySelector(root, "//Scope//Decl"), *cur = NULL;
-
-    int count = 0;
-    DL_FOREACH(result, cur) {
-      printf("=== Result %d ===\n", ++count);
-      ASTNode_print(cur->node);
-      printf("=== Simplify ====\n");
-      ASTNode_print(ExpNode_simplify(cur->node));
-      printf("========\n"); 
-    }
-#endif
-  }
-#endif
-#if 1
   Element root = Element::CreateByFile(filename);
+  ConstNode_unfold(root.unwrap());
   Query result = (root("//Decl") / "*")["array"];
 
+#if 0
   int count = 0;
   for (auto cur : result) {
       printf("=== Result %d ===\n", ++count);
       cur.print();
       printf("=======\n");
   }
+#else
+  root.print();
 #endif
+
   return 0;
 }
