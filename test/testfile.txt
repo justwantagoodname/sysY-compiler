@@ -1,18 +1,19 @@
-const int d = 1;
-const int e = 2;
-int a = 1, b = 2;
-int c;
-int f() {
-    
-}
+// const int a[6] = {0,1,2,3,4,5};
+
+// const int a[2][2] = {1, 2, 3, 4};
+// const int a[3][2] = {{1,2},{3,4},{5,6}};
+// const int a[3][2] = {1,2,3,4,5,6};
+// const int a[3][2] = {1,2,{3,4},5,6};
+// const int a[3][2] = {{1, 2},{3}, {5}};
+// const int a[3][2] = {1,2,{3},5};
+// const int a[3][2] = {{},{3,4},5,6};
+// const int a[3][2] = {};
+// const int a[3][2] = {0};
+
+
+// This a extreme case
+const int a[1000][1000][1000] = {{}, {}, 114514};
+const int b = a[2][0][0];
+
 int main() {
-    const int b = 2;
-    int c[100][200];
-    int a = 1;
-    a = 1 + 1;
-    a[100][200][300] = 2;
-    {
-        const int f = 1;
-        int a = 1;
-    }
 }

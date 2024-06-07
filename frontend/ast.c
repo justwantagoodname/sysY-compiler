@@ -140,6 +140,15 @@ void ASTNode_print(struct ASTNode *node) {
 #endif
 }
 
+size_t ASTNode_children_size(ASTNode *node) {
+    assert(node != NULL);
+
+    size_t count = 0;
+    struct ASTNode *cur = NULL;
+    DL_COUNT(node->children, cur, count);
+    return count;
+}
+
 void ASTNode_lpush_child(ASTNode *parent, ASTNode *child) {
     assert(parent != NULL && child != NULL);
 
@@ -297,6 +306,16 @@ void ASTNode_copy_children(ASTNode *from, ASTNode *to) {
     }
 }
 
+void ASTNode_replace(ASTNode *after, ASTNode *before) {
+    assert(before != NULL && after != NULL);
+    assert(after->parent == NULL);
+
+    after->parent = before->parent;
+    
+    if (after->parent) 
+        DL_REPLACE_ELEM(after->parent->children, before, after);
+}
+
 ASTNode *ASTNode_clone(ASTNode *node) {
     assert(node != NULL);
 
@@ -325,7 +344,6 @@ void ASTNode_free(ASTNode *node) {
         if (attr->type == ATTR_TYPE_STR) {
             free((char *)attr->value.str_value);
         }
-        free(attr);
         HASH_DEL(node->attrs, attr);
     }
 
@@ -336,6 +354,13 @@ void ASTNode_free(ASTNode *node) {
 
     free((char *)node->id);
     free(node);
+}
+
+bool ASTNode_has_attr(ASTNode *node, const char* key) {
+    assert(node != NULL && key != NULL);
+
+    ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    return attr != NULL;
 }
 
 bool ASTNode_attr_eq_int(ASTNode *node, const char* key, int value) {

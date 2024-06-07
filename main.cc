@@ -1,3 +1,6 @@
+#include "sysY.h"
+#include "ast.h"
+#include "pass.h"
 #include "Element.h"
 
 extern "C" {
@@ -40,16 +43,21 @@ int main(int argc, const char** argv) {
   struct ASTNode *root = NULL;
   int result = yyparse(&root);
   if (result == 0) {
-    printf("====AST Info====\n");
-    // ASTNode_print(root);
-    QueryResult* result = ASTNode_querySelector(root, "/"), *cur = NULL;
+    ConstNode_unfold(root); 
+    // printf("====AST Info====\n");
+    ASTNode_print(root);
+#if 0
+    QueryResult* result = ASTNode_querySelector(root, "//Scope//Decl"), *cur = NULL;
 
     int count = 0;
     DL_FOREACH(result, cur) {
       printf("=== Result %d ===\n", ++count);
       ASTNode_print(cur->node);
-      printf("=======\n");
+      printf("=== Simplify ====\n");
+      ASTNode_print(ExpNode_simplify(cur->node));
+      printf("========\n"); 
     }
+#endif
   }
 #endif
 #if 1

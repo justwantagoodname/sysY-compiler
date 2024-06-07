@@ -3,7 +3,8 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CFLAGS = -g -Wall -DXML_PP
+CFLAGS = -g -DXML_PP
+CXXFLAGS = -g -std=c++11
 LDFLAGS = 
 JOBS := 4
 
@@ -56,7 +57,7 @@ $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
 
 # Compile .cc files into .o files
 $(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
-	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
 bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
 
@@ -65,7 +66,7 @@ flex-files: $(FLEX_C_FILES) bison-files
 gen-files: bison-files flex-files
 
 %.tab.c %.tab.h: %.y | $(BUILD_DIR)
-	$(YACC) -b $* -d -o $*.tab.c $<
+	$(YACC) -v -b $* -d -o $*.tab.c $<
 
 %.lex.c: %.l | $(BUILD_DIR)
 	$(LEX) -o $*.lex.c $<
