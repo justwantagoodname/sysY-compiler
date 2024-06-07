@@ -1,7 +1,6 @@
 #include "sysY.h"
 #include "ast.h"
 
-int a[1000][1000][1000] = {{}, {}, {1}};
 typedef double sim_result_t;
 
 bool ExpNode_is_atomic(const ASTNode *node)
