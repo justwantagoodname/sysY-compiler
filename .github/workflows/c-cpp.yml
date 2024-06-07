@@ -5,6 +5,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  TERM: xterm
+
 jobs:
   build:
 
@@ -17,4 +20,4 @@ jobs:
     - name: make
       run: make
     - name: test-compiler
-      run: TERM=xterm && make test-compiler
+      run: make test-compiler
