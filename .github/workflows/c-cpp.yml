@@ -16,3 +16,5 @@ jobs:
       run: make requirements
     - name: make
       run: make
+    - name: test-compiler
+      run: test-compiler
