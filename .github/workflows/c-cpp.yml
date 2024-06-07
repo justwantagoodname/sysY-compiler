@@ -14,7 +14,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: install deps
       run: make requirements
-    - name: compile bison
-      run: make bison-files
     - name: make
       run: make

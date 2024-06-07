@@ -58,6 +58,8 @@ $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
 	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
+bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
+
 flex-files: $(FLEX_C_FILES) bison-files
 
 gen-files: bison-files flex-files
@@ -81,6 +83,7 @@ clean:
 	find $(BUILD_DIR) -type f -name "*.o" -delete
 	find . -type f -name "*.lex.*" -delete
 	find . -type f -name "*.tab.*" -delete
+	find . -type f -name "*.output" -delete
 
 requirements:
 ifeq ($(UNAME), Linux) 
