@@ -10,11 +10,11 @@ JOBS := 4
 
 UNAME := $(shell uname)
 
-INCLUDE_DIR = -Iinclude -Ilib -Ifrontend/parser
+INCLUDE_DIR = -Iinclude -Ilib -Ifrontend/parser -Ipackage
 BUILD_DIR = build
 
 ifeq ($(UNAME), Linux)
-    LDFLAGS += -lfl
+    LDFLAGS += 
 	JOBS := $(shell nproc)
 endif
 
@@ -33,6 +33,7 @@ L_FILES = $(shell find . -type f -name "*.l" | sed 's/^\.\///')
 H_FILES = $(shell find . -type f -name "*.h" | sed 's/^\.\///')
 C_FILES = $(shell find . -type f -name "*.c" | sed 's/^\.\///')
 CC_FILES = $(shell find . -type f -name "*.cc" | sed 's/^\.\///')
+HPP_FILES = $(shell find . -type f -name "*.hpp" | sed 's/^\.\///')
 
 BISON_C_FILES = $(Y_FILES:.y=.tab.c)
 BISON_H_FILES = $(Y_FILES:.y=.tab.h)
@@ -73,7 +74,7 @@ gen-files: bison-files flex-files
 test-compiler: compiler
 	$(CLEAR) && date && cd $(BUILD_DIR) && ./compiler -i ../$(TEST_DIR)/testfile.txt -o -
 
-submission.zip: gen-files $(C_FILES) $(H_FILES) $(FLEX_C_FILES) $(L_FILES)
+submission.zip: gen-files $(C_FILES) $(H_FILES) $(HPP_FILES) $(FLEX_C_FILES) $(L_FILES)
 	$(ZIP) submission.zip -r y.tab.h y.tab.c lex.yy.c $(wildcard *.c) $(wildcard *.h) lib
 
 zip: submission.zip
@@ -83,6 +84,7 @@ clean:
 	find $(BUILD_DIR) -type f -name "*.o" -delete
 	find . -type f -name "*.lex.*" -delete
 	find . -type f -name "*.tab.*" -delete
+	find . -type f -name "*.output" -delete
 
 requirements:
 ifeq ($(UNAME), Linux) 

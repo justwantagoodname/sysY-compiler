@@ -1,7 +1,7 @@
 #include "sysY.h"
 #include "ast.h"
 #include "pass.h"
-
+#include "Element.h"
 
 extern "C" {
   extern int yyparse(struct ASTNode **root);
@@ -39,6 +39,7 @@ int main(int argc, const char** argv) {
   printf("\n");
   rewind(yyin);
 #endif
+#if 0
   struct ASTNode *root = NULL;
   int result = yyparse(&root);
   if (result == 0) {
@@ -58,5 +59,17 @@ int main(int argc, const char** argv) {
     }
 #endif
   }
+#endif
+#if 1
+  Element root = Element::CreateByFile(filename);
+  Query result = (root("//Decl") / "*")["array"];
+
+  int count = 0;
+  for (auto cur : result) {
+      printf("=== Result %d ===\n", ++count);
+      cur.print();
+      printf("=======\n");
+  }
+#endif
   return 0;
 }
