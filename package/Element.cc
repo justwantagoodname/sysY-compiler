@@ -26,7 +26,7 @@ Element Element::CreateByFile(const char* filename) {
 
 Element::Element(ASTNode* n) : node(n) {}
 
-Element::Element(const Element&& e) : node(e.node) {}
+Element::Element(const Element& e) : node(e.node) {}
 
 Element::Element(const char* id) {
     node = ASTNode_create(id);
@@ -104,7 +104,7 @@ Element Element::at(int index) const {
     return child;
 }
 
-void Element::add_child(int n, ...) {
+Element& Element::add_child(int n, ...) {
     assert(node != nullptr);
     va_list args;
     va_start(args, n);
@@ -114,38 +114,47 @@ void Element::add_child(int n, ...) {
         ASTNode_add_child(node, child);
     }
     va_end(args);
+    return *this;
 }
 
-void Element::add_child(ASTNode* child) {
+Element& Element::add_child(ASTNode* child) {
     ASTNode_add_child(node, child);
+    return *this;
 }
 
-void Element::add_child(const Element&& child) {
+Element& Element::add_child(const Element&& child) {
     ASTNode_add_child(node, child.node);
+    return *this;
 }
 
-void Element::lpush_child(ASTNode* child) {
+Element& Element::lpush_child(ASTNode* child) {
     ASTNode_lpush_child(node, child);
+    return *this;
 }
 
-void Element::lpush_child(const Element&& child) {
+Element& Element::lpush_child(const Element&& child) {
     ASTNode_lpush_child(node, child.node);
+    return *this;
 }
 
-void Element::add_attr(const char* key, int value) {
+Element& Element::add_attr(const char* key, int value) {
     ASTNode_add_attr_int(node, key, value);
+    return *this;
 }
 
-void Element::add_attr(const char* key, float value) {
+Element& Element::add_attr(const char* key, float value) {
     ASTNode_add_attr_float(node, key, value);
+    return *this;
 }
 
-void Element::add_attr(const char* key, double value) {
+Element& Element::add_attr(const char* key, double value) {
     ASTNode_add_attr_float(node, key, value);
+    return *this;
 }
 
-void Element::add_attr(const char* key, const char* value) {
+Element& Element::add_attr(const char* key, const char* value) {
     ASTNode_add_attr_str(node, key, value);
+    return *this;
 }
 
 bool Element::get_attr(const char* key, int* value) {
@@ -198,20 +207,24 @@ bool Element::attr_eq(const char* key, const char* value) {
     return ASTNode_attr_eq_str(node, key, value);
 }
 
-void Element::print() {
+Element& Element::print() {
     ASTNode_print(node);
+    return *this;
 }
 
-void Element::move_children_to(ASTNode* to) {
+Element& Element::move_children_to(ASTNode* to) {
     ASTNode_move_children(node, to);
+    return *this;
 }
 
-void Element::move_children_from(ASTNode* from) {
+Element& Element::move_children_from(ASTNode* from) {
     ASTNode_move_children(from, node);
+    return *this;
 }
 
-void Element::copy_children_by(ASTNode* from) {
+Element& Element::copy_children_by(ASTNode* from) {
     ASTNode_copy_children(from, node);
+    return *this;
 }
 
 Element Element::clone() {
@@ -241,6 +254,7 @@ Element Element::querySelectorOne(const char* selector) {
 Element Element::table(const char* key)
 {  
     char* selector = (char*)malloc(strlen(key) + 25);
+    if (!selector)return (ASTNode*)(NULL);
     sprintf(selector, "ancestor::Scope/Decl/*[@name='%s']", key);
     Element e = this->qo(selector);
     ::free(selector);
