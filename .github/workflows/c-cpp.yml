@@ -17,4 +17,4 @@ jobs:
     - name: make
       run: make
     - name: test-compiler
-      run: test-compiler
+      run: make test-compiler
