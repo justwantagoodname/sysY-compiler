@@ -1,6 +1,7 @@
 #include "sysY.h"
 #include "ast.h"
 
+int a[1000][1000][1000] = {{}, {}, {1}};
 typedef double sim_result_t;
 
 bool ExpNode_is_atomic(const ASTNode *node)
@@ -16,7 +17,7 @@ const char *op_literal[] = {"Plus", "Minus", "Mult",
                             "Less", "LessEq", "Greater",
                             "GreaterEq"};
 
-sim_result_t ExpNode_op_calc(const char *op, double left, double right)
+sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t right)
 {
     assert(op != NULL);
     for (int i = 0; i < sizeof(op_literal) / sizeof(op_literal[0]); i++)
@@ -56,29 +57,9 @@ sim_result_t ExpNode_op_calc(const char *op, double left, double right)
     }
     return 0; // Error
 }
-ASTNode* ExpNode_fetch_const(const ASTNode* node) {
-    assert(node != NULL);
-    assert(ASTNode_id_is(node, "Fetch"));
 
-    ASTNode* base_node = ASTNode_querySelectorOne(node, "//*[@base][0]");
-    const char* base_name = NULL;    
-    ASTNode_get_attr_str(base_node, "base", &base_name);
-    
-    assert(base_name != NULL);
-
-    ASTNode* target = ASTNode_querySelectorfOne(node, "/ancestor::Scope//Const[@name='%s'][0]", base_name);
-
-    assert(target != NULL);
-    assert(ASTNode_id_is(target, "Const"));
-
-    ASTNode* value = ASTNode_querySelectorOne(target, "//Exp/Number");
-    ASTNode_print(value);
-
-    assert(ASTNode_id_is(value, "Number"));
-
-    return ASTNode_clone(value);
-}
-
+ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* target);
+ASTNode* ExpNode_try_fetch_const(const ASTNode* node);
 ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp);
 ASTNode *ExpNode_simplify_unary_operater(const ASTNode *exp);
 ASTNode *ExpNode_simplify_recursive(const ASTNode *node)
@@ -133,7 +114,7 @@ ASTNode *ExpNode_simplify_unary_operater(const ASTNode *exp)
         ret = ASTNode_create("Number");
         ASTNode_add_attr_int(ret, "value", -value);
     } else if (ASTNode_id_is(exp, "Fetch")) {
-        return ExpNode_fetch_const(exp);
+        return ExpNode_try_fetch_const(exp);
     }
 
 postcondition:
@@ -154,12 +135,10 @@ ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp)
     ASTNode *sim_left = ExpNode_simplify_recursive(left);
     ASTNode *sim_right = ExpNode_simplify_recursive(right);
 
-    ASTNode_print(sim_left);
-    ASTNode_print(sim_right);
     bool left_atomic = ExpNode_is_atomic(sim_left),
          right_atomic = ExpNode_is_atomic(sim_right);
 
-    /* Obvisually, we can only handle float this time */
+    /* Obvisually, we can only handle int this time */
     int left_value = -1, right_value = -1;
 
     ASTNode *ret = NULL;
@@ -177,10 +156,93 @@ ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp)
         ASTNode_add_attr_int(ret, "value", (int)sim_val);
         printf("Sim A ConstExp with %d %s %d = %lf\n",
                left_value, exp->id, right_value, sim_val);
+    } else {
+        ret = ASTNode_create(exp->id);
+        ASTNode_add_nchild(ret, 2, sim_left, sim_right);
     }
 
     assert(ret != NULL);
     return ret;
+}
+
+ASTNode* ExpNode_try_fetch_const(const ASTNode* node) {
+    assert(node != NULL);
+    assert(ASTNode_id_is(node, "Fetch"));
+
+    ASTNode* base_node = ASTNode_querySelectorOne(node, "//*[@base][0]");
+    const char* base_name = NULL;    
+    ASTNode_get_attr_str(base_node, "base", &base_name);
+    
+    assert(base_name != NULL);
+
+    ASTNode* target = ASTNode_querySelectorfOne(node, "/ancestor::Scope//Const[@name='%s'][0]", base_name);
+
+    if (target == NULL) {
+        return ASTNode_clone(node);
+    }
+
+    assert(target != NULL);
+    // can ref self check
+    assert(ASTNode_id_is(target, "Const"));
+
+    ASTNode* value = NULL;
+
+    if (ASTNode_has_attr(target, "array") || ASTNode_querySelectorOne(node, "//Locator[0]") != NULL){
+        value = ExpNode_fetch_const_array_value(node, target);
+    } else {
+        value = ASTNode_querySelectorOne(target, "//Exp/Number");
+        value = ASTNode_clone(value);
+    }
+    return value;
+}
+
+ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* target) {
+    assert(fetch != NULL && target != NULL);
+    assert(ASTNode_id_is(fetch, "Fetch"));
+    assert(ASTNode_id_is(target, "Const"));
+
+    QueryResult* iter = NULL;
+    QueryResult* locator_dims = ASTNode_querySelector(fetch, "//Locator/Dimension/*");
+    ASTNode* locator_sims = ASTNode_create("Locator"); // Simplified each dimension
+    
+    bool const_foldable = true;
+
+    DL_FOREACH(locator_dims, iter) {
+        ASTNode* sim_dim_exp = ExpNode_simplify_recursive(iter->node);
+        ASTNode* sim_dim = ASTNode_create("Dimension");
+        if (!ASTNode_id_is(sim_dim_exp, "Number")) const_foldable = false;
+        ASTNode_add_child(sim_dim, sim_dim_exp);
+        ASTNode_add_child(locator_sims, sim_dim);
+    }
+
+    if (!const_foldable) {
+        assert(locator_sims != NULL);
+        return locator_sims;
+    }
+
+    // Check index range
+    ASTNode* array_size = ASTNode_querySelectorOne(target, "/ArraySize");
+
+    assert(ASTNode_children_size(array_size) == ASTNode_children_size(locator_sims));
+    /* 理论上这里应该检查是否引用了越界的数组 */
+    assert(array_size != NULL);
+
+    QueryResult* access_index = ASTNode_querySelector(locator_sims, "//Number");
+    ASTNode* current_level = target;
+
+    DL_FOREACH(access_index, iter) {
+        int access = -1;
+        ASTNode_get_attr_int(access_index->node, "value", &access);
+
+        ASTNode* init_list = ASTNode_querySelectorfOne(current_level, "/ConstInitValue[%d]", access);
+        if (init_list == NULL) {
+            ASTNode* ret = ASTNode_create("Number");
+            ASTNode_add_attr_int(ret, "value", 0);
+            return ret;
+        } else {
+
+        }
+    }
 }
 
 /**

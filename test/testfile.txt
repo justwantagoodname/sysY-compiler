@@ -1,5 +1,6 @@
-const int b = 2;
-// const int a[b][b] = {{1, 2}, {3, 4}};
-int a = b;
+const int a[2] = {1, 2, 3, 4};
+
+const int b = a[0];
+
 int main() {
 }
