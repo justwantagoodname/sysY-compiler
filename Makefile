@@ -13,7 +13,7 @@ INCLUDE_DIR = -Iinclude -Ilib -Ifrontend/parser -Ipackage
 BUILD_DIR = build
 
 ifeq ($(UNAME), Linux)
-    LDFLAGS += -lfl
+    LDFLAGS += 
 	JOBS := $(shell nproc)
 endif
 
