@@ -57,6 +57,7 @@ sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t rig
     return 0; // Error
 }
 
+ASTNode* ExpNode_calc_partial(const ASTNode* exp, const ASTNode* sim_left, const ASTNode* right, const bool left_atomic, const bool right_atomic);
 ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* target);
 ASTNode* ExpNode_try_fetch_const(const ASTNode* node);
 ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp);
@@ -155,6 +156,8 @@ ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp)
         ASTNode_add_attr_int(ret, "value", (int)sim_val);
         printf("Sim A ConstExp with %d %s %d = %lf\n",
                left_value, exp->id, right_value, sim_val);
+    } else if(left_atomic ^ right_atomic) {
+        ret = ExpNode_calc_partial(exp, sim_left, sim_right);
     } else {
         ret = ASTNode_create(exp->id);
         ASTNode_add_nchild(ret, 2, sim_left, sim_right);
@@ -239,7 +242,7 @@ ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* ta
             ASTNode_add_attr_int(ret, "value", 0);
             return ret;
         } else {
-
+            
         }
     }
 }
@@ -260,4 +263,14 @@ ASTNode *ExpNode_simplify(const ASTNode *exp)
     ASTNode *new_exp = ASTNode_create("Exp");
     ASTNode_add_child(new_exp, simplified_child);
     return new_exp;
+}
+
+ASTNode* ExpNode_calc_partial(const ASTNode* exp, const ASTNode* sim_left, const ASTNode* right, const bool left_atomic, const bool right_atomic) {
+    assert(exp != NULL);
+    assert(sim_left != NULL);
+    assert(right != NULL);
+
+    if (strcmp(exp->id, "Or")) {
+        
+    }
 }
