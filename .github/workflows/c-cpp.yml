@@ -12,7 +12,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: install dep
+    - name: install deps
       run: make requirements
+    - name: compile flex & bison
+      run: make gen-files
     - name: make
       run: make
