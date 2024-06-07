@@ -157,7 +157,7 @@ ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp)
         printf("Sim A ConstExp with %d %s %d = %lf\n",
                left_value, exp->id, right_value, sim_val);
     } else if(left_atomic ^ right_atomic) {
-        ret = ExpNode_calc_partial(exp, sim_left, sim_right);
+        ret = ExpNode_calc_partial(exp, sim_left, sim_right, left_atomic, right_atomic);
     } else {
         ret = ASTNode_create(exp->id);
         ASTNode_add_nchild(ret, 2, sim_left, sim_right);
@@ -247,9 +247,55 @@ ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* ta
     }
 }
 
+ASTNode* ExpNode_calc_partial(const ASTNode* exp, const ASTNode* sim_left, const ASTNode* sim_right, const bool left_atomic, const bool right_atomic) {
+    assert(exp != NULL);
+    assert(sim_left != NULL);
+    assert(sim_right != NULL);
+    assert(left_atomic ^ right_atomic);
+    
+    int partial_value = -1;
+    if (strcmp(exp->id, "Or")) {
+        if (left_atomic) {
+            ASTNode_get_attr_int(sim_left, "value", &partial_value);
+            if (partial_value) {
+                return sim_left;
+            } else {
+                return sim_right;
+            }
+        } else {
+            ASTNode_get_attr_int(sim_right, "value", &partial_value);
+            if (partial_value) {
+                return sim_right;
+            } else {
+                return sim_left;
+            }
+        
+        }
+    } else if (strcmp(exp->id, "And")) {
+        if (left_atomic) {
+            ASTNode_get_attr_int(sim_left, "value", &partial_value);
+            if (partial_value) {
+                return sim_right;
+            } else {
+                return sim_left;
+            }
+        } else {
+            ASTNode_get_attr_int(sim_right, "value", &partial_value);
+            if (partial_value) {
+                return sim_left;
+            } else {
+                return sim_right;
+            }
+        }
+    } else {
+        assert(0);
+    }
+}
+
 /**
  * Simplify the expression node
- * @note This function won't change the orignal node but return a new one
+ * @note This function won't change the orignal node but return a new one 
+ *       **注意这个函数可能会修改原AST的初始化列表**
  */
 ASTNode *ExpNode_simplify(const ASTNode *exp)
 {
@@ -263,14 +309,4 @@ ASTNode *ExpNode_simplify(const ASTNode *exp)
     ASTNode *new_exp = ASTNode_create("Exp");
     ASTNode_add_child(new_exp, simplified_child);
     return new_exp;
-}
-
-ASTNode* ExpNode_calc_partial(const ASTNode* exp, const ASTNode* sim_left, const ASTNode* right, const bool left_atomic, const bool right_atomic) {
-    assert(exp != NULL);
-    assert(sim_left != NULL);
-    assert(right != NULL);
-
-    if (strcmp(exp->id, "Or")) {
-        
-    }
 }

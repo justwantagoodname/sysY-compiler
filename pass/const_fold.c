@@ -4,7 +4,7 @@
 
 /**
  * @brief Fold all expression in the AST
- * @note this AST *Will Be Modified* after fold 
+ * @note this AST *Will Be Modified* after fold 此函数目前仅对保证正确常量表达式引用顺序的 AST 有效
  */
 void ConstNode_unfold(ASTNode* root) {
     assert(root != NULL);
