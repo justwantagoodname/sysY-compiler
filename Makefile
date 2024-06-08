@@ -3,12 +3,18 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CFLAGS = -g -DXML_PP
+DEFINES = -DXML_PP
+CFLAGS = -g 
 CXXFLAGS = -g -std=c++17
 LDFLAGS = 
 JOBS := 4
 
 UNAME := $(shell uname)
+
+GIT_VERSION := $(shell git describe --always --dirty --tags)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+
+DEFINES += -DVERSION_TEXT=\"$(GIT_BRANCH)-$(GIT_VERSION)\" -DDEBUG
 
 INCLUDE_DIR = -Iinclude -Ilib -Ifrontend/parser -Ipackage
 BUILD_DIR = build
@@ -53,11 +59,11 @@ $(BUILD_DIR)/compiler: $(O_FILES)
 
 # Compile .c files into .o files
 $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
+	$(CC) $(CFLAGS) $(INCLUDE_DIR) $(DEFINES) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
 # Compile .cc files into .o files
 $(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) $(DEFINES) -c -o $(BUILD_DIR)/$(notdir $@) $<
 
 bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
 
@@ -72,7 +78,7 @@ gen-files: bison-files flex-files
 	$(LEX) -o $*.lex.c $<
 
 test-compiler: compiler
-	$(CLEAR) && date && cd $(BUILD_DIR) && ./compiler -i ../$(TEST_DIR)/testfile.txt -o -
+	$(CLEAR) && date && cd $(BUILD_DIR) && ./compiler ../$(TEST_DIR)/testfile.sysy -S -o -
 
 submission.zip: gen-files $(C_FILES) $(H_FILES) $(HPP_FILES) $(FLEX_C_FILES) $(L_FILES)
 	$(ZIP) submission.zip -r y.tab.h y.tab.c lex.yy.c $(wildcard *.c) $(wildcard *.h) lib
@@ -97,11 +103,11 @@ ifeq ($(UNAME), Darwin)
 endif
 
 dev:
-	echo $(L_FILES) $(Y_FILES) $(C_FILES) $(CC_FILES) $(TEST_DIR)/testfile.txt \
+	echo $(L_FILES) $(Y_FILES) $(C_FILES) $(CC_FILES) $(TEST_DIR)/testfile.sysy \
 		 | tr '[:blank:]' '\n' | $(WATCHER) -cs 'make -j$(JOBS) test-compiler'
 
 debug: compiler
-	$(GDB) $(BUILD_DIR)/compiler -ex "run -i $(TEST_DIR)/testfile.txt -o -"
+	$(GDB) $(BUILD_DIR)/compiler -ex "run -i $(TEST_DIR)/testfile.sysy -o -"
 
 all: compiler
 

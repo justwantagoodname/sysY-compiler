@@ -10,6 +10,7 @@ extern "C" {
 #include "ast.h"
 
 void ConstNode_unfold(ASTNode* root);
+void ArrayDecl_flatten(ASTNode* root);
 
 #ifdef __cplusplus
 }

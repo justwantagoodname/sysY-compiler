@@ -23,3 +23,29 @@ size_t multi_dimensional_index_to_linear_index(const vector<int> &dim_sizes, con
     }
     return linear_index;
 }
+
+void print_version() {
+static const char* easter = 
+#include "chillet"
+;
+    printf("%s\n", easter);
+#ifdef VERSION_TEXT
+    printf("Chillet sysy Compiler Version: %s\n", VERSION_TEXT);
+#else
+    printf("Chillet sysy Compiler Version: Unknown\n");
+#endif
+    printf("Compile Time: %s %s\n", __DATE__, __TIME__);
+    printf("CopyRight (C) 2024 Dev Team %s. All Rights Reserved.\n", "编译成蓝色疾旋鼬");
+    exit(0);
+}
+
+void print_help(const char* program_name) {
+    printf("Usage: %s [file] [-hv] [-S] [-o output] [-O level]\n", program_name);
+    printf("Options:\n");
+    printf("  -h: Print this help message\n");
+    printf("  -v: Print version information\n");
+    printf("  -S: Generate assembly code\n");
+    printf("  -o: Output file\n");
+    printf("  -O: Optimization level\n");
+    exit(0);
+}
