@@ -1,5 +1,7 @@
-# SysY Compiler
-Hope I can finish it...
+# SysY Compiler ![Build](https://github.com/justwantagoodname/sysY-compiler/actions/workflows/c-cpp.yml/badge.svg)
+Hope we can finish it...   
+
+![Mirror](https://github.com/justwantagoodname/sysY-compiler/actions/workflows/mirror.yml/badge.svg)
 
 # Usage
 ## 在 `Ubuntu` 与 `Debian` 发行版下安装编译环境
@@ -60,6 +62,9 @@ $ make clean
 在以上例子中, `//Main` 表示从根节点开始, 依次查找子节点中**所有**的 `Main` 节点
 
 ### 属性匹配
+
+> Hint: 可以和顺序查询, 通配符查询, 后代查询一起使用
+
 ```
 //Var[@name='a',@type='Int']
 ```
@@ -67,6 +72,23 @@ $ make clean
 在以上例子中, `//Var[@name='a',@type='Int']` 表示查找所有 `Var` 节点, 节点的 `name` 属性为 `a` **且** `type` 属性为 `Int`
 
 > Note: 同样可以使用 `|` 来表示或
+
+#### 数字属性查询
+
+```
+//Exp//Number[@value=1]
+```
+
+在以上例子中, `//Exp//Number[@value=1]` 表示查找所有 `Exp` 节点下的所有 `Number` 节点, 节点的 `value` 属性为 `1`
+
+#### 纯属性查询
+
+```
+//Exp//*[@value]
+```
+
+在以上例子中, `//Exp//*[@value]` 表示查找所有 `Exp` 节点下的所有节点, 节点的 `value` 属性存在
+
 
 ### 子代顺序查询
 ```

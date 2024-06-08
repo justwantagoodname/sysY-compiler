@@ -118,7 +118,9 @@ ConstDef: Identifier Assign ConstInitValue {
                                            }
         | Identifier ArrayDecl Assign ConstInitValue { 
                                                        $$ = ASTNode_create_attr("Const", 2, "name", $1, "array", "true"); 
-                                                       ASTNode_add_child($$, $4); 
+                                                       ASTNode* as = ASTNode_create("ArraySize");
+                                                       ASTNode_move_children($2, as);
+                                                       ASTNode_add_nchild($$, 2, as, $4);
                                                       }
         ;
 
@@ -236,7 +238,7 @@ IfStmt: If LeftParent Cond RightParent Stmt { $$ = createIfNode($3, $5, NULL); }
       ;
 
 LVal: Identifier { $$ = ASTNode_create("Address"); ASTNode_add_attr_str($$, "base", $1); }
-    | Identifier ArrayLocatorList { $$ = ASTNode_create("Fetch"); ASTNode_add_attr_str($$, "base", $1); ASTNode_add_child($$, $2); /* TODO: calc base */ }
+    | Identifier ArrayLocatorList { $$ = ASTNode_create("Address"); ASTNode_add_attr_str($$, "base", $1); ASTNode_add_child($$, $2); /* TODO: calc base */ }
     ;
 
 ArrayLocator: LeftBrack Exp RightBrack { $$ = ASTNode_create("Dimension"); ASTNode_add_child($$, $2); }

@@ -314,3 +314,7 @@ Element::iter::operator Element()
 {
 	return Element(it, flag);
 }
+
+ASTNode* Element::unwrap() const {
+    return node;
+}

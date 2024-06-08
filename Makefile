@@ -3,7 +3,8 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 
-CFLAGS = -g -Wall -DXML_PP
+CFLAGS = -g -DXML_PP
+CXXFLAGS = -g -std=c++17
 LDFLAGS = 
 JOBS := 4
 
@@ -13,7 +14,7 @@ INCLUDE_DIR = -Iinclude -Ilib -Ifrontend/parser -Ipackage
 BUILD_DIR = build
 
 ifeq ($(UNAME), Linux)
-    LDFLAGS += -lfl
+    LDFLAGS += 
 	JOBS := $(shell nproc)
 endif
 
@@ -56,14 +57,16 @@ $(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
 
 # Compile .cc files into .o files
 $(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
-	$(CXX) $(CFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) -c -o $(BUILD_DIR)/$(notdir $@) $<
+
+bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
 
 flex-files: $(FLEX_C_FILES) bison-files
 
 gen-files: bison-files flex-files
 
 %.tab.c %.tab.h: %.y | $(BUILD_DIR)
-	$(YACC) -b $* -d -o $*.tab.c $<
+	$(YACC) -v -b $* -d -o $*.tab.c $<
 
 %.lex.c: %.l | $(BUILD_DIR)
 	$(LEX) -o $*.lex.c $<
@@ -81,6 +84,7 @@ clean:
 	find $(BUILD_DIR) -type f -name "*.o" -delete
 	find . -type f -name "*.lex.*" -delete
 	find . -type f -name "*.tab.*" -delete
+	find . -type f -name "*.output" -delete
 
 requirements:
 ifeq ($(UNAME), Linux) 

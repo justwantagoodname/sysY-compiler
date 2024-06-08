@@ -77,6 +77,8 @@ public:
 
 	iter begin();
 	iter end();
+
+	ASTNode* unwrap() const;
 };
 
 #endif // ELEMENT_H

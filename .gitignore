@@ -18,3 +18,5 @@ x64/
 *.user
 *.vcxproj
 *.hpp
+.DS_Store
+**/.DS_Store

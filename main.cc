@@ -54,10 +54,11 @@ int main(int argc, const char** argv) {
 #endif
 #if 1
   Element root = Element::CreateByFile(filename);
-  Query result = root("//Plus");
-  result[0].table("a").print();
+  Query result = root("/");
+  //result[0].table("a").print();
 
-  for (auto i : result[0]) {
+  printf("========\n");
+  for (auto i : root("//Plus")[0]) {
       printf("<%s%s>\n", i.id(), i.flag ? "/" : "");
   }
 
