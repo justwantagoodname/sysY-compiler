@@ -1,4 +1,5 @@
 #include "Element.h"
+#include "Triples.h"
 
 extern "C" {
   extern int yyparse(struct ASTNode **root);
@@ -52,7 +53,7 @@ int main(int argc, const char** argv) {
     }
   }
 #endif
-#if 1
+#if 0
   Element root = Element::CreateByFile(filename);
   Query result = root("/");
   //result[0].table("a").print();
@@ -69,5 +70,22 @@ int main(int argc, const char** argv) {
       printf("=======\n");
   }
 #endif
+  Element root = Element::CreateByFile(filename);
+  Query result = root("/");
+
+  int count = 0;
+  for (auto cur : result) {
+      printf("=== Result %d ===\n", ++count);
+      cur.print();
+      printf("=======\n");
+  }
+
+  Triples triples(root);
+  triples.make();
+
+  //for (auto i : triples) {
+  //    printf("%d, %d, %d, %d", i.cmd, i.e1, i.e2, i.to);
+  //}
+
   return 0;
 }

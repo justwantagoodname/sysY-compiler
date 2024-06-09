@@ -15,6 +15,7 @@ public:
     Query(const Element& e);
     operator QueryResult* ();
     operator Element();
+    operator bool();
     Query& operator+= (const Query&& q);
     Query operator/ (const char* select) const;
     Query operator[] (const char* key) const;

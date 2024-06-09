@@ -52,7 +52,17 @@ Element::operator ASTNode* () const {
 	return node;
 }
 
-Element& Element::operator+=(const Element&& e) {
+Element::operator bool() const
+{
+	return node;
+}
+
+bool Element::operator==(const Element& e)
+{
+	return node == e.node;
+}
+
+Element& Element::operator+=(const Element& e) {
 	ASTNode_add_child(node, e.node);
 	return *this;
 }

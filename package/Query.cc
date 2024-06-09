@@ -28,6 +28,11 @@ Query::operator Element()
         return Element((ASTNode*)(NULL));
 }
 
+Query::operator bool()
+{
+    return result;
+}
+
 Query& Query::operator+= (const Query&& q) {
     DL_CONCAT(result, q.result);
     return *this;
