@@ -1,8 +1,13 @@
 #include "sysY.h"
 #include <stdarg.h>
+
+#ifdef XML_PP
 #include <unistd.h>
-#include "ast.h"
 #include <sys/types.h>
+#include <sys/wait.h>
+#endif
+
+#include "ast.h"
 
 struct ASTNode *ASTNode_create(const char* id) {
     assert(id != NULL);
