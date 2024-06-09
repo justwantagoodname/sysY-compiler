@@ -76,8 +76,8 @@ void ASTNode_print_impl(const ASTNode *node, FILE *stream) {
     fprintf(stream, "<%s", node->id);
 
     // print attributes
-    ASTAttribute *attr = NULL;
-    HASH_ITER(hh, node->attrs, attr, attr) {
+    ASTAttribute *attr = NULL, *tmp = NULL;
+    HASH_ITER(hh, node->attrs, attr, tmp) {
         switch (attr->type) {
             case ATTR_TYPE_INT:
                 fprintf(stream, " %s=\"%d\"", attr->key, attr->value.int_value);
