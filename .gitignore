@@ -5,6 +5,7 @@
 *.lex.*
 *.o
 build/
+build-dev/
 test/lexer
 test/parser
 test/compiler
