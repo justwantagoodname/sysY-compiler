@@ -12,9 +12,9 @@ Element Element::CreateByFile(const char* filename) {
 	yyin = fopen(filename, "r");
 	ASTNode* node = nullptr;
 	int i = yyparse(&node);
+	assert(i == 0);
 	if (i != 0) {
 		node = nullptr;
-		throw "Error";
 	}
 	return Element(node);
 }
@@ -164,57 +164,57 @@ Element& Element::add_attr(const char* key, const char* value) {
 	return *this;
 }
 
-bool Element::get_attr(const char* key, int* value) {
+bool Element::find_attr(const char* key, int* value) const {
 	return ASTNode_get_attr_int(node, key, value);
 }
 
-bool Element::get_attr(const char* key, float* value) {
+bool Element::find_attr(const char* key, float* value) const {
 	return ASTNode_get_attr_float(node, key, value);
 }
 
-bool Element::get_attr(const char* key, const char** value) {
+bool Element::find_attr(const char* key, const char** value) const {
 	return ASTNode_get_attr_str(node, key, value);
 }
 
-ASTAttribute* Element::get_attr(const char* key) {
+ASTAttribute* Element::get_attr(const char* key) const {
     return ASTNode_get_attr_or_null(node, key);
 }
 
-int Element::get_attr_int(const char* key) {
-	int* value;
-	ASTNode_get_attr_int(node, key, value);
-	return *value;
+int Element::get_attr_int(const char* key) const {
+	int value;
+	ASTNode_get_attr_int(node, key, &value);
+	return value;
 }
 
-float Element::get_attr_float(const char* key) {
-	float* value;
-	ASTNode_get_attr_float(node, key, value);
-	return *value;
+float Element::get_attr_float(const char* key) const {
+	float value;
+	ASTNode_get_attr_float(node, key, &value);
+	return value;
 }
 
-const char* Element::get_attr_str(const char* key) {
-	const char** value;
-	ASTNode_get_attr_str(node, key, value);
-	return *value;
+const char* Element::get_attr_str(const char* key) const {
+	const char* value;
+	ASTNode_get_attr_str(node, key, &value);
+	return value;
 }
 
-bool Element::attr_eq(const char* key, int value) {
+bool Element::attr_eq(const char* key, int value) const {
 	return ASTNode_attr_eq_int(node, key, value);
 }
 
-bool Element::attr_eq(const char* key, float value) {
+bool Element::attr_eq(const char* key, float value) const {
 	return ASTNode_attr_eq_float(node, key, value);
 }
 
-bool Element::attr_eq(const char* key, bool value) {
+bool Element::attr_eq(const char* key, bool value) const {
 	return ASTNode_attr_eq_float(node, key, value);
 }
 
-bool Element::attr_eq(const char* key, const char* value) {
+bool Element::attr_eq(const char* key, const char* value) const {
 	return ASTNode_attr_eq_str(node, key, value);
 }
 
-Element& Element::print() {
+void Element::print() const {
 	ASTNode_print(node);
 	return *this;
 }
@@ -234,7 +234,7 @@ Element& Element::copy_children_by(ASTNode* from) {
 	return *this;
 }
 
-Element Element::clone() {
+Element Element::clone() const {
 	return ASTNode_clone(node);
 }
 
@@ -243,7 +243,7 @@ const char* Element::id()
 	return node->id;
 }
 
-bool Element::id_is(const char* id) {
+bool Element::id_is(const char* id) const {
 	return ASTNode_id_is(node, id);
 }
 
@@ -251,19 +251,19 @@ void Element::free() {
 	ASTNode_free(node);
 }
 
-Query Element::createQueryResult() {
+Query Element::createQueryResult() const {
 	return QueryResult_create(node);
 }
 
-Query Element::querySelector(const char* selector) {
+Query Element::querySelector(const char* selector) const {
 	return ASTNode_querySelector(node, selector);
 }
 
-Element Element::querySelectorOne(const char* selector) {
+Element Element::querySelectorOne(const char* selector) const {
 	return ASTNode_querySelectorOne(node, selector);
 }
 
-Element Element::table(const char* key)
+Element Element::table(const char* key) const
 {
 	char* selector = (char*)malloc(strlen(key) + 25);
 	if (!selector)return (ASTNode*)(NULL);
@@ -273,12 +273,12 @@ Element Element::table(const char* key)
 	return e;
 }
 
-Element::iter Element::begin()
+Element::iter Element::begin() const
 {
 	return Element::iter(node);
 }
 
-Element::iter Element::end()
+Element::iter Element::end() const
 {
 	return Element::iter(node -> parent);
 }

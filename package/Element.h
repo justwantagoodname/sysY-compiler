@@ -42,30 +42,30 @@ public:
 	Element& add_attr(const char* key, float value);
 	Element& add_attr(const char* key, double value);
 	Element& add_attr(const char* key, const char* value);
-	bool get_attr(const char* key, int* value);
-	bool get_attr(const char* key, float* value);
-	bool get_attr(const char* key, const char** value);
-	ASTAttribute* get_attr(const char* key);
-	int get_attr_int(const char* key);
-	float get_attr_float(const char* key);
-	const char* get_attr_str(const char* key);
-	bool attr_eq(const char* key, int value);
-	bool attr_eq(const char* key, float value);
-	bool attr_eq(const char* key, bool value);
-	bool attr_eq(const char* key, const char* value);
-	Element& print();
+	bool find_attr(const char* key, int* value) const;
+	bool find_attr(const char* key, float* value) const;
+	bool find_attr(const char* key, const char** value) const;
+	ASTAttribute* get_attr(const char* key) const;
+	int get_attr_int(const char* key) const;
+	float get_attr_float(const char* key) const;
+	const char* get_attr_str(const char* key) const;
+	bool attr_eq(const char* key, int value) const;
+	bool attr_eq(const char* key, float value) const;
+	bool attr_eq(const char* key, bool value) const;
+	bool attr_eq(const char* key, const char* value) const;
+	void print() const;
 	Element& move_children_to(ASTNode* to);
 	Element& move_children_from(ASTNode* from);
 	Element& copy_children_by(ASTNode* from);
-	Element clone();
+	Element clone() const;
 	const char* id();
-	bool id_is(const char* id);
+	bool id_is(const char* id) const;
 	void free();
-	Query createQueryResult();
-	Query querySelector(const char* selector);
-	Element querySelectorOne(const char* selector);
+	Query createQueryResult() const;
+	Query querySelector(const char* selector) const;
+	Element querySelectorOne(const char* selector) const;
 
-	Element table(const char* key);
+	Element table(const char* key) const;
 
 	struct iter {
 		ASTNode* it;
@@ -77,8 +77,8 @@ public:
 		operator Element();
 	};
 
-	iter begin();
-	iter end();
+	iter begin() const;
+	iter end() const;
 
 	ASTNode* unwrap() const;
 };

@@ -65,12 +65,14 @@ int main(int argc, const char** argv) {
   //ConstNode_unfold(root);
   //ArrayDecl_flatten(root);
 
+  root.print();
+
   Triples triples(root);
   triples.make();
 
-  //for (auto i : triples) {
-  //    printf("%d, %d, %d, %d", i.cmd, i.e1, i.e2, i.to);
-  //}
+  for (auto i : triples) {
+      printf("%d, %d, %d, %d\n", i.cmd, i.e1, i.e2, i.to);
+  }
 
   return 0;
 }
