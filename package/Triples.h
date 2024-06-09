@@ -1,4 +1,4 @@
-#ifndef TRIPLE_H
+﻿#ifndef TRIPLE_H
 #define TRIPLE_H
 #include "Element.h"
 #include <vector>

@@ -5,11 +5,6 @@
 #include "pass.h"
 #include "flag.h"
 
-extern "C" {
-  extern int yyparse(struct ASTNode **root);
-  extern FILE *yyin;
-}
-
 int main(int argc, const char** argv) {
   /* 解析命令行选项 */
   Flag::getFlag().init(argc, argv);
@@ -69,8 +64,6 @@ int main(int argc, const char** argv) {
   Element root = Element::CreateByFile(Flag::getFlag().getFlagFor("input").c_str());
   //ConstNode_unfold(root);
   //ArrayDecl_flatten(root);
-
-  root.print();
 
   Triples triples(root);
   triples.make();

@@ -1,4 +1,4 @@
-#include "Triples.h"
+ï»¿#include "Triples.h"
 #include <vector>
 using std::vector;
 
@@ -34,7 +34,7 @@ Triples::IntTriple::IntTriple(int cmd, int e1, int e2, int to) : cmd(cmd), e1(e1
 void Triples::make()
 {
 	Triples& triples = *this;
-	int temp_count = 0; // ÁÙÊ±±äÁ¿¼ÆÊıÆ÷
+	int temp_count = 0; // ä¸´æ—¶å˜é‡è®¡æ•°å™¨ 
 	printf("makeing...\n");
 
 	for (auto element : root) {

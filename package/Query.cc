@@ -1,4 +1,4 @@
-#include "Query.h"
+﻿#include "Query.h"
 #include "Element.h"
 
 Query::Query(QueryResult* res) : result(res) {}

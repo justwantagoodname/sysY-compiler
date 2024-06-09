@@ -237,8 +237,8 @@ IfStmt: If LeftParent Cond RightParent Stmt { $$ = createIfNode($3, $5, NULL); }
       | If LeftParent Cond RightParent Stmt Else Stmt { $$ = createIfNode($3, $5, $7);} %dprec 1
       ;
 
-LVal: Identifier { $$ = ASTNode_create("Address"); ASTNode_add_attr_str($$, "base", $1); }
-    | Identifier ArrayLocatorList { $$ = ASTNode_create("Address"); ASTNode_add_attr_str($$, "base", $1); ASTNode_add_child($$, $2); /* TODO: calc base */ }
+LVal: Identifier { $$ = ASTNode_create_attr("Address", 1, "base", $1); /*ASTNode_add_attr_str($$, "base", $1);*/ }
+    | Identifier ArrayLocatorList { $$ = ASTNode_create_attr("Address", 1, "base", $1); /*ASTNode_add_attr_str($$, "base", $1); */ASTNode_add_child($$, $2); /* TODO: calc base */ }
     ;
 
 ArrayLocator: LeftBrack Exp RightBrack { $$ = ASTNode_create("Dimension"); ASTNode_add_child($$, $2); }
