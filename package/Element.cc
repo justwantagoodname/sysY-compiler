@@ -216,7 +216,6 @@ bool Element::attr_eq(const char* key, const char* value) const {
 
 void Element::print() const {
 	ASTNode_print(node);
-	return *this;
 }
 
 Element& Element::move_children_to(ASTNode* to) {

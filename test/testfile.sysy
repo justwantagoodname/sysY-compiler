@@ -12,16 +12,16 @@
 
 
 // This a extreme case
-const int a[1000][1000][1000] = {{}, {}, 114514};
+//const int a[1000][1000][1000] = {{}, {}, 114514};
 
 
-const int b = a[2][0][0];
+//const int b = a[2][0][0];
 
-const int c[2][2] = {{1,2}, {3,4}};
+//const int c[2][2] = {{1,2}, {3,4}};
 
 int d[2][2] = {{1, 0}, {0, 1}};
 int main() {
-int a = 1;
-int c = 3;
-a = a + c;
+int a;
+int c;
+a = a + c + d[0];
 }

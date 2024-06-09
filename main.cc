@@ -70,6 +70,8 @@ int main(int argc, const char** argv) {
   Triples triples(root);
   triples.make();
 
+  root.print();
+
   for (auto i : triples) {
       printf("%d, %d, %d, %d\n", i.cmd, i.e1, i.e2, i.to);
   }

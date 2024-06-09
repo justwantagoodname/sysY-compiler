@@ -11,7 +11,6 @@ int Triples::find(const Element e)
 {
 	for (int i = 0; i < value_pointer.size(); ++i) {
 		if (value_pointer[i] == e)return i;
-		value_pointer[i].print();
 	}
 	value_pointer.push_back(e);
 	return value_pointer.size() - 1;
@@ -53,10 +52,7 @@ void Triples::make()
 			element.add_attr("temp", t);
 			//++temp_count;
 		}
-		ife("Dest") {
-			int t = element[0].get_attr_int("temp");
-		}
-		ife("Address") {
+		ifb("Address") {
 			const char* s = element.get_attr_str("base");
 			Element value = element.table(s);
 			element.add_attr("addr", triples.find(value));
