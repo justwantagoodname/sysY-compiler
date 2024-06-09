@@ -59,13 +59,13 @@ void Triples::make()
 		//	printf("Dest\n");
 		//	int t = element[0].get_attr_int("temp");
 		//}
-		ife("Address") {
-			printf("Address\n");
-			element.print();
-			//const char* s = element.get_attr_str("base");
-			//Element value = element.table(s);
-			//element.add_attr("addr", triples.find(value));
-		}
+		//ife("Address") {
+		//	printf("Address\n");
+		//	element.print();
+		//	const char* s = element.get_attr_str("base");
+		//	Element value = element.table(s);
+		//	element.add_attr("addr", triples.find(value));
+		//}
 		//ife("Dest") {
 		//	int a = element[0].get_attr_int("addr");
 		//	element.add_attr("addr", a);
