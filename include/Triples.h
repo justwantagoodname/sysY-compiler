@@ -17,6 +17,14 @@ private:
 			read,
 			write,
 			add,
+			imdd,
+			jeq,
+			jne,
+			jgt,
+			jlt,
+			jge,
+			jle,
+
 		};
 	} Cmd;
 
@@ -38,13 +46,18 @@ public:
 	Triples(const Element&);
 	Triples(const Triples&) = delete;
 
+	void pretreat();
 	void make();
+
 	IntTriple& operator[](int idx) {
 		return triples[idx];
 	};
+	size_t size();
 
 	std::vector<IntTriple>::iterator begin() { return triples.begin(); }
 	std::vector<IntTriple>::iterator end() { return triples.end(); }
+
+	void print() const;
 
 };
 #endif //TRIPLE_H

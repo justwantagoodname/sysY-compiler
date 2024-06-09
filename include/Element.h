@@ -38,13 +38,14 @@ public:
 	Element& add_child(const Element&& child);
 	Element& lpush_child(ASTNode* child);
 	Element& lpush_child(const Element&& child);
+	Element& add_attr(const char* key, size_t value);
 	Element& add_attr(const char* key, int value);
 	Element& add_attr(const char* key, float value);
 	Element& add_attr(const char* key, double value);
 	Element& add_attr(const char* key, const char* value);
-	bool find_attr(const char* key, int* value) const;
-	bool find_attr(const char* key, float* value) const;
-	bool find_attr(const char* key, const char** value) const;
+	bool get_attr(const char* key, int* value) const;
+	bool get_attr(const char* key, float* value) const;
+	bool get_attr(const char* key, const char** value) const;
 	ASTAttribute* get_attr(const char* key) const;
 	int get_attr_int(const char* key) const;
 	float get_attr_float(const char* key) const;
@@ -58,7 +59,7 @@ public:
 	Element& move_children_from(ASTNode* from);
 	Element& copy_children_by(ASTNode* from);
 	Element clone() const;
-	const char* id();
+	const char* id() const;
 	bool id_is(const char* id) const;
 	void free();
 	Query createQueryResult() const;
@@ -67,18 +68,18 @@ public:
 
 	Element table(const char* key) const;
 
-	struct iter {
+	struct Iter {
 		ASTNode* it;
 		bool flag = false;
-		iter(ASTNode* q);
-		iter& operator ++();
-		bool operator!=(iter& other);
+		Iter(ASTNode* q);
+		Iter& operator ++();
+		bool operator!=(Iter&& other);
 		Element operator*();
 		operator Element();
 	};
 
-	iter begin() const;
-	iter end() const;
+	Iter begin() const;
+	Iter end() const;
 
 	ASTNode* unwrap() const;
 };

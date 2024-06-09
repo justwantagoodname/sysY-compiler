@@ -144,6 +144,12 @@ Element& Element::lpush_child(const Element&& child) {
 	return *this;
 }
 
+Element& Element::add_attr(const char* key, size_t value)
+{
+	ASTNode_add_attr_int(node, key, value);
+	return *this;
+}
+
 Element& Element::add_attr(const char* key, int value) {
 	ASTNode_add_attr_int(node, key, value);
 	return *this;
@@ -164,15 +170,15 @@ Element& Element::add_attr(const char* key, const char* value) {
 	return *this;
 }
 
-bool Element::find_attr(const char* key, int* value) const {
+bool Element::get_attr(const char* key, int* value) const {
 	return ASTNode_get_attr_int(node, key, value);
 }
 
-bool Element::find_attr(const char* key, float* value) const {
+bool Element::get_attr(const char* key, float* value) const {
 	return ASTNode_get_attr_float(node, key, value);
 }
 
-bool Element::find_attr(const char* key, const char** value) const {
+bool Element::get_attr(const char* key, const char** value) const {
 	return ASTNode_get_attr_str(node, key, value);
 }
 
@@ -237,7 +243,7 @@ Element Element::clone() const {
 	return ASTNode_clone(node);
 }
 
-const char* Element::id()
+const char* Element::id() const
 {
 	return node->id;
 }
@@ -272,19 +278,19 @@ Element Element::table(const char* key) const
 	return e;
 }
 
-Element::iter Element::begin() const
+Element::Iter Element::begin() const
 {
-	return Element::iter(node);
+	return Element::Iter(node);
 }
 
-Element::iter Element::end() const
+Element::Iter Element::end() const
 {
-	return Element::iter(node -> parent);
+	return Element::Iter(node -> parent);
 }
 
-Element::iter::iter(ASTNode* q) : it(q) {}
+Element::Iter::Iter(ASTNode* q) : it(q) {}
 
-Element::iter& Element::iter::operator++() {
+Element::Iter& Element::Iter::operator++() {
 
 	if (it->children && !flag) { //�����Ҷ�ӽڵ㲢��Ϊ����
 		it = it->children;
@@ -306,15 +312,15 @@ Element::iter& Element::iter::operator++() {
 
 }
 
-bool Element::iter::operator!=(Element::iter& other) {
+bool Element::Iter::operator!=(Element::Iter&& other) {
 	return it != other.it;
 }
 
-Element Element::iter::operator*() {
+Element Element::Iter::operator*() {
 	return *this;
 }
 
-Element::iter::operator Element()
+Element::Iter::operator Element()
 {
 	return Element(it, flag);
 }

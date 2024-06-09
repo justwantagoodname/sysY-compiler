@@ -22,16 +22,16 @@ public:
     Element operator[] (int);
     Query operator() (const char* select) const;
 
-    struct iter {
+    struct Iter {
         QueryResult* it;
-        iter(QueryResult* q);
-        iter& operator ++();
-        bool operator!=(iter& other);
+        Iter(QueryResult* q);
+        Iter& operator ++();
+        bool operator!=(Iter& other);
         Element operator*();
     };
 
-    iter begin();
-    iter end();
+    Iter begin();
+    Iter end();
 };
 
 #endif // QUERY_H

@@ -88,25 +88,25 @@ Query Query::operator()(const char* select) const
     return ans;
 }
 
-Query::iter::iter(QueryResult* q) : it(q) {}
+Query::Iter::Iter(QueryResult* q) : it(q) {}
 
-Query::iter& Query::iter::operator ++() {
+Query::Iter& Query::Iter::operator ++() {
     it = it->next;
     return *this;
 }
 
-bool Query::iter::operator!=(iter& other) {
+bool Query::Iter::operator!=(Iter& other) {
     return other.it != it;
 }
 
-Element Query::iter::operator*() {
+Element Query::Iter::operator*() {
     return Element(it->node);
 }
 
-Query::iter Query::begin() {
-    return iter(result);
+Query::Iter Query::begin() {
+    return Iter(result);
 }
 
-Query::iter Query::end() {
+Query::Iter Query::end() {
     return nullptr;
 }
