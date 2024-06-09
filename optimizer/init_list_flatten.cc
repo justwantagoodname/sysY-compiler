@@ -6,7 +6,7 @@
 #include <vector>
 
 // 在Const下寻找子ConstInitValue 如果存在则需要展开 后面需要支持 Var
-bool ArrayInitNode_need_flatten(ASTNode* root) {
+bool ArrayInitNode_need_flatten(const ASTNode* root) {
     assert(root != NULL);
     assert(ASTNode_id_is(root, "Const") || ASTNode_id_is(root, "Var"));
 
@@ -129,7 +129,7 @@ void ArrayInitNode_flatten(ASTNode* decl) {
  * @return 成功取值时返回一个复制过的Number节点，否则返回NULL
  */
 
-ASTNode* ArrayInitNode_get_value_by_linear_index(ASTNode* decl, ASTNode* locator) {
+ASTNode* ArrayInitNode_get_value_by_linear_index(const ASTNode* decl, const ASTNode* locator) {
     assert(decl != NULL);
     assert(ASTNode_id_is(decl, "Const"));
     assert(ASTNode_id_is(locator, "Locator"));

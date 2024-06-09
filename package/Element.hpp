@@ -10,9 +10,6 @@ extern "C" {
 	extern FILE* yyin;
 }
 
-/// <summary>
-/// token½ÚµãÔªËØ
-/// </summary>
 class Element {
 private:
 	ASTNode* node;
@@ -20,13 +17,19 @@ public:
 	Element() = delete;
 
 	static Element CreateByFile(const char* filename) {
-		yyin = fopen(filename, "r");
+		
+		if (strcmp(filename, "-") != 0) yyin = fopen(filename, "r");
+		else yyin = stdin;
+
 		ASTNode* node = NULL;
 		int i = yyparse(&node);
 		if (i != 0) {
 			node = NULL;
 			throw "Error";
 		}
+		
+		if (yyin != stdin) fclose(yyin);
+
 		return Element(node);
 	}
 

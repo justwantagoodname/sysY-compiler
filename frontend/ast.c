@@ -1,8 +1,13 @@
 #include "sysY.h"
 #include <stdarg.h>
+
+#ifdef XML_PP
 #include <unistd.h>
-#include "ast.h"
 #include <sys/types.h>
+#include <sys/wait.h>
+#endif
+
+#include "ast.h"
 
 struct ASTNode *ASTNode_create(const char* id) {
     assert(id != NULL);
@@ -65,14 +70,14 @@ void ASTNode_add_nchild(ASTNode *parent, int n, ...) {
 }
 
 // I Love XML. XD
-void ASTNode_print_impl(struct ASTNode *node, FILE *stream) {
+void ASTNode_print_impl(const ASTNode *node, FILE *stream) {
     assert(node != NULL);
 
     fprintf(stream, "<%s", node->id);
 
     // print attributes
     ASTAttribute *attr = NULL;
-    for (attr = node->attrs; attr != NULL; attr = attr->hh.next) {
+    HASH_ITER(hh, node->attrs, attr, attr) {
         switch (attr->type) {
             case ATTR_TYPE_INT:
                 fprintf(stream, " %s=\"%d\"", attr->key, attr->value.int_value);
@@ -105,7 +110,7 @@ void ASTNode_print_impl(struct ASTNode *node, FILE *stream) {
     fprintf(stream, "</%s>\n", node->id);
 }
 #ifdef XML_PP
-void ASTNode_pretty_print(ASTNode* node) {
+void ASTNode_pretty_print(const ASTNode* node) {
     assert(node != NULL);
     
     int fd[2];
@@ -131,7 +136,7 @@ void ASTNode_pretty_print(ASTNode* node) {
 }
 #endif
 
-void ASTNode_print(struct ASTNode *node) {
+void ASTNode_print(const ASTNode *node) {
     assert(node != NULL);
 #ifndef XML_PP
     ASTNode_print_impl(node, stdout);
@@ -140,7 +145,7 @@ void ASTNode_print(struct ASTNode *node) {
 #endif
 }
 
-size_t ASTNode_children_size(ASTNode *node) {
+size_t ASTNode_children_size(const ASTNode *node) {
     assert(node != NULL);
 
     size_t count = 0;
@@ -204,7 +209,7 @@ void ASTNode_add_attr_float(ASTNode *node, const char* key, float value) {
     _ASTNode_add_attr(node, attr);
 }
 
-ASTAttribute *_ASTNode_get_attr_or_null(ASTNode *node, const char* key) {
+ASTAttribute *ASTNode_get_attr_or_null(const ASTNode *node, const char* key) {
     assert(node != NULL && key != NULL);
 
     struct ASTAttribute *attr = NULL;
@@ -220,10 +225,10 @@ ASTAttribute *_ASTNode_get_attr_or_null(ASTNode *node, const char* key) {
  * @param value A pointer to store the retrieved integer value.
  * @return true if the attribute was found and retrieved successfully, false otherwise.
  */
-bool ASTNode_get_attr_int(ASTNode *node, const char* key, int *value) {
+bool ASTNode_get_attr_int(const ASTNode *node, const char* key, int *value) {
     assert(node != NULL && key != NULL && value != NULL);
 
-    struct ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    struct ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
     if (attr != NULL) {
         *value = attr->value.int_value;
         return true;
@@ -240,10 +245,10 @@ bool ASTNode_get_attr_int(ASTNode *node, const char* key, int *value) {
  * @param value A pointer to store the retrieved string value.
  * @return true if the attribute was found and retrieved successfully, false otherwise.
  */
-bool ASTNode_get_attr_str(ASTNode *node, const char* key, const char **value) {
+bool ASTNode_get_attr_str(const ASTNode *node, const char* key, const char **value) {
     assert(node != NULL && key != NULL && value != NULL);
 
-    struct ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    struct ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
     if (attr != NULL) {
         *value = attr->value.str_value;
         return true;
@@ -261,10 +266,10 @@ bool ASTNode_get_attr_str(ASTNode *node, const char* key, const char **value) {
  * @return true if the attribute was found and retrieved successfully, false otherwise.
  */
 
-bool ASTNode_get_attr_float(ASTNode *node, const char* key, float *value) {
+bool ASTNode_get_attr_float(const ASTNode *node, const char* key, float *value) {
     assert(node != NULL && key != NULL && value != NULL);
 
-    struct ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    struct ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
     if (attr != NULL) {
         *value = attr->value.float_value;
         return true;
@@ -273,7 +278,7 @@ bool ASTNode_get_attr_float(ASTNode *node, const char* key, float *value) {
     }
 }
 
-bool ASTNode_id_is(ASTNode *node, const char* id) {
+bool ASTNode_id_is(const ASTNode *node, const char* id) {
     assert(node != NULL && id != NULL);
 
     return strcmp(node->id, id) == 0;
@@ -316,7 +321,7 @@ void ASTNode_replace(ASTNode *after, ASTNode *before) {
         DL_REPLACE_ELEM(after->parent->children, before, after);
 }
 
-ASTNode *ASTNode_clone(ASTNode *node) {
+ASTNode *ASTNode_clone(const ASTNode *node) {
     assert(node != NULL);
 
     ASTNode* ret = ASTNode_create(node->id);
@@ -356,17 +361,17 @@ void ASTNode_free(ASTNode *node) {
     free(node);
 }
 
-bool ASTNode_has_attr(ASTNode *node, const char* key) {
+bool ASTNode_has_attr(const ASTNode *node, const char* key) {
     assert(node != NULL && key != NULL);
 
-    ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
     return attr != NULL;
 }
 
-bool ASTNode_attr_eq_int(ASTNode *node, const char* key, int value) {
+bool ASTNode_attr_eq_int(const ASTNode *node, const char* key, int value) {
     assert(node != NULL && key != NULL);
 
-    ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
     if (attr != NULL && attr->type == ATTR_TYPE_INT) {
         return attr->value.int_value == value;
     } else {
@@ -374,20 +379,20 @@ bool ASTNode_attr_eq_int(ASTNode *node, const char* key, int value) {
     } 
 }
 
-bool ASTNode_attr_eq_str(ASTNode *node, const char* key, const char* value) {
+bool ASTNode_attr_eq_str(const ASTNode *node, const char* key, const char* value) {
     assert(node != NULL && key != NULL && value != NULL);
 
-    ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
     if (attr != NULL && attr->type == ATTR_TYPE_STR) {
         return strcmp(attr->value.str_value, value) == 0;
     } else {
         return false;
     }
 }
-bool ASTNode_attr_eq_float(ASTNode *node, const char* key, float value) {
+bool ASTNode_attr_eq_float(const ASTNode *node, const char* key, float value) {
     assert(node != NULL && key != NULL);
 
-    ASTAttribute *attr = _ASTNode_get_attr_or_null(node, key);
+    ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
     if (attr != NULL && attr->type == ATTR_TYPE_FLOAT) {
         return attr->value.float_value == value;
     } else {

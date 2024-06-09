@@ -22,3 +22,24 @@ void ConstNode_unfold(ASTNode* root) {
         printf("====\n");
     }
 }
+
+/**
+ * 鉴于有些变量和常量数组可能未被引用，所以再扫描一遍
+ * @param root
+ */
+void ArrayDecl_flatten(ASTNode* root) {
+    assert(root);
+    assert(ASTNode_id_is(root, "CompUnit"));
+
+    QueryResult* var_array_decls = ASTNode_querySelector(root, "//Var[@array='true']"),
+            *const_array_decls = ASTNode_querySelector(root, "//Const[@array='true']"),
+            *iter = NULL;
+
+    DL_CONCAT(const_array_decls, var_array_decls);
+
+    DL_FOREACH(const_array_decls, iter) {
+        if (ArrayInitNode_need_flatten(iter->node)) {
+            ArrayInitNode_flatten(iter->node);
+        }
+    }
+}

@@ -4,9 +4,22 @@
 #define SYSY_H
 
 #ifdef __cplusplus
+
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <array>
+#include <vector>
+#include <map>
+#include <variant>
+
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

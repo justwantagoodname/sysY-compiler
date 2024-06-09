@@ -58,7 +58,7 @@ sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t rig
     return 0; // Error
 }
 
-ASTNode* ExpNode_calc_partial(const ASTNode* exp, const ASTNode* sim_left, const ASTNode* right, const bool left_atomic, const bool right_atomic);
+ASTNode* ExpNode_calc_partial(const ASTNode* exp, ASTNode* sim_left, ASTNode* sim_right, const bool left_atomic, const bool right_atomic);
 ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* target);
 ASTNode* ExpNode_try_fetch_const(const ASTNode* node);
 ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp);
@@ -230,7 +230,7 @@ ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* ta
     // 先检查常量数组的初始化表达式是否已经是规范形式 (一维表示)
 
     if (ArrayInitNode_need_flatten(target)) {
-        ArrayInitNode_flatten(target);
+        ArrayInitNode_flatten((ASTNode*) target); // 这里实际修改了AST，但是AST中的ArrayInitValue节点是一个孩子节点，所以不会影响到原AST，同样会在第二次pass中处理所以影响不大
     }
 
     ASTNode* number = ArrayInitNode_get_value_by_linear_index(target, locator_sims);
@@ -240,7 +240,7 @@ ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* ta
     return number;
 }
 
-ASTNode* ExpNode_calc_partial(const ASTNode* exp, const ASTNode* sim_left, const ASTNode* sim_right, const bool left_atomic, const bool right_atomic) {
+ASTNode* ExpNode_calc_partial(const ASTNode* exp, ASTNode* sim_left, ASTNode* sim_right, const bool left_atomic, const bool right_atomic) {
     assert(exp != NULL);
     assert(sim_left != NULL);
     assert(sim_right != NULL);

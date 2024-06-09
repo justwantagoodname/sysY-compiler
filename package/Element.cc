@@ -3,13 +3,8 @@
 #include "Element.h"
 #include "Query.h"
 
-extern "C" {
-	ASTAttribute* _ASTNode_get_attr_or_null(ASTNode* node, const char* key);
-}
-extern "C" {
-	extern int yyparse(struct ASTNode** root);
-	extern FILE* yyin;
-}
+extern int yyparse(struct ASTNode** root);
+extern FILE* yyin;
 
 Element::Element() : node(nullptr) {}
 
@@ -73,7 +68,7 @@ Element& Element::operator+=(ASTNode* e) {
 }
 
 ASTAttribute& Element::operator[](const char* key) const {
-	return *_ASTNode_get_attr_or_null(node, key);
+    return *ASTNode_get_attr_or_null(node, key);
 }
 
 Element Element::operator[](int index) const {
@@ -182,7 +177,7 @@ bool Element::get_attr(const char* key, const char** value) {
 }
 
 ASTAttribute* Element::get_attr(const char* key) {
-	return _ASTNode_get_attr_or_null(node, key);
+    return ASTNode_get_attr_or_null(node, key);
 }
 
 int Element::get_attr_int(const char* key) {
@@ -292,15 +287,15 @@ Element::iter::iter(ASTNode* q) : it(q) {}
 
 Element::iter& Element::iter::operator++() {
 
-	if (it->children && !flag) { //Èç¹ûÓĞÒ¶×Ó½Úµã²¢ÇÒÎª½øÈë
+	if (it->children && !flag) { //ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ï¿½Ó½Úµã²¢ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
 		it = it->children;
 		flag = false;
 	}
-	else if (it->next) { //Èç¹ûÓĞÏÂÒ»ÏîĞÖµÜ½Úµã
+	else if (it->next) { //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ÖµÜ½Úµï¿½
 		it = it->next;
 		flag = false;
 	}
-	else if (it->parent) { //Èç¹ûÓĞ¸¸½Úµã
+	else if (it->parent) { //ï¿½ï¿½ï¿½ï¿½Ğ¸ï¿½ï¿½Úµï¿½
 		it = it->parent;
 		flag = true;
 	}

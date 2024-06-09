@@ -13,9 +13,14 @@
 
 // This a extreme case
 const int a[1000][1000][1000] = {{}, {}, 114514};
+
+
 const int b = a[2][0][0];
 const int c = 1;
 
+const int c[2][2] = {{1,2}, {3,4}};
+
+int d[2][2] = {{1, 0}, {0, 1}};
 int main() {
 a = a + c;
 }
