@@ -3,13 +3,8 @@
 #include "Element.h"
 #include "Query.h"
 
-extern "C" {
-    ASTAttribute* _ASTNode_get_attr_or_null(ASTNode* node, const char* key);
-}
-extern "C" {
-	extern int yyparse(struct ASTNode** root);
-	extern FILE* yyin;
-}
+extern int yyparse(struct ASTNode** root);
+extern FILE* yyin;
 
 Element::Element() : node(nullptr) {}
 
@@ -61,7 +56,7 @@ Element& Element::operator+=(ASTNode* e) {
 }
 
 ASTAttribute& Element::operator[](const char* key) const {
-    return *_ASTNode_get_attr_or_null(node, key);
+    return *ASTNode_get_attr_or_null(node, key);
 }
 
 Element Element::operator[](int index) const {
@@ -161,7 +156,7 @@ bool Element::get_attr(const char* key, const char** value) {
 }
 
 ASTAttribute* Element::get_attr(const char* key) {
-    return _ASTNode_get_attr_or_null(node, key);
+    return ASTNode_get_attr_or_null(node, key);
 }
 
 int Element::get_attr_int(const char* key) {

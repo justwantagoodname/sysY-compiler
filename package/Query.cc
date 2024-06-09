@@ -1,10 +1,6 @@
 #include "Query.h"
 #include "Element.h"
 
-extern "C" {
-    ASTAttribute* _ASTNode_get_attr_or_null(ASTNode* node, const char* key);
-}
-
 Query::Query(QueryResult* res) : result(res) {}
 
 Query::Query(ASTNode* node) {
@@ -53,7 +49,7 @@ Query Query::operator[] (const char* key) const {
     QueryResult* cur = NULL;
     QueryResult* ans = NULL;
     DL_FOREACH(result, cur) {
-        ASTAttribute* res = _ASTNode_get_attr_or_null(cur->node, key);
+        ASTAttribute* res = ASTNode_get_attr_or_null(cur->node, key);
         if (res) {
             DL_APPEND(ans, cur);
         }

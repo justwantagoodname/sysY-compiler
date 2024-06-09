@@ -46,7 +46,7 @@ typedef struct ASTNode ASTNode;
 ASTNode *ASTNode_create(const char* id);
 ASTNode *ASTNode_create_attr(const char* id, int attr_count, ...);
     /* Children */
-size_t ASTNode_children_size(ASTNode *node);
+size_t ASTNode_children_size(const ASTNode *node);
 void ASTNode_add_nchild(ASTNode *parent, int n, ...);
 void ASTNode_lpush_child(ASTNode *parent, ASTNode *child);
 void ASTNode_add_child(ASTNode *parent, ASTNode *child);
@@ -54,22 +54,23 @@ void ASTNode_add_child(ASTNode *parent, ASTNode *child);
 void ASTNode_add_attr_int(ASTNode *node, const char* key, int value);
 void ASTNode_add_attr_str(ASTNode *node, const char* key, const char* value);
 void ASTNode_add_attr_float(ASTNode *node, const char* key, float value);
-bool ASTNode_has_attr(ASTNode *node, const char* key);
-bool ASTNode_get_attr_int(ASTNode *node, const char* key, int *value);
-bool ASTNode_get_attr_str(ASTNode *node, const char* key, const char **value);
-bool ASTNode_get_attr_float(ASTNode *node, const char* key, float *value);
-bool ASTNode_attr_eq_int(ASTNode *node, const char* key, int value);
-bool ASTNode_attr_eq_str(ASTNode *node, const char* key, const char* value);
-bool ASTNode_attr_eq_float(ASTNode *node, const char* key, float value);
+bool ASTNode_has_attr(const ASTNode *node, const char* key);
+ASTAttribute *ASTNode_get_attr_or_null(const ASTNode *node, const char* key);
+bool ASTNode_get_attr_int(const ASTNode *node, const char* key, int *value);
+bool ASTNode_get_attr_str(const ASTNode *node, const char* key, const char **value);
+bool ASTNode_get_attr_float(const ASTNode *node, const char* key, float *value);
+bool ASTNode_attr_eq_int(const ASTNode *node, const char* key, int value);
+bool ASTNode_attr_eq_str(const ASTNode *node, const char* key, const char* value);
+bool ASTNode_attr_eq_float(const ASTNode *node, const char* key, float value);
     /* Utils */
-void ASTNode_print(struct ASTNode *node);
+void ASTNode_print(const ASTNode *node);
 void ASTNode_move_children(ASTNode *from, ASTNode *to);
 void ASTNode_copy_children(ASTNode *from, ASTNode *to);
 void ASTNode_replace(ASTNode *after, ASTNode *before);
-ASTNode *ASTNode_clone(ASTNode *node);
+ASTNode *ASTNode_clone(const ASTNode *node);
 void ASTNode_free(ASTNode *node);
     /* Operators */
-bool ASTNode_id_is(ASTNode *node, const char* id);
+bool ASTNode_id_is(const ASTNode *node, const char* id);
 
     /* AST Query */
 struct QueryResult {
@@ -78,13 +79,13 @@ struct QueryResult {
 };
 typedef struct QueryResult QueryResult;
 
-QueryResult *QueryResult_create(ASTNode *node);
+QueryResult *QueryResult_create(const ASTNode *node);
 
-QueryResult *ASTNode_querySelector(ASTNode *node, const char* selector);
-ASTNode *ASTNode_querySelectorOne(ASTNode *node, const char* selector);
+QueryResult *ASTNode_querySelector(const ASTNode *node, const char* selector);
+ASTNode *ASTNode_querySelectorOne(const ASTNode *node, const char* selector);
 
-QueryResult *ASTNode_querySelectorf(ASTNode *node, const char* fmt, ...);
-ASTNode *ASTNode_querySelectorfOne(ASTNode *node, const char* fmt, ...);
+QueryResult *ASTNode_querySelectorf(const ASTNode *node, const char* fmt, ...);
+ASTNode *ASTNode_querySelectorfOne(const ASTNode *node, const char* fmt, ...);
 
 enum AttrOptionType {
   AttrOptionTypeExists,

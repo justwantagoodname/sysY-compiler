@@ -12,8 +12,8 @@ extern "C" {
 ASTNode* ExpNode_simplify(const ASTNode* exp);
 
 void ArrayInitNode_flatten(ASTNode* decl);
-bool ArrayInitNode_need_flatten(ASTNode* root);
-ASTNode* ArrayInitNode_get_value_by_linear_index(ASTNode* decl, ASTNode* locator);
+bool ArrayInitNode_need_flatten(const ASTNode* root);
+ASTNode* ArrayInitNode_get_value_by_linear_index(const ASTNode* decl, const ASTNode* locator);
 
 #ifdef __cplusplus
 }

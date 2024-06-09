@@ -5,7 +5,7 @@ YACC = bison
 
 DEFINES = -DXML_PP
 CFLAGS = -g 
-CXXFLAGS = -g -std=c++17
+CXXFLAGS = -g -std=c++17 -lm
 LDFLAGS = 
 JOBS := 4
 
@@ -47,23 +47,15 @@ FLEX_C_FILES = $(L_FILES:.l=.lex.c)
 
 ALL_C_FILES = $(C_FILES) $(BISON_C_FILES) $(FLEX_C_FILES)
 
-O_FILES = $(addprefix $(BUILD_DIR)/, $(ALL_C_FILES:.c=.o) $(CC_FILES:.cc=.o))
+SRC = $(C_FILES) $(CC_FILES) $(BISON_C_FILES) $(FLEX_C_FILES)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 compiler: $(BUILD_DIR)/compiler
 
-$(BUILD_DIR)/compiler: $(O_FILES)
-	$(CXX) $(addprefix $(BUILD_DIR)/, $(notdir $^)) -o $@ $(LDFLAGS)
-
-# Compile .c files into .o files
-$(BUILD_DIR)/%.o: %.c gen-files | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(INCLUDE_DIR) $(DEFINES) -c -o $(BUILD_DIR)/$(notdir $@) $<
-
-# Compile .cc files into .o files
-$(BUILD_DIR)/%.o: %.cc gen-files | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) $(DEFINES) -c -o $(BUILD_DIR)/$(notdir $@) $<
+$(BUILD_DIR)/compiler: $(SRC)
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) $(DEFINES) $(SRC) -o $@
 
 bison-files: $(BISON_C_FILES) $(BISON_H_FILES)
 

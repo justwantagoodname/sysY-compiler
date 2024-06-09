@@ -8,13 +8,13 @@ extern void qqlex_init(yyscan_t *scanner);
 extern void qq_scan_string(const char *str, yyscan_t scanner);
 extern void qqlex_destroy(yyscan_t scanner);
 
-QueryResult *QueryResult_create(ASTNode *node) {
+QueryResult *QueryResult_create(const ASTNode *node) {
     QueryResult *result = (QueryResult*) calloc(1, sizeof(QueryResult));
-    result->node = node;
+    result->node = (ASTNode*) node; // 虽然这里是const的，但是但是我们大多期望修改查询到的节点所以专为可修改，由调用者确保不会发生悬空的引用
     return result;
 }
 
-QueryResult *ASTNode_querySelector(ASTNode *node, const char* selector) {
+QueryResult *ASTNode_querySelector(const ASTNode *node, const char* selector) {
     assert(selector != NULL);
     // printf("Querying selector: %s\n", selector);
     QueryResult* result = NULL, *last = NULL;
@@ -30,15 +30,15 @@ QueryResult *ASTNode_querySelector(ASTNode *node, const char* selector) {
     return execResult ? NULL : result;
 }
 
-ASTNode *ASTNode_querySelectorOne(ASTNode *node, const char* selector) {
+ASTNode *ASTNode_querySelectorOne(const ASTNode *node, const char* selector) {
     QueryResult *result = ASTNode_querySelector(node, selector);
     if (result == NULL) return NULL;
-    ASTNode *nodeResult = result->node;
+    ASTNode *nodeResult = (ASTNode *) result->node;
     free(result);
     return nodeResult;
 }
 
-QueryResult *ASTNode_querySelectorf(ASTNode *node, const char* fmt, ...) {
+QueryResult *ASTNode_querySelectorf(const ASTNode *node, const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char *selector = NULL;
@@ -49,7 +49,7 @@ QueryResult *ASTNode_querySelectorf(ASTNode *node, const char* fmt, ...) {
     return result;
 }
 
-ASTNode *ASTNode_querySelectorfOne(ASTNode *node, const char* fmt, ...) {
+ASTNode *ASTNode_querySelectorfOne(const ASTNode *node, const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char *selector = NULL;

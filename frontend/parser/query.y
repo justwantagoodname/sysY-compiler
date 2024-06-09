@@ -170,14 +170,14 @@ void execSearch(QueryResult **list, QueryResult **result, SearchFunc func, const
   }
 }
 
-bool AttrOption_test(AttrOption* option, ASTNode* node) {
+bool AttrOption_test(const AttrOption* option, const ASTNode* node) {
   assert(node != NULL);
 
   if (option == NULL) return true;
 
   bool ret = false;
   AttrOption* cur = NULL;
-  DL_FOREACH(option, cur) {
+  DL_FOREACH((AttrOption *) option, cur) {
     bool result = false;
     if (cur->type == AttrOptionTypeExists) {
       result = ASTNode_has_attr(node, cur->name);
@@ -228,7 +228,7 @@ QueryResult *searchChildName(QueryResult* cur, const SearchParam* param) {
   return ret;
 }
 
-QueryResult *searchDescendentNameRecursive(ASTNode* cur, const SearchParam* param, int *queryCount) {
+QueryResult *searchDescendentNameRecursive(const ASTNode* cur, const SearchParam* param, int *queryCount) {
   assert(cur != NULL && param != NULL);
 
   QueryResult* ret = NULL;
