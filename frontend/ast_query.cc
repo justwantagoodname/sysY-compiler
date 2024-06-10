@@ -42,7 +42,7 @@ QueryResult *ASTNode_querySelectorf(const ASTNode *node, const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char *selector = NULL;
-    vasprintf(&selector, fmt, args);
+    int ret = vasprintf(&selector, fmt, args);
     va_end(args);
     QueryResult *result = ASTNode_querySelector(node, selector);
     free(selector);
@@ -53,7 +53,7 @@ ASTNode *ASTNode_querySelectorfOne(const ASTNode *node, const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char *selector = NULL;
-    vasprintf(&selector, fmt, args);
+    int ret = vasprintf(&selector, fmt, args);
     va_end(args);
     ASTNode *result = ASTNode_querySelectorOne(node, selector);
     free(selector);
