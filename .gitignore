@@ -1,8 +1,5 @@
-*.tab.*
 *.output
 *.zip
-*.yy.c
-*.lex.*
 *.o
 build/
 build-dev/
@@ -18,5 +15,6 @@ x64/
 *.sln
 *.user
 *.vcxproj
+*.hpp
 .DS_Store
 **/.DS_Store

@@ -173,6 +173,7 @@ void ASTNode_add_child(ASTNode *parent, ASTNode *child) {
 void _ASTNode_add_attr(ASTNode *node, ASTAttribute *attr) {
     assert(node != NULL && attr != NULL);
 
+
     HASH_ADD_STR(node->attrs, key, attr);
 }
 

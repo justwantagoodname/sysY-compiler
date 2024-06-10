@@ -1,4 +1,4 @@
-#ifndef ELEMENT_H
+﻿#ifndef ELEMENT_H
 #define ELEMENT_H
 
 #include "sysY.h"
@@ -11,14 +11,20 @@ private:
 	ASTNode* node;
 
 public:
+	bool flag = false;
+
+public:
 	Element();
 	static Element CreateByFile(const char* filename);
 	Element(ASTNode* n);
-	Element(const Element&& e);
+	Element(ASTNode* n, bool f);
+	Element(const Element& e);
 	Element(const char* id);
 	Element(const char* id, int attr_count, ...);
 	operator ASTNode* () const;
-	Element& operator+=(const Element&& e);
+	operator bool() const;
+	bool operator==(const Element& e) const;
+	Element& operator+=(const Element& e);
 	Element& operator+=(ASTNode* e);
 	ASTAttribute& operator[](const char* key) const;
 	Element operator[](int index) const;
@@ -27,37 +33,55 @@ public:
 	Query q(const char* key) const;
 	Element qo(const char* key) const;
 	Element at(int index) const;
-	void add_child(int n, ...);
-	void add_child(ASTNode* child);
-	void add_child(const Element&& child);
-	void lpush_child(ASTNode* child);
-	void lpush_child(const Element&& child);
-	void add_attr(const char* key, int value);
-	void add_attr(const char* key, float value);
-	void add_attr(const char* key, double value);
-	void add_attr(const char* key, const char* value);
-	bool get_attr(const char* key, int* value);
-	bool get_attr(const char* key, float* value);
-	bool get_attr(const char* key, const char** value);
-	ASTAttribute* get_attr(const char* key);
-	int get_attr_int(const char* key);
-	float get_attr_float(const char* key);
-	const char* get_attr_str(const char* key);
-	bool attr_eq(const char* key, int value);
-	bool attr_eq(const char* key, float value);
-	bool attr_eq(const char* key, bool value);
-	bool attr_eq(const char* key, const char* value);
-	void print();
-	void move_children_to(ASTNode* to);
-	void move_children_from(ASTNode* from);
-	void copy_children_by(ASTNode* from);
-	Element clone();
-	bool id_is(const char* id);
+	Element& add_child(int n, ...);
+	Element& add_child(ASTNode* child);
+	Element& add_child(const Element&& child);
+	Element& lpush_child(ASTNode* child);
+	Element& lpush_child(const Element&& child);
+	Element& add_attr(const char* key, size_t value);
+	Element& add_attr(const char* key, int value);
+	Element& add_attr(const char* key, float value);
+	Element& add_attr(const char* key, double value);
+	Element& add_attr(const char* key, const char* value);
+	bool get_attr(const char* key, int* value) const;
+	bool get_attr(const char* key, float* value) const;
+	bool get_attr(const char* key, const char** value) const;
+	ASTAttribute* get_attr(const char* key) const;
+	int get_attr_int(const char* key) const;
+	float get_attr_float(const char* key) const;
+	const char* get_attr_str(const char* key) const;
+	bool attr_eq(const char* key, int value) const;
+	bool attr_eq(const char* key, float value) const;
+	bool attr_eq(const char* key, bool value) const;
+	bool attr_eq(const char* key, const char* value) const;
+	void print() const;
+	Element& move_children_to(ASTNode* to);
+	Element& move_children_from(ASTNode* from);
+	Element& copy_children_by(ASTNode* from);
+	Element clone() const;
+	const char* id() const;
+	bool id_is(const char* id) const;
 	void free();
-	Query createQueryResult();
-	Query querySelector(const char* selector);
-	Element querySelectorOne(const char* selector);
-    ASTNode *unwrap();
+	Query createQueryResult() const;
+	Query querySelector(const char* selector) const;
+	Element querySelectorOne(const char* selector) const;
+
+	Element table(const char* key) const;
+
+	struct Iter {
+		ASTNode* it;
+		bool flag = false;
+		Iter(ASTNode* q);
+		Iter& operator ++();
+		bool operator!=(Iter&& other);
+		Element operator*();
+		operator Element();
+	};
+
+	Iter begin() const;
+	Iter end() const;
+
+	ASTNode* unwrap() const;
 };
 
 #endif // ELEMENT_H
