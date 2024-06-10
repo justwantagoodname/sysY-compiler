@@ -16,7 +16,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %glr-parser
 
-%expect 2
+/* %expect 2 */
 
 %start CompUnit
 
@@ -251,20 +251,21 @@ ArrayLocatorList: ArrayLocator { $$ = ASTNode_create("Locator"); ASTNode_add_chi
 ExpWrapper: Exp { $$ = ASTNode_create("Exp"); ASTNode_add_child($$, $1); }
           ;
 
-Exp: Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        }
-   | Exp And Exp       { $$ = createOpNode("And", $1, $3);       }
-   | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     }
-   | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     }
-   | Exp Less Exp      { $$ = createOpNode("Less", $1, $3);      }
-   | Exp Greater Exp   { $$ = createOpNode("Greater", $1, $3);   }
-   | Exp LessEq Exp    { $$ = createOpNode("LessEq", $1, $3);    }
-   | Exp GreaterEq Exp { $$ = createOpNode("GreaterEq", $1, $3); }
-   | Exp Plus Exp      { $$ = createOpNode("Plus", $1, $3);      }
-   | Exp Minus Exp     { $$ = createOpNode("Minus", $1, $3);     }
-   | Exp Mult Exp      { $$ = createOpNode("Mult", $1, $3);      }
-   | Exp Div Exp       { $$ = createOpNode("Div", $1, $3);       }
-   | Exp Mod Exp       { $$ = createOpNode("Mod", $1, $3);       }
-   | UnaryExp          { $$ = $1; }
+Exp: Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        } %dprec 7
+   | Exp And Exp       { $$ = createOpNode("And", $1, $3);       } %dprec 6
+   | Not Exp           { $$ = ASTNode_create("Not"); ASTNode_add_child($$, $2); } %dprec 5
+   | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     } %dprec 4
+   | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     } %dprec 4
+   | Exp Less Exp      { $$ = createOpNode("Less", $1, $3);      } %dprec 4
+   | Exp Greater Exp   { $$ = createOpNode("Greater", $1, $3);   } %dprec 4
+   | Exp LessEq Exp    { $$ = createOpNode("LessEq", $1, $3);    } %dprec 4
+   | Exp GreaterEq Exp { $$ = createOpNode("GreaterEq", $1, $3); } %dprec 4
+   | Exp Plus Exp      { $$ = createOpNode("Plus", $1, $3);      } %dprec 3
+   | Exp Minus Exp     { $$ = createOpNode("Minus", $1, $3);     } %dprec 3
+   | Exp Mult Exp      { $$ = createOpNode("Mult", $1, $3);      } %dprec 2
+   | Exp Div Exp       { $$ = createOpNode("Div", $1, $3);       } %dprec 2
+   | Exp Mod Exp       { $$ = createOpNode("Mod", $1, $3);       } %dprec 2
+   | UnaryExp          { $$ = $1; } %dprec 1
    ;
 
 UnaryExp: PrimaryExp { $$ = $1; }
@@ -282,7 +283,6 @@ PrimaryExp: LVal { $$ = ASTNode_create("Fetch"); ASTNode_add_child($$, $1); }
 
 UnaryOp: Plus   { $$ = "UnPlus";  }
        | Minus  { $$ = "UnMinus"; }
-       | Not    { $$ = "Not";     }
        ;
 
 FuncRParams: /* empty */    { $$ = NULL;}

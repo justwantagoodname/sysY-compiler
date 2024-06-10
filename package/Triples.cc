@@ -153,7 +153,7 @@ void Triples::make()
 				t2 = element[1].get_attr_int("true");
 			int f1 = element[0].get_attr_int("false"),
 				f2 = element[1].get_attr_int("false");
-			triples[t1].to = -1;
+			triples[t1].to = t1 + 2;
 			triples[f2].to = f1;
 			element.add_attr("true", t2);
 			element.add_attr("false", f2);
@@ -164,7 +164,7 @@ void Triples::make()
 			int f1 = element[0].get_attr_int("false"),
 				f2 = element[1].get_attr_int("false");
 			triples[t2].to = t1;
-			triples[f1].to = -1;
+			triples[f1].to = f1 + 1;
 			element.add_attr("true", t2);
 			element.add_attr("false", f2);
 		}
@@ -203,6 +203,12 @@ void Triples::make()
 			int f = element.get_attr_int("false");
 			triples.add(Cmd.jmp, 0, 0, b);
 			triples[f].to = triples.size();
+		}
+		ife("Not") {
+			int t = element[0].get_attr_int("true");
+			int f = element[0].get_attr_int("false");
+			element.add_attr("true", f);
+			element.add_attr("false", t);
 		}
 
 	}
