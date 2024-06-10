@@ -8,9 +8,9 @@ private:
 	Element root;
 	
 private:
-	class {
+	class CMD {
 	public:
-		enum {
+		enum CMD_ENUM {
 			mov,
 			jmp,
 			call,

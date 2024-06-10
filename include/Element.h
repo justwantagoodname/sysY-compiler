@@ -67,6 +67,7 @@ public:
 	Element querySelectorOne(const char* selector) const;
 
 	Element table(const char* key) const;
+	size_t size() const;
 
 	struct Iter {
 		ASTNode* it;
