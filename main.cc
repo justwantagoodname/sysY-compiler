@@ -61,18 +61,17 @@ int main(int argc, const char** argv) {
   rewind(yyin);
 #endif
 
-  Element root = Element::CreateByFile(Flag::getFlag().getFlagFor("input").c_str());
+  // Element root = Element::CreateByFile(Flag::getFlag().getFlagFor("input").c_str());
   //ConstNode_unfold(root);
   //ArrayDecl_flatten(root);
 
-  root.print();
-
+  
   // Triples triples(root);
   //triples.pretreat();
   //root.print();
 
   // triples.make();
-  root.print();
+  // root.print();
 
   // triples.print();
 
