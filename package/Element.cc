@@ -52,7 +52,7 @@ Element::operator bool() const
 	return node;
 }
 
-bool Element::operator==(const Element& e)
+bool Element::operator==(const Element& e) const
 {
 	return node == e.node;
 }

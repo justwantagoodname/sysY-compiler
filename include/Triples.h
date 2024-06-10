@@ -16,7 +16,6 @@ private:
 			call,
 			read,
 			write,
-			add,
 			imdd,
 			jeq,
 			jne,
@@ -24,7 +23,14 @@ private:
 			jlt,
 			jge,
 			jle,
-
+			ret,
+			pux,
+			pus,
+			add,
+			sub,
+			mul,
+			div,
+			mod,
 		};
 	} Cmd;
 
@@ -37,10 +43,14 @@ private:
 
 	std::vector<IntTriple> triples;
 	std::vector<Element> value_pointer;
+	//std::vector<Element> value_table;
+	//std::vector<int> page_stack;
 
 	void add(int, int, int, int);
-	int find(int, int, int, int)const;
-	int find(const Element);
+	int find(int, int, int, int) const;
+	int find(const Element& e);
+	void push_page();
+	void pop_page();
 
 public:
 	Triples(const Element&);

@@ -7,18 +7,25 @@ void Triples::add(int cmd, int e1, int e2, int to)
 	triples.push_back(IntTriple(cmd, e1, e2, to));
 }
 
-int Triples::find(const Element e)
+int Triples::find(const Element& e)
 {
 	for (int i = 0; i < value_pointer.size(); ++i) {
 		if (value_pointer[i] == e)return i;
 	}
 	value_pointer.push_back(e);
 	return value_pointer.size() - 1;
+	
 }
 
 int Triples::find(int cmd, int e1, int e2, int len = -1) const
 {
-	for (int i = triples.size() - 1; i >= len == -1 ? 0 : triples.size() - 1 - len; --i) {
+	int end = 0;
+	if (len != -1)
+	{
+		end = triples.size() - 1 - len;
+		if (end < 0)end = 0;
+	}
+	for (int i = triples.size() - 1; i >= end; --i) {
 		const IntTriple& t = triples[i];
 		if (t.cmd == cmd && t.e1 == e1 && t.e2 == e2) {
 			return t.to;
@@ -104,16 +111,15 @@ void Triples::make()
 		}
 		ife("Fetch") {
 			int a = element[0].get_attr_int("addr");
-			triples.add(Cmd.read, a, 0, temp_count);
-			element.add_attr("temp", temp_count);
-			++temp_count;
-		}
-		ife("Plus") {
-			int t0 = element[0].get_attr_int("temp");
-			int t1 = element[1].get_attr_int("temp");
-			triples.add(Cmd.add, t0, t1, temp_count);
-			element.add_attr("temp", temp_count);
-			++temp_count;
+			int lcmd = triples.find(Cmd.read, a, 0);
+			if (lcmd == -1) {
+				triples.add(Cmd.read, a, 0, temp_count);
+				element.add_attr("temp", temp_count);
+				++temp_count;
+			}
+			else {
+				element.add_attr("temp", lcmd);
+			}
 		}
 		ife("Assign") {
 			int a = element[0].get_attr_int("addr");
@@ -210,7 +216,42 @@ void Triples::make()
 			element.add_attr("true", f);
 			element.add_attr("false", t);
 		}
+		ife("Return") {
+			int t = element[0].get_attr_int("temp");
+			triples.add(Cmd.ret, t, 0, 0);
+			++temp_count;
+		}
+#define EopE(cmd) do{\
+		int t0 = element[0].get_attr_int("temp"); \
+		int t1 = element[1].get_attr_int("temp"); \
+		int lcmd = triples.find(cmd, t0, t1); \
+		if(lcmd == -1){ \
+		triples.add(cmd, t0, t1, temp_count); \
+			element.add_attr("temp", temp_count); \
+			++temp_count; \
+		}\
+		else { \
+			element.add_attr("temp", lcmd); \
+		} \
+	}while (0)
+		ife("Plus") {
+			EopE(Cmd.add);
+		}
+		ife("Minus") {
+			EopE(Cmd.sub);
+		}
+		ife("Mult") {
+			EopE(Cmd.mul);
+		}
+		ife("Div") {
+			EopE(Cmd.div);
+		}
+		ife("Mod") {
+			EopE(Cmd.mod);
+		}
+		ife("Call") {
 
+		}
 	}
 }
 
@@ -237,9 +278,6 @@ void Triples::print() const
 		case Cmd.write:
 			printf("write, T%d, 0, %s\n", i.e1, value_pointer[i.to].get_attr_str("name"));
 			break;
-		case Cmd.add:
-			printf("add, T%d, T%d, T%d\n", i.e1, i.e2, i.to);
-			break;
 		case Cmd.imdd:
 			printf("imdd, %d, 0, T%d\n", i.e1, i.to);
 			break;
@@ -260,6 +298,24 @@ void Triples::print() const
 			break;
 		case Cmd.jge:
 			printf("jge, T%d, T%d, %d\n", i.e1, i.e2, i.to);
+			break;
+		case Cmd.ret:
+			printf("ret, T%d, 0, 0\n", i.e1);
+			break;
+		case Cmd.add:
+			printf("add, T%d, T%d, T%d\n", i.e1, i.e2, i.to);
+			break;
+		case Cmd.sub:
+			printf("sub, T%d, T%d, T%d\n", i.e1, i.e2, i.to);
+			break;
+		case Cmd.mul:
+			printf("mul, T%d, T%d, T%d\n", i.e1, i.e2, i.to);
+			break;
+		case Cmd.div:
+			printf("div, T%d, T%d, T%d\n", i.e1, i.e2, i.to);
+			break;
+		case Cmd.mod:
+			printf("mod, T%d, T%d, T%d\n", i.e1, i.e2, i.to);
 			break;
 		default:
 			break;

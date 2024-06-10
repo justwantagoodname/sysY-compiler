@@ -1,8 +1,5 @@
-*.tab.*
 *.output
 *.zip
-*.yy.c
-*.lex.*
 *.o
 build/
 build-dev/

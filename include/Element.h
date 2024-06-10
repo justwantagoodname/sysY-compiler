@@ -23,7 +23,7 @@ public:
 	Element(const char* id, int attr_count, ...);
 	operator ASTNode* () const;
 	operator bool() const;
-	bool operator==(const Element& e);
+	bool operator==(const Element& e) const;
 	Element& operator+=(const Element& e);
 	Element& operator+=(ASTNode* e);
 	ASTAttribute& operator[](const char* key) const;

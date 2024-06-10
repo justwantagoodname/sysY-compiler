@@ -180,26 +180,28 @@ FuncType: Void { $$ = "Void"; }
 
 FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block { 
             $$ = ASTNode_create_attr("Function", 2, "return", $1, "name", $2);
-            ASTNode_add_nchild($$, 2, $4, $6);
+            ASTNode* dimension = ASTNode_create("Scope");
+            ASTNode_add_nchild(dimension, 2, $4, $6);
+            ASTNode_add_child($$, dimension);
           } 
        ;
 
-FuncFParams: /* empty */    { $$ = ASTNode_create("Params"); }
-           | FuncFParamList { $$ = ASTNode_create("Params"); ASTNode_move_children($1, $$); ASTNode_free($1);}
+FuncFParams: /* empty */    { $$ = ASTNode_create("Decl"); }
+           | FuncFParamList { $$ = ASTNode_create("Decl"); ASTNode_move_children($1, $$); ASTNode_free($1);}
            ;
 
 FuncFParamList: FuncFParam { $$ = ASTNode_create("ParamList"); ASTNode_add_child($$, $1); }
               | FuncFParamList Comma FuncFParam { $$ = $1; ASTNode_add_child($$, $3); }
               ;
 
-FuncFParam: PrimaryType Identifier  { $$ = ASTNode_create_attr("Param", 2, "type", $1, "name", $2); }
+FuncFParam: PrimaryType Identifier  { $$ = ASTNode_create_attr("ParamDecl", 2, "type", $1, "name", $2); }
           | PrimaryType Identifier LeftBrack RightBrack { 
-                                                          $$ = ASTNode_create_attr("Param", 3, "type", $1, "name", $2, "array", "true"); 
+                                                          $$ = ASTNode_create_attr("ParamDecl", 3, "type", $1, "name", $2, "array", "true"); 
                                                           ASTNode* dimension = ASTNode_create_attr("Dimension", 1, "size", "Unknown");
                                                           ASTNode_add_child($$, dimension);
                                                         } 
           | PrimaryType Identifier LeftBrack RightBrack ArrayDecl { 
-                                                                    $$ = ASTNode_create_attr("Param", 3, "type", $1, "name", $2, "array", "true"); 
+                                                                    $$ = ASTNode_create_attr("ParamDecl", 3, "type", $1, "name", $2, "array", "true"); 
                                                                     ASTNode* dimension = ASTNode_create_attr("Dimension", 1, "size", "Unknown");
                                                                     ASTNode_add_child($$, dimension);
                                                                     ASTNode_move_children($5, $$);
