@@ -67,14 +67,14 @@ int main(int argc, const char** argv) {
 
   root.print();
 
-  Triples triples(root);
+  // Triples triples(root);
   //triples.pretreat();
   //root.print();
 
-  triples.make();
+  // triples.make();
   root.print();
 
-  triples.print();
+  // triples.print();
 
   return 0;
 }

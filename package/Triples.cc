@@ -1,7 +1,7 @@
 ﻿#include "Triples.h"
 #include <vector>
 using std::vector;
-
+#if 0
 void Triples::add(int cmd, int e1, int e2, int to)
 {
 	triples.push_back(IntTriple(cmd, e1, e2, to));
@@ -92,7 +92,7 @@ void Triples::make()
 		}
 		ifb("Number") {
 			element.add_attr("temp", temp_count);
-			triples.add(Cmd.imdd, element.get_attr_int("value"), 0, temp_count);
+			triples.add(imdd, element.get_attr_int("value"), 0, temp_count);
 			++temp_count;
 		}
 		ifb("Address") {
@@ -111,9 +111,9 @@ void Triples::make()
 		}
 		ife("Fetch") {
 			int a = element[0].get_attr_int("addr");
-			int lcmd = triples.find(Cmd.read, a, 0);
+			int lcmd = triples.find(read, a, 0);
 			if (lcmd == -1) {
-				triples.add(Cmd.read, a, 0, temp_count);
+				triples.add(read, a, 0, temp_count);
 				element.add_attr("temp", temp_count);
 				++temp_count;
 			}
@@ -124,7 +124,7 @@ void Triples::make()
 		ife("Assign") {
 			int a = element[0].get_attr_int("addr");
 			int t = element[1].get_attr_int("temp");
-			triples.add(Cmd.write, t, 0, a);
+			triples.add(write, t, 0, a);
 		}
 
 #define makeCond(cmd)do{\
@@ -137,19 +137,19 @@ void Triples::make()
 		element.add_attr("false", idx + 1);}\
 		while(0)
 		ife("Equal") {
-			makeCond(Cmd.jeq);
+			makeCond(jeq);
 		}
 		ife("NotEq") {
-			makeCond(Cmd.jne);
+			makeCond(jne);
 		}
 		ife("Less") {
-			makeCond(Cmd.jlt);
+			makeCond(jlt);
 		}
 		ife("LessEq") {
-			makeCond(Cmd.jle);
+			makeCond(jle);
 		}
 		ife("Greater") {
-			makeCond(Cmd.jgt);
+			makeCond(jgt);
 		}
 		ife("GreaterEq") {
 			makeCond(Cmd.jge);
@@ -187,7 +187,7 @@ void Triples::make()
 		ife("Then") {
 			Element if_element = element("parent::If");
 			if_element.add_attr("toEnd", triples.size());
-			triples.add(Cmd.jmp, 0, 0, triples.size());
+			triples.add(jmp, 0, 0, triples.size());
 
 			int f = if_element.get_attr_int("false");
 			do {
@@ -324,3 +324,4 @@ void Triples::print() const
 	}
 }
 
+#endif
