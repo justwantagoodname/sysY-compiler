@@ -31,8 +31,13 @@ private:
 			mul,
 			div,
 			mod,
-		};
-	} Cmd;
+};
+
+class Triples {
+private:
+	Element root;
+	
+private:
 
 	struct IntTriple {
 		int cmd;

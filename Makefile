@@ -2,9 +2,9 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 ZIP = zip
-
-DEFINES = -DXML_PP -DDEBUG
-CXXFLAGS = -std=c++17 
+CXX = clang++
+DEFINES = 
+CXXFLAGS = -std=c++17 -Werror 
 LDFLAGS = -lm
 JOBS := 4
 
@@ -64,7 +64,7 @@ release-compiler: CXXFLAGS+=-O2
 release-compiler: $(BUILD_DIR)/compiler # cg 实际的编译方式, cg 上面的linker path 加了一堆 antlr4 的东西，我们就不加了
 	@clear
 
-$(BUILD_DIR)/compiler: $(SRC) $(H_FILES) $(HPP_FILES) $(BISON_C_FILES) $(BISON_H_FILES) $(FLEX_C_FILES) | $(BUILD_DIR)
+$(BUILD_DIR)/compiler: $(SRC) $(H_FILES) $(HPP_FILES) | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(addprefix -I, $(INCLUDE_DIR)) $(DEFINES) $(SRC) -o $@
 
 dev-compiler: CXXFLAGS+=-g
