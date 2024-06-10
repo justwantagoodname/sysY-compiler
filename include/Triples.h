@@ -6,11 +6,11 @@
 class Triples {
 private:
 	Element root;
-	
+
 private:
-	class {
+	constexpr static class CMD {
 	public:
-		enum {
+		enum CMD_ENUM {
 			mov,
 			jmp,
 			call,
@@ -32,7 +32,9 @@ private:
 			div,
 			mod,
 		};
-	} Cmd;
+	}Cmd = CMD();
+
+private:
 
 	struct IntTriple {
 		int cmd;

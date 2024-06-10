@@ -278,6 +278,13 @@ Element Element::table(const char* key) const
 	return e;
 }
 
+size_t Element::size() const
+{
+	size_t count = 0;
+	DL_COUNT(node->children, node->children->prev, count);
+	return count;
+}
+
 Element::Iter Element::begin() const
 {
 	return Element::Iter(node);
@@ -308,6 +315,10 @@ Element::Iter& Element::Iter::operator++() {
 		it = NULL;
 		flag = true;
 	}
+
+	if (it && !(it->children))
+		flag = true;
+
 	return *this;
 
 }

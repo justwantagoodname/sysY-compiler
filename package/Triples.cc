@@ -14,7 +14,7 @@ int Triples::find(const Element& e)
 	}
 	value_pointer.push_back(e);
 	return value_pointer.size() - 1;
-	
+
 }
 
 int Triples::find(int cmd, int e1, int e2, int len = -1) const
@@ -90,12 +90,12 @@ void Triples::make()
 				element.add_attr("false", t);
 			}
 		}
-		ifb("Number") {
+		ife("Number") {
 			element.add_attr("temp", temp_count);
 			triples.add(Cmd.imdd, element.get_attr_int("value"), 0, temp_count);
 			++temp_count;
 		}
-		ifb("Address") {
+		ife("Address") {
 			const char* s = element.get_attr_str("base");
 			Element value = element.table(s);
 
@@ -250,7 +250,43 @@ void Triples::make()
 			EopE(Cmd.mod);
 		}
 		ife("Call") {
+			int count = 0;
+			{
+				ASTNode* head = element.unwrap()->children;
+				ASTNode* iter = head->prev;
+				do {
+					int t;
+					ASTNode_get_attr_int(iter, "temp", &t);
+					triples.add(Cmd.pus, t, 0, 0);
+					++count;
+					iter = iter->prev;
+				} while (iter != head->prev);
+			}
 
+			int top = triples.size() - 1;
+			for (int i = 0; i < (3 > count ? count : 3); ++i) {
+				triples[top - i].cmd = Cmd.pux;
+				triples[top - i].to = i;
+			}
+
+			const char* name = element.get_attr_str("name");
+			char* select = (char*)malloc(35 + strlen(name));
+			assert(select != NULL);
+			sprintf(select, "//FunctionDef/Function[@name='%s']", name);
+			Element func = root % select;
+			int place = func.get_attr_int("place");
+
+			element.add_attr("temp", temp_count);
+			triples.add(Cmd.call, place, 0, temp_count);
+			++temp_count;
+			::free(select);
+		}
+		ife("Param") {
+			int t = element[0].get_attr_int("temp");
+			element.add_attr("temp", t);
+		}
+		ifb("Function") {
+			element.add_attr("place", triples.size());
 		}
 	}
 }
@@ -258,6 +294,7 @@ void Triples::make()
 void Triples::print() const
 {
 	int idx = 0;
+	char* select;
 	printf("\n");
 	for (auto i : triples) {
 		printf(">%d, ", idx);
@@ -270,10 +307,14 @@ void Triples::print() const
 			printf("jmp, 0, 0, %d\n", i.to);
 			break;
 		case Cmd.call:
-			printf("call, 0, 0, F%d\n", i.to);
+			select = (char*)malloc(60);
+			assert(select != NULL);
+			sprintf(select, "//FunctionDef/Function[@place=%d]", i.e1);
+			printf("call, %s:%d, 0, T%d\n", root.qo(select).get_attr_str("name"), i.e1, i.to);
+			::free(select);
 			break;
 		case Cmd.read:
-			printf("read, %s, 0, T%d\n", value_pointer[i.e1].get_attr_str("name"), i.to);
+			printf("read, %s, %d, T%d\n", value_pointer[i.e1].get_attr_str("name"), i.e2, i.to);
 			break;
 		case Cmd.write:
 			printf("write, T%d, 0, %s\n", i.e1, value_pointer[i.to].get_attr_str("name"));
@@ -317,10 +358,16 @@ void Triples::print() const
 		case Cmd.mod:
 			printf("mod, T%d, T%d, T%d\n", i.e1, i.e2, i.to);
 			break;
+		case Cmd.pus:
+			printf("pus, T%d, 0, 0\n", i.e1);
+			break;
+		case Cmd.pux:
+			printf("pux, T%d, 0, E%d\n", i.e1, i.to);
+			break;
 		default:
+			printf("unknow:%d, %d, %d, %d", i.cmd, i.e1, i.e2, i.to);
 			break;
 		}
 		++idx;
 	}
 }
-
