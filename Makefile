@@ -2,9 +2,9 @@ WATCHER = entr
 LEX = flex
 YACC = bison
 ZIP = zip
-CXX = clang++
-DEFINES = 
-CXXFLAGS = -std=c++17 -Werror 
+CXX = clang++ # 使用 clang++
+DEFINES = -DXML_PP -DDEBUG
+CXXFLAGS = -std=c++17 -Werror
 LDFLAGS = -lm
 JOBS := 4
 
@@ -37,18 +37,16 @@ endif
 Y_FILES = $(shell find . -type f -name "*.y" | sed 's/^\.\///')
 L_FILES = $(shell find . -type f -name "*.l" | sed 's/^\.\///')
 H_FILES = $(shell find . -type f -name "*.h" | sed 's/^\.\///')
-C_FILES = $(shell find . -type f -name "*.c" | sed 's/^\.\///')
 CC_FILES = $(shell find . -type f -name "*.cc" | sed 's/^\.\///')
 HPP_FILES = $(shell find . -type f -name "*.hpp" | sed 's/^\.\///')
 
-BISON_C_FILES = $(Y_FILES:.y=.tab.c)
+BISON_C_FILES = $(Y_FILES:.y=.tab.cc)
 BISON_H_FILES = $(Y_FILES:.y=.tab.h)
-FLEX_C_FILES = $(L_FILES:.l=.lex.c)
+FLEX_C_FILES = $(L_FILES:.l=.lex.cc)
 
-SRC = $(C_FILES) $(CC_FILES) # 运行的时候展开 因为必须确保 paser-files 生成之后才能编译
+SRC = $(CC_FILES) # 运行的时候展开 因为必须确保 paser-files 生成之后才能编译
 
 OBJ := 	$(patsubst %.cc, $(DEV_BUILD_DIR)/%.o, $(CC_FILES)) \
-		$(patsubst %.c, $(DEV_BUILD_DIR)/%.o, $(C_FILES)) \
 		$(patsubst %.tab.c, $(DEV_BUILD_DIR)/%.tab.o, $(BISON_C_FILES)) \
 		$(patsubst %.lex.c, $(DEV_BUILD_DIR)/%.lex.o, $(FLEX_C_FILES))
 
@@ -64,7 +62,7 @@ release-compiler: CXXFLAGS+=-O2
 release-compiler: $(BUILD_DIR)/compiler # cg 实际的编译方式, cg 上面的linker path 加了一堆 antlr4 的东西，我们就不加了
 	@clear
 
-$(BUILD_DIR)/compiler: $(SRC) $(H_FILES) $(HPP_FILES) | $(BUILD_DIR)
+$(BUILD_DIR)/compiler: $(SRC) $(H_FILES) $(HPP_FILES) $(BISON_C_FILES) $(BISON_H_FILES) $(FLEX_C_FILES) | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(addprefix -I, $(INCLUDE_DIR)) $(DEFINES) $(SRC) -o $@
 
 dev-compiler: CXXFLAGS+=-g
@@ -73,10 +71,6 @@ dev-compiler: $(DEV_BUILD_DIR)/compiler # 开发时使用，分别编译模式
 $(DEV_BUILD_DIR)/compiler: parser-files $(OBJ) | $(DEV_BUILD_DIR)
 	@clear
 	$(CXX) $(OBJ) -o $@ $(LDFLAGS)
-
-$(DEV_BUILD_DIR)/%.o: %.c | $(DEV_BUILD_DIR) 
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -Wno-deprecated $(addprefix -I, $(INCLUDE_DIR)) $(DEFINES) -c $< -o $@
 
 $(DEV_BUILD_DIR)/%.o: %.cc | $(DEV_BUILD_DIR) 
 	@mkdir -p $(dir $@)
@@ -88,11 +82,11 @@ $(FLEX_C_FILES): $(BISON_C_FILES) $(BISON_H_FILES)
 # 生成解析器文件
 parser-files: $(FLEX_C_FILES) $(BISON_C_FILES) $(BISON_H_FILES)
 
-%.tab.c %.tab.h: %.y
-	$(YACC) -v -b $* -d -o $*.tab.c $<
+%.tab.cc %.tab.h: %.y
+	$(YACC) -v -b $* -d -o $*.tab.cc $<
 
-%.lex.c: %.l
-	$(LEX) -o $*.lex.c $<
+%.lex.cc: %.l
+	$(LEX) -o $*.lex.cc $<
 
 test-compiler: dev-compiler # 测试的时候使用开发模式，快速编译
 	@clear

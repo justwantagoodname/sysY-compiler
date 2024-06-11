@@ -2,7 +2,7 @@
 
 #include "sysY.h"
 #include "token.h"
-#include "sysY.tab.h"
+#include "sysY.tab.hh"
 
 #define YY_USER_ACTION \
     do { \

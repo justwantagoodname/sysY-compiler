@@ -80,7 +80,7 @@
 #include "action.h"
 
 
-#line 84 "frontend/parser/query.tab.c"
+#line 84 "frontend/parser/query.tab.cc"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -103,7 +103,7 @@
 #  endif
 # endif
 
-#include "query.tab.h"
+#include "query.tab.hh"
 /* Symbol kind.  */
 enum yysymbol_kind_t
 {
@@ -142,7 +142,7 @@ typedef enum yysymbol_kind_t yysymbol_kind_t;
   int qqlex(QQSTYPE* yylval, yyscan_t scanner);
   void qqerror(yyscan_t scanner, QueryResult **result, QueryResult **last, const char* msg);
 
-#line 146 "frontend/parser/query.tab.c"
+#line 146 "frontend/parser/query.tab.cc"
 
 #ifdef short
 # undef short
@@ -1114,25 +1114,25 @@ yyreduce:
   case 2: /* Query: %empty  */
 #line 43 "frontend/parser/query.y"
               { /* printf("Start Traveling...\n"); */ }
-#line 1118 "frontend/parser/query.tab.c"
+#line 1118 "frontend/parser/query.tab.cc"
     break;
 
   case 3: /* Query: Query Selector  */
 #line 44 "frontend/parser/query.y"
                       { /* printf("Finish %d\n", ++count); */ }
-#line 1124 "frontend/parser/query.tab.c"
+#line 1124 "frontend/parser/query.tab.cc"
     break;
 
   case 4: /* SelectorPrefix: %empty  */
 #line 46 "frontend/parser/query.y"
                        { (yyval.string) = ""; }
-#line 1130 "frontend/parser/query.tab.c"
+#line 1130 "frontend/parser/query.tab.cc"
     break;
 
   case 5: /* SelectorPrefix: Prefix  */
 #line 47 "frontend/parser/query.y"
                        { (yyval.string) = (yyvsp[0].string); /* printf("Selector Prefix: %s\n", $1); */ }
-#line 1136 "frontend/parser/query.tab.c"
+#line 1136 "frontend/parser/query.tab.cc"
     break;
 
   case 6: /* Selector: SelectorPrefix NodeName AttrSelector  */
@@ -1147,14 +1147,14 @@ yyreduce:
                                   else execSearch(last, result, searchChildName, &param);
                                   copyList(*result, *last);
                                   }
-#line 1151 "frontend/parser/query.tab.c"
+#line 1151 "frontend/parser/query.tab.cc"
     break;
 
   case 7: /* Selector: Slash  */
 #line 59 "frontend/parser/query.y"
                    { copyList(*last, *result);
                      /* printf("Return current\n"); ref current node do nothing just return result. */ }
-#line 1158 "frontend/parser/query.tab.c"
+#line 1158 "frontend/parser/query.tab.cc"
     break;
 
   case 8: /* Selector: DoubleSlash NodeName AttrSelector  */
@@ -1168,71 +1168,71 @@ yyreduce:
                                               execSearch(last, result, searchDescendentName, &param);
                                               copyList(*result, *last);
                                               }
-#line 1172 "frontend/parser/query.tab.c"
+#line 1172 "frontend/parser/query.tab.cc"
     break;
 
   case 9: /* AttrSelector: %empty  */
 #line 71 "frontend/parser/query.y"
                      { (yyval.searchParam).id = NULL; (yyval.searchParam).options = NULL; (yyval.searchParam).index = -1; }
-#line 1178 "frontend/parser/query.tab.c"
+#line 1178 "frontend/parser/query.tab.cc"
     break;
 
   case 10: /* AttrSelector: LeftBracket AttrOptions RightBracket LeftBracket Number RightBracket  */
 #line 72 "frontend/parser/query.y"
                                                                                    { (yyval.searchParam).options = (yyvsp[-4].attrOption); (yyval.searchParam).index = (yyvsp[-1].number); }
-#line 1184 "frontend/parser/query.tab.c"
+#line 1184 "frontend/parser/query.tab.cc"
     break;
 
   case 11: /* AttrSelector: LeftBracket AttrOptions RightBracket  */
 #line 73 "frontend/parser/query.y"
                                                    { (yyval.searchParam).options = (yyvsp[-1].attrOption); (yyval.searchParam).index = -1; }
-#line 1190 "frontend/parser/query.tab.c"
+#line 1190 "frontend/parser/query.tab.cc"
     break;
 
   case 12: /* AttrSelector: LeftBracket Number RightBracket  */
 #line 74 "frontend/parser/query.y"
                                               { (yyval.searchParam).id = NULL; (yyval.searchParam).options = NULL; (yyval.searchParam).index = (yyvsp[-1].number); }
-#line 1196 "frontend/parser/query.tab.c"
+#line 1196 "frontend/parser/query.tab.cc"
     break;
 
   case 14: /* AttrOptions: AttrOption  */
 #line 78 "frontend/parser/query.y"
                         { (yyval.attrOption) = AttrOption_push_with_logic(NULL, (yyvsp[0].attrOption), false); }
-#line 1202 "frontend/parser/query.tab.c"
+#line 1202 "frontend/parser/query.tab.cc"
     break;
 
   case 15: /* AttrOptions: AttrOptions Comma AttrOption  */
 #line 79 "frontend/parser/query.y"
                                           { (yyval.attrOption) = AttrOption_push_with_logic((yyvsp[-2].attrOption), (yyvsp[0].attrOption), true); }
-#line 1208 "frontend/parser/query.tab.c"
+#line 1208 "frontend/parser/query.tab.cc"
     break;
 
   case 16: /* AttrOptions: AttrOptions Or AttrOption  */
 #line 80 "frontend/parser/query.y"
                                        { (yyval.attrOption) = AttrOption_push_with_logic((yyvsp[-2].attrOption), (yyvsp[0].attrOption), false); }
-#line 1214 "frontend/parser/query.tab.c"
+#line 1214 "frontend/parser/query.tab.cc"
     break;
 
   case 17: /* AttrOption: At AttrName Equal String  */
 #line 82 "frontend/parser/query.y"
                                      { (yyval.attrOption) = AttrOption_create_str((yyvsp[-2].string), (yyvsp[0].string)); }
-#line 1220 "frontend/parser/query.tab.c"
+#line 1220 "frontend/parser/query.tab.cc"
     break;
 
   case 18: /* AttrOption: At AttrName  */
 #line 83 "frontend/parser/query.y"
                         { (yyval.attrOption) = AttrOption_create_has((yyvsp[0].string)); }
-#line 1226 "frontend/parser/query.tab.c"
+#line 1226 "frontend/parser/query.tab.cc"
     break;
 
   case 19: /* AttrOption: At AttrName Equal Number  */
 #line 84 "frontend/parser/query.y"
                                      { (yyval.attrOption) = AttrOption_create_num((yyvsp[-2].string), (yyvsp[0].number)); }
-#line 1232 "frontend/parser/query.tab.c"
+#line 1232 "frontend/parser/query.tab.cc"
     break;
 
 
-#line 1236 "frontend/parser/query.tab.c"
+#line 1236 "frontend/parser/query.tab.cc"
 
       default: break;
     }

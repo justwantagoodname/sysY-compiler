@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include "sysY.h"
 #include "ast.h"
-#include "query.tab.h"
+#include "query.tab.hh"
 
 
 extern void qqlex_init(yyscan_t *scanner);

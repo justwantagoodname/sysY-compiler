@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_FRONTEND_PARSER_SYSY_TAB_H_INCLUDED
-# define YY_YY_FRONTEND_PARSER_SYSY_TAB_H_INCLUDED
+#ifndef YY_YY_FRONTEND_PARSER_SYSY_TAB_HH_INCLUDED
+# define YY_YY_FRONTEND_PARSER_SYSY_TAB_HH_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -44,7 +44,7 @@ extern int yydebug;
 
   extern int yylex();
 
-#line 48 "frontend/parser/sysY.tab.h"
+#line 48 "frontend/parser/sysY.tab.hh"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -106,7 +106,7 @@ union YYSTYPE
   const char* tokenValue;
   struct ASTNode *astNode;
 
-#line 110 "frontend/parser/sysY.tab.h"
+#line 110 "frontend/parser/sysY.tab.hh"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -133,4 +133,4 @@ extern YYSTYPE yylval;
 extern YYLTYPE yylloc;
 int yyparse (struct ASTNode **root);
 
-#endif /* !YY_YY_FRONTEND_PARSER_SYSY_TAB_H_INCLUDED  */
+#endif /* !YY_YY_FRONTEND_PARSER_SYSY_TAB_HH_INCLUDED  */
