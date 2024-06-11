@@ -291,12 +291,12 @@ FuncRParams: /* empty */    { $$ = NULL;}
            | FuncRParamList { $$ = $1;  }
            ;
 
-FuncRParamList: ExpWrapper  { 
-                              $$ = ASTNode_create("ParamArray");
-                              ASTNode* param = ASTNode_create("Param"); 
-                              ASTNode_add_child($$, param);
-                              ASTNode_add_child(param, $1); 
-                            }
+FuncRParamList: Exp { 
+                      $$ = ASTNode_create("ParamArray");
+                      ASTNode* param = ASTNode_create("Param"); 
+                      ASTNode_add_child($$, param);
+                      ASTNode_add_child(param, $1); 
+                    }
               | StringConst { 
                               $$ = ASTNode_create("ParamArray");
                               ASTNode* param = ASTNode_create("Param"); 
@@ -305,7 +305,7 @@ FuncRParamList: ExpWrapper  {
                               ASTNode_add_attr_str(param, "value", strContent);
                               free(strContent);
                             }
-              | FuncRParamList Comma ExpWrapper { $$ = $1; ASTNode* param = ASTNode_create("Param"); ASTNode_add_child(param, $3); ASTNode_add_child($$, param); }
+              | FuncRParamList Comma Exp { $$ = $1; ASTNode* param = ASTNode_create("Param"); ASTNode_add_child(param, $3); ASTNode_add_child($$, param); }
               ;
 
 Number: IntegerConst
