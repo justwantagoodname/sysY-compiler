@@ -60,7 +60,6 @@ $(DEV_BUILD_DIR):
 
 release-compiler: CXXFLAGS+=-O2
 release-compiler: $(BUILD_DIR)/compiler # cg 实际的编译方式, cg 上面的linker path 加了一堆 antlr4 的东西，我们就不加了
-	@clear
 
 $(BUILD_DIR)/compiler: $(SRC) $(H_FILES) $(HPP_FILES) $(BISON_C_FILES) $(BISON_H_FILES) $(FLEX_C_FILES) | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(addprefix -I, $(INCLUDE_DIR)) $(DEFINES) $(SRC) -o $@
@@ -69,7 +68,6 @@ dev-compiler: CXXFLAGS+=-g
 dev-compiler: $(DEV_BUILD_DIR)/compiler # 开发时使用，分别编译模式
 
 $(DEV_BUILD_DIR)/compiler: parser-files $(OBJ) | $(DEV_BUILD_DIR)
-	@clear
 	$(CXX) $(OBJ) -o $@ $(LDFLAGS)
 
 $(DEV_BUILD_DIR)/%.o: %.cc | $(DEV_BUILD_DIR) 
