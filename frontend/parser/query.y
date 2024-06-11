@@ -85,6 +85,7 @@ AttrOption: At AttrName Equal String { $$ = AttrOption_create_str($2, $4); }
 %%
 
 void qqerror(yyscan_t scanner, QueryResult **result, QueryResult **last, const char* msg) {
-  fprintf(stderr, "%s\n", msg);
+  fprintf(stderr, "AQL Error Occurred check your selector syntax: %s\n", msg);
+  assert(0); // AQL选择器错误，暂时强制终止程序
 }
 
