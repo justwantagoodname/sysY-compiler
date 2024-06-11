@@ -1453,7 +1453,7 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
   case 25: /* VarDef: Identifier ArrayDecl  */
 #line 145 "frontend/parser/sysY.y"
                              { ((*yyvalp).astNode) = ASTNode_create_attr("Var", 2, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.strValue), "array", "true"); 
-                               ASTNode_move_children((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode), ((*yyvalp).astNode));
+                               ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));
                               }
 #line 1459 "frontend/parser/sysY.tab.cc"
     break;
@@ -1461,7 +1461,7 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
   case 26: /* VarDef: Identifier ArrayDecl Assign InitValue  */
 #line 148 "frontend/parser/sysY.y"
                                               { ((*yyvalp).astNode) = ASTNode_create_attr("Var", 2, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval.strValue), "array", "true"); 
-                                                ASTNode_move_children((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), ((*yyvalp).astNode));
+                                                ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode));
                                                 ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));
                                               }
 #line 1468 "frontend/parser/sysY.tab.cc"
@@ -1470,7 +1470,7 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
   case 27: /* ArrayDecl: LeftBrack ConstExp RightBrack  */
 #line 154 "frontend/parser/sysY.y"
                                           { 
-                                            ((*yyvalp).astNode) = ASTNode_create("ArrayDeclTemp");
+                                            ((*yyvalp).astNode) = ASTNode_create("ArraySize");
                                             ASTNode* dimension = ASTNode_create("Dimension"); 
                                             ASTNode_add_child(dimension, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode));
                                             ASTNode_add_child(((*yyvalp).astNode), dimension); 

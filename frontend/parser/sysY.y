@@ -143,16 +143,16 @@ VarDefList: VarDef { $$ = ASTNode_create("VarTemp"); ASTNode_add_child($$, $1);}
 VarDef: Identifier { $$ = ASTNode_create_attr("Var", 1, "name", $1); }
       | Identifier Assign InitValue { $$ = ASTNode_create_attr("Var", 1, "name", $1); ASTNode_add_child($$, $3); }
       | Identifier ArrayDecl { $$ = ASTNode_create_attr("Var", 2, "name", $1, "array", "true"); 
-                               ASTNode_move_children($2, $$);
+                               ASTNode_add_child($$, $2);
                               }
       | Identifier ArrayDecl Assign InitValue { $$ = ASTNode_create_attr("Var", 2, "name", $1, "array", "true"); 
-                                                ASTNode_move_children($2, $$);
+                                                ASTNode_add_child($$, $2);
                                                 ASTNode_add_child($$, $4);
                                               }
       ;
 
 ArrayDecl: LeftBrack ConstExp RightBrack  { 
-                                            $$ = ASTNode_create("ArrayDeclTemp");
+                                            $$ = ASTNode_create("ArraySize");
                                             ASTNode* dimension = ASTNode_create("Dimension"); 
                                             ASTNode_add_child(dimension, $2);
                                             ASTNode_add_child($$, dimension); 
