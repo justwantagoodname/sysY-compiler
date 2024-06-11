@@ -294,6 +294,7 @@ FuncRParams: /* empty */    { $$ = NULL;}
 FuncRParamList: Exp { 
                       $$ = ASTNode_create("ParamArray");
                       ASTNode* param = ASTNode_create("Param"); 
+                      ASTNode_add_attr_str(param, "type", "Exp"); // 应该从上下文中推断是 float 或者 int
                       ASTNode_add_child($$, param);
                       ASTNode_add_child(param, $1); 
                     }
@@ -303,9 +304,16 @@ FuncRParamList: Exp {
                               ASTNode_add_child($$, param);
                               char* strContent = trimQuoteStr($1); 
                               ASTNode_add_attr_str(param, "value", strContent);
+                              ASTNode_add_attr_str(param, "type", "StringConst");
                               free(strContent);
                             }
-              | FuncRParamList Comma Exp { $$ = $1; ASTNode* param = ASTNode_create("Param"); ASTNode_add_child(param, $3); ASTNode_add_child($$, param); }
+              | FuncRParamList Comma Exp { 
+                                            $$ = $1; 
+                                            ASTNode* param = ASTNode_create("Param"); 
+                                            ASTNode_add_attr_str(param, "type", "Exp"); // 应该从上下文中推断是 float 或者 int
+                                            ASTNode_add_child(param, $3); 
+                                            ASTNode_add_child($$, param); 
+                                          }
               ;
 
 Number: IntegerConst

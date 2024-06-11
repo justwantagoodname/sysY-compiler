@@ -15,10 +15,11 @@ void ConstNode_unfold(ASTNode* root) {
     DL_FOREACH(const_decls, cur) {
         printf("Found with ==\n");
         ASTNode* const_exp = cur->node;
+        ASTNode_print(const_exp);
         ASTNode* sim_exp = ExpNode_simplify(const_exp);
         ASTNode_replace(sim_exp, const_exp);
         ASTNode_free(const_exp);
-        // ASTNode_print(sim_exp);
+        ASTNode_print(sim_exp);
         printf("====\n");
     }
 }

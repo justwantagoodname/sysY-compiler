@@ -514,7 +514,7 @@ static const yytype_int16 yyrline[] =
      239,   242,   243,   246,   249,   250,   253,   256,   257,   258,
      259,   260,   261,   262,   263,   264,   265,   266,   267,   268,
      269,   272,   273,   277,   280,   281,   282,   285,   286,   287,
-     290,   291,   294,   300,   308,   311,   314,   317
+     290,   291,   294,   301,   310,   319,   322,   325
 };
 #endif
 
@@ -1892,33 +1892,41 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
                     { 
                       ((*yyvalp).astNode) = ASTNode_create("ParamArray");
                       ASTNode* param = ASTNode_create("Param"); 
+                      ASTNode_add_attr_str(param, "type", "Exp"); // 应该从上下文中推断是 float 或者 int
                       ASTNode_add_child(((*yyvalp).astNode), param);
                       ASTNode_add_child(param, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); 
                     }
-#line 1899 "frontend/parser/sysY.tab.cc"
+#line 1900 "frontend/parser/sysY.tab.cc"
     break;
 
   case 93: /* FuncRParamList: StringConst  */
-#line 300 "frontend/parser/sysY.y"
+#line 301 "frontend/parser/sysY.y"
                             { 
                               ((*yyvalp).astNode) = ASTNode_create("ParamArray");
                               ASTNode* param = ASTNode_create("Param"); 
                               ASTNode_add_child(((*yyvalp).astNode), param);
                               char* strContent = trimQuoteStr((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.strValue)); 
                               ASTNode_add_attr_str(param, "value", strContent);
+                              ASTNode_add_attr_str(param, "type", "StringConst");
                               free(strContent);
                             }
-#line 1912 "frontend/parser/sysY.tab.cc"
+#line 1914 "frontend/parser/sysY.tab.cc"
     break;
 
   case 94: /* FuncRParamList: FuncRParamList Comma Exp  */
-#line 308 "frontend/parser/sysY.y"
-                                         { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode); ASTNode* param = ASTNode_create("Param"); ASTNode_add_child(param, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); ASTNode_add_child(((*yyvalp).astNode), param); }
-#line 1918 "frontend/parser/sysY.tab.cc"
+#line 310 "frontend/parser/sysY.y"
+                                         { 
+                                            ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode); 
+                                            ASTNode* param = ASTNode_create("Param"); 
+                                            ASTNode_add_attr_str(param, "type", "Exp"); // 应该从上下文中推断是 float 或者 int
+                                            ASTNode_add_child(param, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); 
+                                            ASTNode_add_child(((*yyvalp).astNode), param); 
+                                          }
+#line 1926 "frontend/parser/sysY.tab.cc"
     break;
 
 
-#line 1922 "frontend/parser/sysY.tab.cc"
+#line 1930 "frontend/parser/sysY.tab.cc"
 
       default: break;
     }
@@ -3523,7 +3531,7 @@ yypdumpstack (yyGLRStack* yystackp)
 
 
 
-#line 319 "frontend/parser/sysY.y"
+#line 327 "frontend/parser/sysY.y"
 
 
 void yyerror(struct ASTNode **cur, const char *s) {

@@ -8,7 +8,7 @@
 typedef double sim_result_t;
 
 bool ExpNode_is_atomic(const ASTNode *node) {
-    assert(node != NULL);
+    assert(node != nullptr);
 
     return ASTNode_id_is(node, "Number") || ASTNode_has_attr(node, "value");
 }
@@ -20,7 +20,7 @@ const char *op_literal[] = {"Plus", "Minus", "Mult",
                             "GreaterEq"};
 
 sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t right) {
-    assert(op != NULL);
+    assert(op != nullptr);
     for (int i = 0; i < sizeof(op_literal) / sizeof(op_literal[0]); i++) {
         if (strcmp(op, op_literal[i]) == 0) {
             switch (i) {
@@ -53,34 +53,38 @@ sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t rig
             }
         }
     }
+
+    assert(false);
     return 0; // Error
 }
 
-ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *sim_right, const bool left_atomic,
-                              const bool right_atomic);
+ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *sim_right, bool left_atomic,
+                              bool right_atomic);
 
 ASTNode *ExpNode_fetch_const_array_value(const ASTNode *fetch, const ASTNode *target);
 
 ASTNode *ExpNode_try_fetch_const(const ASTNode *node);
 
-ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp);
+ASTNode *ExpNode_simplify_binary_operator(const ASTNode *exp);
 
 ASTNode *ExpNode_simplify_unary_operator(const ASTNode *exp);
 
+ASTNode *ExpNode_simplify_call_params(const ASTNode *exp);
+
 ASTNode *ExpNode_simplify_recursive(const ASTNode *node) {
-    assert(node != NULL);
+    assert(node != nullptr);
 
-    int child = ASTNode_children_size(node);
-    ASTNode *ret = NULL;
+    auto child = ASTNode_children_size(node);
+    ASTNode *ret = nullptr;
 
-    EXP_LOG("Sim: %s with %d\n", node->id, child);
+    EXP_LOG("Sim: %s with %zu children.\n", node->id, child);
     switch (child) {
         case 1: {
             ret = ExpNode_simplify_unary_operator(node);
             break;
         }
         case 2: {
-            ret = ExpNode_simplify_binary_operater(node);
+            ret = ExpNode_simplify_binary_operator(node);
             break;
         }
         default: {
@@ -114,14 +118,15 @@ ASTNode *ExpNode_simplify_unary_operator(const ASTNode *exp) {
         ASTNode_add_attr_int(ret, "value", -value);
     } else if (ASTNode_id_is(exp, "Fetch")) {
         return ExpNode_try_fetch_const(exp);
+    } else if (ASTNode_id_is(exp, "Call")) {
+        return ExpNode_simplify_call_params(exp);
     }
 
-    postcondition:
-    assert(ret != NULL);
+    assert(ret != nullptr);
     return ret;
 }
 
-ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp) {
+ASTNode *ExpNode_simplify_binary_operator(const ASTNode *exp) {
     assert(ASTNode_children_size(exp) <= 2);
 
     if (ExpNode_is_atomic(exp))
@@ -283,6 +288,30 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
     }
 }
 
+ASTNode *ExpNode_simplify_call_params(const ASTNode *exp) {
+    assert(ASTNode_id_is(exp, "Call"));
+
+    const char* func_name = nullptr;
+    ASTNode_get_attr_str(exp, "name", &func_name);
+    auto ret = ASTNode_create_attr(exp->id, 1, "name", func_name);
+
+    QueryResult *queryResult = ASTNode_querySelector(exp, "Param"), *cur = NULL;
+
+    DL_FOREACH(queryResult, cur) {
+        if (ASTNode_attr_eq_str(cur->node, "type", "StringConst")) {
+            ASTNode_add_child(ret, ASTNode_clone(cur->node));
+        } else if (ASTNode_attr_eq_str(cur->node, "type", "Exp")) {
+            auto param_node = ASTNode_create("Param");
+            auto param_exp = ASTNode_querySelectorOne(cur->node, "/*"); // 化简参数
+            ASTNode_add_child(param_node, ExpNode_simplify_recursive(param_exp));
+            ASTNode_add_child(ret, param_node);
+        }
+    }
+
+    assert(ASTNode_children_size(ret) == ASTNode_children_size(exp));
+    return ret;
+}
+
 /**
  * Simplify the expression node
  * @note This function won't change the orignal node but return a new one 
@@ -291,8 +320,9 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
 ASTNode *ExpNode_simplify(const ASTNode *exp) {
     assert(exp != NULL);
     assert(ASTNode_id_is(exp, "Exp"));
+    assert(ASTNode_children_size(exp) == 1);
 
-    ASTNode *child = ASTNode_querySelectorOne(exp, "/*");
+    ASTNode *child = ASTNode_querySelectorOne(exp, "/*[0]"); // 获取内部第一个节点，实际上应该只有一个
 
     ASTNode *simplified_child = ExpNode_simplify_recursive(child);
 
