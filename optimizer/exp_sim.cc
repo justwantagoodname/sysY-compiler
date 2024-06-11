@@ -209,9 +209,9 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
 
     assert(base_name != NULL);
 
-    ASTNode *target = ASTNode_querySelectorfOne(node, "/ancestor::Scope//Const[@name='%s'][0]", base_name);
+    ASTNode *target = ASTNode_querySelectorfOne(node, "/ancestor::Scope//*[@name='%s'][0]", base_name);
 
-    if (target == NULL) {
+    if (target == nullptr || !ASTNode_id_is(target, "Const")) {
         return ASTNode_clone(node);
     }
 
