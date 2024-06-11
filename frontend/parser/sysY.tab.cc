@@ -1877,7 +1877,7 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
 
   case 90: /* FuncRParams: %empty  */
 #line 290 "frontend/parser/sysY.y"
-                            { ((*yyvalp).astNode) = NULL;}
+                            { ((*yyvalp).astNode) = ASTNode_create("ParamArray"); }
 #line 1882 "frontend/parser/sysY.tab.cc"
     break;
 

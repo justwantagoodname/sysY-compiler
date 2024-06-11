@@ -287,7 +287,7 @@ UnaryOp: Plus   { $$ = "UnPlus";  }
        | Not    { $$ = "Not";     }
        ;
 
-FuncRParams: /* empty */    { $$ = NULL;}
+FuncRParams: /* empty */    { $$ = ASTNode_create("ParamArray"); }
            | FuncRParamList { $$ = $1;  }
            ;
 
