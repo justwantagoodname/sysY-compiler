@@ -287,7 +287,9 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
             }
         }
     } else {
-        return ASTNode_clone(exp);
+        ASTNode *ret = ASTNode_create(exp->id);
+        ASTNode_add_nchild(ret, 2, sim_left, sim_right);
+        return ret;
     }
 }
 
