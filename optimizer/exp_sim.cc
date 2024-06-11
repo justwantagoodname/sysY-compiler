@@ -62,7 +62,7 @@ ASTNode* ExpNode_calc_partial(const ASTNode* exp, ASTNode* sim_left, ASTNode* si
 ASTNode* ExpNode_fetch_const_array_value(const ASTNode* fetch, const ASTNode* target);
 ASTNode* ExpNode_try_fetch_const(const ASTNode* node);
 ASTNode *ExpNode_simplify_binary_operater(const ASTNode *exp);
-ASTNode *ExpNode_simplify_unary_operater(const ASTNode *exp);
+ASTNode *ExpNode_simplify_unary_operator(const ASTNode *exp);
 ASTNode *ExpNode_simplify_recursive(const ASTNode *node)
 {
     assert(node != NULL);
@@ -75,7 +75,7 @@ ASTNode *ExpNode_simplify_recursive(const ASTNode *node)
     {
     case 1:
     {
-        ret = ExpNode_simplify_unary_operater(node);
+        ret = ExpNode_simplify_unary_operator(node);
         break;
     }
     case 2:
@@ -95,7 +95,7 @@ ASTNode *ExpNode_simplify_recursive(const ASTNode *node)
     return ret;
 }
 
-ASTNode *ExpNode_simplify_unary_operater(const ASTNode *exp)
+ASTNode *ExpNode_simplify_unary_operator(const ASTNode *exp)
 {
     assert(exp != NULL);
     assert(ASTNode_children_size(exp) == 1);
