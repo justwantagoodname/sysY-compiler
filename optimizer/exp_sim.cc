@@ -74,6 +74,11 @@ ASTNode *ExpNode_simplify_call_params(const ASTNode *exp);
 ASTNode *ExpNode_simplify_recursive(const ASTNode *node) {
     assert(node != nullptr);
 
+    // 一些特殊节点的处理
+    if (ASTNode_id_is(node, "Call")) { //函数调用是不定长的
+        return ExpNode_simplify_call_params(node);
+    }
+
     auto child = ASTNode_children_size(node);
     ASTNode *ret = nullptr;
 
@@ -118,8 +123,6 @@ ASTNode *ExpNode_simplify_unary_operator(const ASTNode *exp) {
         ASTNode_add_attr_int(ret, "value", -value);
     } else if (ASTNode_id_is(exp, "Fetch")) {
         return ExpNode_try_fetch_const(exp);
-    } else if (ASTNode_id_is(exp, "Call")) {
-        return ExpNode_simplify_call_params(exp);
     }
 
     assert(ret != nullptr);
