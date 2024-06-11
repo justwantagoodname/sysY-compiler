@@ -35,9 +35,9 @@ sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t rig
                 case 4:
                     return (int) left % (int) right;
                 case 5:
-                    return left && right;
+                    return (int) left && (int) right;
                 case 6:
-                    return left || right;
+                    return (int) left || (int) right;
                 case 7:
                     return left == right;
                 case 8:
@@ -99,7 +99,7 @@ ASTNode *ExpNode_simplify_recursive(const ASTNode *node) {
         }
     }
 
-    assert(ret != NULL);
+    assert(ret != nullptr);
     return ret;
 }
 
@@ -147,7 +147,7 @@ ASTNode *ExpNode_simplify_binary_operator(const ASTNode *exp) {
     /* Obvisually, we can only handle int this time */
     int left_value = -1, right_value = -1;
 
-    ASTNode *ret = NULL;
+    ASTNode *ret = nullptr;
     if (left_atomic && right_atomic) {
 
         ASTNode_get_attr_int(sim_left, "value", &left_value);
@@ -253,13 +253,13 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
     assert(left_atomic ^ right_atomic);
 
     int partial_value = -1;
-    if (strcmp(exp->id, "Or")) {
+    if (strcmp(exp->id, "Or") == 0) {
         if (left_atomic) {
             ASTNode_get_attr_int(sim_left, "value", &partial_value);
             if (partial_value) {
-                return sim_left;
+                return sim_left; // true || a => true
             } else {
-                return sim_right;
+                return sim_right; // false || a => a
             }
         } else {
             ASTNode_get_attr_int(sim_right, "value", &partial_value);
@@ -270,13 +270,13 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
             }
 
         }
-    } else if (strcmp(exp->id, "And")) {
+    } else if (strcmp(exp->id, "And") == 0) {
         if (left_atomic) {
             ASTNode_get_attr_int(sim_left, "value", &partial_value);
             if (partial_value) {
-                return sim_right;
+                return sim_right; // true && a => a
             } else {
-                return sim_left;
+                return sim_left; // false && a => false
             }
         } else {
             ASTNode_get_attr_int(sim_right, "value", &partial_value);
@@ -287,7 +287,7 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
             }
         }
     } else {
-        assert(0);
+        return ASTNode_clone(exp);
     }
 }
 
