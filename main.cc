@@ -10,10 +10,14 @@ int main(int argc, const char** argv) {
 	Flag::getFlag().init(argc, argv);
   
 	Element root = Element::CreateByFile(Flag::getFlag().getFlagFor("input").c_str());
-	//ConstNode_unfold(root);
-	//ArrayDecl_flatten(root);
 
+  root.print();
+	ConstNode_unfold(root);
+	ArrayDecl_flatten(root);
+  printf("===After flatten===\n");
+  root.print();
 
+#ifdef TRIPLE_DEBUG
 	Triples triples(root);
 	//triples.pretreat();
 	root.print();
@@ -22,6 +26,7 @@ int main(int argc, const char** argv) {
 	root.print();
 
 	triples.print();
+#endif
 
 	return 0;
 }

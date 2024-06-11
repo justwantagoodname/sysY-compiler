@@ -13,14 +13,14 @@ void ConstNode_unfold(ASTNode* root) {
     QueryResult* const_decls = ASTNode_querySelector(root, "//Exp"),
                 *cur = NULL;
     DL_FOREACH(const_decls, cur) {
-        printf("Found with ==\n");
+//        printf("Found with ==\n");
         ASTNode* const_exp = cur->node;
-        ASTNode_print(const_exp);
+//        ASTNode_print(const_exp);
         ASTNode* sim_exp = ExpNode_simplify(const_exp);
         ASTNode_replace(sim_exp, const_exp);
         ASTNode_free(const_exp);
-        ASTNode_print(sim_exp);
-        printf("====\n");
+//        ASTNode_print(sim_exp);
+//        printf("====\n");
     }
 }
 
@@ -34,7 +34,7 @@ void ArrayDecl_flatten(ASTNode* root) {
 
     QueryResult* var_array_decls = ASTNode_querySelector(root, "//Var[@array='true']"),
             *const_array_decls = ASTNode_querySelector(root, "//Const[@array='true']"),
-            *iter = NULL;
+            *iter = nullptr;
 
     DL_CONCAT(const_array_decls, var_array_decls);
 

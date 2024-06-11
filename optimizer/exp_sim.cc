@@ -2,8 +2,8 @@
 #include "ast.h"
 #include "exp_sim.h"
 
-#define EXP_LOG printf
-//#define EXP_LOG(...) (0)
+//#define EXP_LOG printf
+#define EXP_LOG(...) (0)
 
 typedef double sim_result_t;
 

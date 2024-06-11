@@ -5,7 +5,8 @@
 
 #include <vector>
 
-#define ARRAY_FLAT_LOG printf
+//#define ARRAY_FLAT_LOG printf
+#define ARRAY_FLAT_LOG(...) (0)
 
 // 在Const下寻找子ConstInitValue 如果存在则需要展开 后面需要支持 Var
 bool ArrayInitNode_need_flatten(const ASTNode *root) {
