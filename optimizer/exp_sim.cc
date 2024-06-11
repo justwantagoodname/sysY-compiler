@@ -146,6 +146,9 @@ ASTNode *ExpNode_simplify_unary_operator(const ASTNode *exp) {
         ASTNode_add_attr_int(ret, "value", -value);
     } else if (ASTNode_id_is(exp, "Fetch")) {
         return ExpNode_try_fetch_const(exp);
+    } else {
+        ret = ASTNode_create(exp->id);
+        ASTNode_add_child(ret, ExpNode_simplify_recursive(ASTNode_querySelectorOne(exp, "/*")));
     }
 
     assert(ret != nullptr);
