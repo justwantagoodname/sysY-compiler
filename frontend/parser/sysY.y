@@ -180,14 +180,14 @@ FuncType: Void { $$ = "Void"; }
 
 FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block { 
             $$ = ASTNode_create_attr("Function", 2, "return", $1, "name", $2);
-            ASTNode* dimension = ASTNode_create("Scope");
-            ASTNode_add_nchild(dimension, 2, $4, $6);
-            ASTNode_add_child($$, dimension);
+            ASTNode_add_nchild($$, 2, $4, $6);
+            ASTNode* decl = ASTNode_querySelectorOne($6, "/Decl");
+            ASTNode_copy_children($4, decl);
           } 
        ;
 
-FuncFParams: /* empty */    { $$ = ASTNode_create("Decl"); }
-           | FuncFParamList { $$ = ASTNode_create("Decl"); ASTNode_move_children($1, $$); ASTNode_free($1);}
+FuncFParams: /* empty */    { $$ = ASTNode_create("Params"); }
+           | FuncFParamList { $$ = ASTNode_create("Params"); ASTNode_move_children($1, $$); ASTNode_free($1);}
            ;
 
 FuncFParamList: FuncFParam { $$ = ASTNode_create("ParamList"); ASTNode_add_child($$, $1); }
@@ -255,7 +255,6 @@ ExpWrapper: Exp { $$ = ASTNode_create("Exp"); ASTNode_add_child($$, $1); }
 
 Exp: Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        } %dprec 7
    | Exp And Exp       { $$ = createOpNode("And", $1, $3);       } %dprec 6
-   | Not Exp           { $$ = ASTNode_create("Not"); ASTNode_add_child($$, $2); } %dprec 5
    | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     } %dprec 4
    | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     } %dprec 4
    | Exp Less Exp      { $$ = createOpNode("Less", $1, $3);      } %dprec 4
@@ -285,6 +284,7 @@ PrimaryExp: LVal { $$ = ASTNode_create("Fetch"); ASTNode_add_child($$, $1); }
 
 UnaryOp: Plus   { $$ = "UnPlus";  }
        | Minus  { $$ = "UnMinus"; }
+       | Not    { $$ = "Not";     }
        ;
 
 FuncRParams: /* empty */    { $$ = NULL;}

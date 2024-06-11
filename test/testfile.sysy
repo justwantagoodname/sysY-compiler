@@ -20,7 +20,9 @@
 // const int c[2][2] = {{1,2}, {3,4}};
    
 // int d[2][2] = {{1, 0}, {0, 1}};
-   
+  int f1(int x1, int x2){
+ 	return x1 + x2;
+ }  
  int f(int x1, int x2){
  	return x1 + x2;
  }
