@@ -6,20 +6,31 @@
 #include <vector>
 
 // 在Const下寻找子ConstInitValue 如果存在则需要展开 后面需要支持 Var
-bool ArrayInitNode_need_flatten(const ASTNode* root) {
+bool ArrayInitNode_need_flatten(const ASTNode *root) {
     assert(root != NULL);
     assert(ASTNode_id_is(root, "Const") || ASTNode_id_is(root, "Var"));
 
-    if (ASTNode_id_is(root, "Var") && ASTNode_querySelectorOne(root, "/ConstInitValue") == NULL) return false;
+    if (ASTNode_id_is(root, "Var")) {
+        return ASTNode_has_attr(root, "array")
+               && ASTNode_querySelectorOne(root, "/InitValue") != nullptr; // 如果是变量数组并且有初始化列表
+    } else if (ASTNode_id_is(root, "Const")) {
 
-    ASTNode* init_list = ASTNode_querySelectorOne(root, "/ConstInitValue");
-    assert(init_list != NULL);
+        if (!ASTNode_has_attr(root, "array")) {
+            return false;
+        }
 
-    return !ASTNode_has_attr(init_list, "flatten");
+        // 是常量数组
+        ASTNode *const_init_list = ASTNode_querySelectorOne(root, "/ConstInitValue");
+
+        assert(ASTNode_id_is(root, "Const") && const_init_list != NULL); // 如果是常量数组这里必须有初始化列表
+
+        return !ASTNode_has_attr(const_init_list, "flatten") && ASTNode_has_attr(const_init_list, "array");
+    }
+    assert(false); // 不应该到达这里
 }
 
-ASTNode* ArrayInitItem_create(int value, int repeat) {
-    ASTNode* ret = ASTNode_create("Number");
+ASTNode *ArrayInitItem_create(int value, int repeat) {
+    ASTNode *ret = ASTNode_create("Number");
     ASTNode_add_attr_int(ret, "value", value);
     ASTNode_add_attr_int(ret, "repeat", repeat);
     return ret;
@@ -34,7 +45,8 @@ ASTNode* ArrayInitItem_create(int value, int repeat) {
  * @param space 将要初始化的值的数量
  * @return 返回剩余未初始化的值数量
  */
-void ArrayInitNode_flattener(const std::vector<int>& dim_sizes, ASTNode * cur_node, ASTNode* linear_init, int depth, int space) {
+void ArrayInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_node, ASTNode *linear_init, int depth,
+                             int space) {
     assert(cur_node != NULL);
     assert(linear_init != NULL);
     assert(space > 0);
@@ -81,17 +93,19 @@ void ArrayInitNode_flattener(const std::vector<int>& dim_sizes, ASTNode * cur_no
     }
 }
 
+
 /**
  * 将多维数组的初始化表达式展开为一维数组
  * 需要使用数组的维度信息，将会直接修改Const ConstInitValue节点后续会支持Var节点
  */
-void ArrayInitNode_flatten(ASTNode* decl) {
+void ArrayInitNode_flatten(ASTNode *decl) {
     assert(decl != NULL);
     assert(ASTNode_id_is(decl, "Const") || ASTNode_id_is(decl, "Var"));
+    assert(ASTNode_has_attr(decl, "array") && !ASTNode_has_attr(decl, "flatten")); // 是数组并且没有展平过
 
     // 首先获取数组的维度信息, 由于是在常量折叠过程中进行的，因此在保证初始化顺序的情况下，可以确保之前的数组声明每一维都被化简到了 Number 节点
 
-    QueryResult* dims = ASTNode_querySelector(decl, "/ArraySize//Number"), *iter = NULL;
+    QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize//Number"), *iter = NULL;
     std::vector<int> dim_sizes;
 
     DL_FOREACH(dims, iter) {
@@ -103,18 +117,18 @@ void ArrayInitNode_flatten(ASTNode* decl) {
     // 倒序将每一维乘起来，就是每一位维度大小
     dim_sizes.push_back(1);
 
-    for (auto i = dim_sizes.size() - 1;i > 0; i--) {
+    for (auto i = dim_sizes.size() - 1; i > 0; i--) {
         dim_sizes[i - 1] = dim_sizes[i - 1] * dim_sizes[i];
     }
 
-    ASTNode* init_value = ASTNode_querySelectorOne(decl, "/ConstInitValue");
+    ASTNode *init_value = ASTNode_querySelectorOne(decl, "/ConstInitValue");
 
     if (init_value == NULL) {
         assert(ASTNode_id_is(decl, "Var")); // 如果没有声明初始化，说明这是一个变量数组
         return;
     }
 
-    ASTNode* linear_init = ASTNode_create_attr("ConstInitValue", 2, "array", "true", "flatten", "true");
+    ASTNode *linear_init = ASTNode_create_attr("ConstInitValue", 2, "array", "true", "flatten", "true");
 
     ArrayInitNode_flattener(dim_sizes, init_value, linear_init, 0, dim_sizes[0]);
 
@@ -129,13 +143,13 @@ void ArrayInitNode_flatten(ASTNode* decl) {
  * @return 成功取值时返回一个复制过的Number节点，否则返回NULL
  */
 
-ASTNode* ArrayInitNode_get_value_by_linear_index(const ASTNode* decl, const ASTNode* locator) {
+ASTNode *ArrayInitNode_get_value_by_linear_index(const ASTNode *decl, const ASTNode *locator) {
     assert(decl != NULL);
     assert(ASTNode_id_is(decl, "Const"));
     assert(ASTNode_id_is(locator, "Locator"));
 
     // 检查locator 引用的常量数组是否在范围内
-    QueryResult* dims = ASTNode_querySelector(decl, "/ArraySize//Number"), *iter = NULL;
+    QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize//Number"), *iter = NULL;
     std::vector<int> dim_sizes; // 申明大小
 
     DL_FOREACH(dims, iter) {
@@ -145,7 +159,7 @@ ASTNode* ArrayInitNode_get_value_by_linear_index(const ASTNode* decl, const ASTN
     }
 
     std::vector<int> locator_access_size;
-    QueryResult* locator_dims = ASTNode_querySelector(locator, "/Dimension/Number");
+    QueryResult *locator_dims = ASTNode_querySelector(locator, "/Dimension/Number");
     iter = NULL;
     DL_FOREACH(locator_dims, iter) {
         int dim_size = -1;
@@ -155,7 +169,7 @@ ASTNode* ArrayInitNode_get_value_by_linear_index(const ASTNode* decl, const ASTN
 
     assert(locator_access_size.size() == dim_sizes.size());
 
-    for (int i = 0;i < dim_sizes.size(); i++) {
+    for (int i = 0; i < dim_sizes.size(); i++) {
         assert(0 <= locator_access_size[i] && locator_access_size[i] < dim_sizes[i]);
     }
 
@@ -163,7 +177,7 @@ ASTNode* ArrayInitNode_get_value_by_linear_index(const ASTNode* decl, const ASTN
     size_t linear_index = multi_dimensional_index_to_linear_index(dim_sizes, locator_access_size);
 
     // 获取初始化列表
-    QueryResult * init_list = ASTNode_querySelector(decl, "/ConstInitValue[@array,@flatten]/Number");
+    QueryResult *init_list = ASTNode_querySelector(decl, "/ConstInitValue[@array,@flatten]/Number");
     iter = NULL;
 
     assert(init_list != NULL);
@@ -175,9 +189,9 @@ ASTNode* ArrayInitNode_get_value_by_linear_index(const ASTNode* decl, const ASTN
         ASTNode_get_attr_int(iter->node, "repeat", &repeat);
 
         if (current_index + repeat > linear_index) {
-            const char* type;
+            const char *type;
             ASTNode_get_attr_str(decl, "type", &type);
-            ASTNode* ret = ASTNode_create_attr("Number", 1, "type", type);
+            ASTNode *ret = ASTNode_create_attr("Number", 1, "type", type);
             ASTNode_add_attr_int(ret, "value", value);
             return ret;
         }
