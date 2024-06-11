@@ -3,14 +3,7 @@
 #include "Element.h"
 #include <vector>
 
-class Triples {
-private:
-	Element root;
-	
-private:
-	class {
-	public:
-		enum {
+enum Cmd {
 			mov,
 			jmp,
 			call,
@@ -31,8 +24,13 @@ private:
 			mul,
 			div,
 			mod,
-		};
-	} Cmd;
+};
+
+class Triples {
+private:
+	Element root;
+	
+private:
 
 	struct IntTriple {
 		int cmd;

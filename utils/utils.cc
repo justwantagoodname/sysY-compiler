@@ -26,7 +26,7 @@ size_t multi_dimensional_index_to_linear_index(const vector<int> &dim_sizes, con
 
 void print_version() {
 static const char* easter = 
-#include "chillet"
+#include "chillet.h"
 ;
     printf("%s\n", easter);
 #ifdef VERSION_TEXT
