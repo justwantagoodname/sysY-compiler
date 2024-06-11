@@ -272,7 +272,7 @@ void Triples::make()
 			const char* name = element.get_attr_str("name");
 			char* select = (char*)malloc(35 + strlen(name));
 			assert(select != NULL);
-			sprintf(select, "//FunctionDef/Function[@name='%s']", name);
+			snprintf(select, 35 + strlen(name), "//FunctionDef/Function[@name='%s']", name);
 			Element func = root % select;
 			int place = func.get_attr_int("place");
 
@@ -309,7 +309,7 @@ void Triples::print() const
 		case Cmd.call:
 			select = (char*)malloc(60);
 			assert(select != NULL);
-			sprintf(select, "//FunctionDef/Function[@place=%d]", i.e1);
+			snprintf(select, 60, "//FunctionDef/Function[@place=%d]", i.e1);
 			printf("call, %s:%d, 0, T%d\n", root.qo(select).get_attr_str("name"), i.e1, i.to);
 			::free(select);
 			break;
