@@ -58,6 +58,29 @@ sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t rig
     return 0; // Error
 }
 
+/**
+ * 判读一个二元表达式是否是部分计算的，即其中一个子表达式是字面量，如果都不是返回NULL，否则返回字面量的子表达式
+ * @param node
+ * @return
+ */
+ASTNode* ExpNode_is_partial(ASTNode *node, bool& is_left) {
+    assert(node != nullptr);
+    assert(ASTNode_children_size(node) == 2);
+
+    ASTNode *left = ASTNode_querySelectorOne(node, "/*[0]");
+    ASTNode *right = ASTNode_querySelectorOne(node, "/*[1]");
+
+    if (ExpNode_is_atomic(left)) {
+        is_left = true;
+        return left;
+    } else if (ExpNode_is_atomic(right)) {
+        is_left = false;
+        return right;
+    } else {
+        return nullptr;
+    }
+}
+
 ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *sim_right, bool left_atomic,
                               bool right_atomic);
 
@@ -164,6 +187,7 @@ ASTNode *ExpNode_simplify_binary_operator(const ASTNode *exp) {
     } else if (left_atomic ^ right_atomic) {
         ret = ExpNode_calc_partial(exp, sim_left, sim_right, left_atomic, right_atomic);
     } else {
+        // TODO: 都不是字面量，理论上可以用一些运算性质化简
         ret = ASTNode_create(exp->id);
         ASTNode_add_nchild(ret, 2, sim_left, sim_right);
     }
@@ -286,11 +310,45 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
                 return sim_right;
             }
         }
-    } else {
+        // TODO: 可以继续添加一些简化规则例如子节点和父节点的关系 Add -> Mult
+    } else if (strcmp(exp->id, "Plus") == 0 || strcmp(exp->id, "Mult") == 0) { // a + (b + c) => (a + b) + c
+        ASTNode *non_atomic = left_atomic ? sim_right : sim_left;
+        ASTNode *atomic = left_atomic ? sim_left : sim_right;
+
+        if (strcmp(non_atomic->id, exp->id) != 0) goto clone_new;
+
+        bool is_left = false; // 子节点的哪边是常量
+        ASTNode *const_of_non_atomic = ExpNode_is_partial(non_atomic, is_left); // 非原子节点的常量子节点
+
+        if (const_of_non_atomic != nullptr) {
+
+            // 将非原子节点的常量子节点和原子节点相运算
+
+            int non_atomic_value = -1, atomic_value = -1;
+            ASTNode_get_attr_int(const_of_non_atomic, "value", &non_atomic_value);
+            ASTNode_get_attr_int(atomic, "value", &atomic_value);
+
+            ASTAttribute* value = ASTNode_get_attr_or_null(atomic, "value");
+            assert(value != nullptr);
+            value->value.int_value = (int) ExpNode_op_calc(exp->id, non_atomic_value, atomic_value); // TODO: Change to full double
+
+            ASTNode *non_atomic_desc = ASTNode_querySelectorfOne(non_atomic, "/*[%d]", !is_left ? 0 : 1);
+
+            ASTNode *new_sim_side = ASTNode_clone(non_atomic_desc);
+            ASTNode *ret = ASTNode_create(exp->id);
+            ASTNode_add_nchild(ret, 2, new_sim_side, atomic);
+
+            ASTNode_free(non_atomic);
+            return ret;
+
+        } else goto clone_new; // can't handle
+    }
+
+
+    clone_new:
         ASTNode *ret = ASTNode_create(exp->id);
         ASTNode_add_nchild(ret, 2, sim_left, sim_right);
         return ret;
-    }
 }
 
 ASTNode *ExpNode_simplify_call_params(const ASTNode *exp) {
