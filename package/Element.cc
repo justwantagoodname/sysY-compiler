@@ -272,7 +272,7 @@ Element Element::table(const char* key) const
 {
 	char* selector = (char*)malloc(strlen(key) + 25);
 	if (!selector)return (ASTNode*)(NULL);
-	sprintf(selector, "ancestor::Scope/Decl/*[@name='%s']", key);
+	snprintf(selector, strlen(key) + 25, "ancestor::Scope/Decl/*[@name='%s']", key);
 	Element e = this->qo(selector);
 	::free(selector);
 	return e;

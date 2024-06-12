@@ -16,7 +16,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %glr-parser
 
-/* %expect 2 */
+%expect 2
 
 %start CompUnit
 
@@ -143,16 +143,16 @@ VarDefList: VarDef { $$ = ASTNode_create("VarTemp"); ASTNode_add_child($$, $1);}
 VarDef: Identifier { $$ = ASTNode_create_attr("Var", 1, "name", $1); }
       | Identifier Assign InitValue { $$ = ASTNode_create_attr("Var", 1, "name", $1); ASTNode_add_child($$, $3); }
       | Identifier ArrayDecl { $$ = ASTNode_create_attr("Var", 2, "name", $1, "array", "true"); 
-                               ASTNode_move_children($2, $$);
+                               ASTNode_add_child($$, $2);
                               }
       | Identifier ArrayDecl Assign InitValue { $$ = ASTNode_create_attr("Var", 2, "name", $1, "array", "true"); 
-                                                ASTNode_move_children($2, $$);
+                                                ASTNode_add_child($$, $2);
                                                 ASTNode_add_child($$, $4);
                                               }
       ;
 
 ArrayDecl: LeftBrack ConstExp RightBrack  { 
-                                            $$ = ASTNode_create("ArrayDeclTemp");
+                                            $$ = ASTNode_create("ArraySize");
                                             ASTNode* dimension = ASTNode_create("Dimension"); 
                                             ASTNode_add_child(dimension, $2);
                                             ASTNode_add_child($$, dimension); 
@@ -253,20 +253,20 @@ ArrayLocatorList: ArrayLocator { $$ = ASTNode_create("Locator"); ASTNode_add_chi
 ExpWrapper: Exp { $$ = ASTNode_create("Exp"); ASTNode_add_child($$, $1); }
           ;
 
-Exp: Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        } %dprec 7
-   | Exp And Exp       { $$ = createOpNode("And", $1, $3);       } %dprec 6
-   | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     } %dprec 4
-   | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     } %dprec 4
-   | Exp Less Exp      { $$ = createOpNode("Less", $1, $3);      } %dprec 4
-   | Exp Greater Exp   { $$ = createOpNode("Greater", $1, $3);   } %dprec 4
-   | Exp LessEq Exp    { $$ = createOpNode("LessEq", $1, $3);    } %dprec 4
-   | Exp GreaterEq Exp { $$ = createOpNode("GreaterEq", $1, $3); } %dprec 4
-   | Exp Plus Exp      { $$ = createOpNode("Plus", $1, $3);      } %dprec 3
-   | Exp Minus Exp     { $$ = createOpNode("Minus", $1, $3);     } %dprec 3
-   | Exp Mult Exp      { $$ = createOpNode("Mult", $1, $3);      } %dprec 2
-   | Exp Div Exp       { $$ = createOpNode("Div", $1, $3);       } %dprec 2
-   | Exp Mod Exp       { $$ = createOpNode("Mod", $1, $3);       } %dprec 2
-   | UnaryExp          { $$ = $1; } %dprec 1
+Exp: Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        } 
+   | Exp And Exp       { $$ = createOpNode("And", $1, $3);       } 
+   | Exp Equal Exp     { $$ = createOpNode("Equal", $1, $3);     } 
+   | Exp NotEq Exp     { $$ = createOpNode("NotEq", $1, $3);     } 
+   | Exp Less Exp      { $$ = createOpNode("Less", $1, $3);      } 
+   | Exp Greater Exp   { $$ = createOpNode("Greater", $1, $3);   } 
+   | Exp LessEq Exp    { $$ = createOpNode("LessEq", $1, $3);    } 
+   | Exp GreaterEq Exp { $$ = createOpNode("GreaterEq", $1, $3); } 
+   | Exp Plus Exp      { $$ = createOpNode("Plus", $1, $3);      } 
+   | Exp Minus Exp     { $$ = createOpNode("Minus", $1, $3);     } 
+   | Exp Mult Exp      { $$ = createOpNode("Mult", $1, $3);      } 
+   | Exp Div Exp       { $$ = createOpNode("Div", $1, $3);       } 
+   | Exp Mod Exp       { $$ = createOpNode("Mod", $1, $3);       } 
+   | UnaryExp          { $$ = $1; } 
    ;
 
 UnaryExp: PrimaryExp { $$ = $1; }
@@ -287,25 +287,33 @@ UnaryOp: Plus   { $$ = "UnPlus";  }
        | Not    { $$ = "Not";     }
        ;
 
-FuncRParams: /* empty */    { $$ = NULL;}
+FuncRParams: /* empty */    { $$ = ASTNode_create("ParamArray"); }
            | FuncRParamList { $$ = $1;  }
            ;
 
-FuncRParamList: ExpWrapper  { 
-                              $$ = ASTNode_create("ParamArray");
-                              ASTNode* param = ASTNode_create("Param"); 
-                              ASTNode_add_child($$, param);
-                              ASTNode_add_child(param, $1); 
-                            }
+FuncRParamList: Exp { 
+                      $$ = ASTNode_create("ParamArray");
+                      ASTNode* param = ASTNode_create("Param"); 
+                      ASTNode_add_attr_str(param, "type", "Exp"); // 应该从上下文中推断是 float 或者 int
+                      ASTNode_add_child($$, param);
+                      ASTNode_add_child(param, $1); 
+                    }
               | StringConst { 
                               $$ = ASTNode_create("ParamArray");
                               ASTNode* param = ASTNode_create("Param"); 
                               ASTNode_add_child($$, param);
                               char* strContent = trimQuoteStr($1); 
                               ASTNode_add_attr_str(param, "value", strContent);
+                              ASTNode_add_attr_str(param, "type", "StringConst");
                               free(strContent);
                             }
-              | FuncRParamList Comma ExpWrapper { $$ = $1; ASTNode* param = ASTNode_create("Param"); ASTNode_add_child(param, $3); ASTNode_add_child($$, param); }
+              | FuncRParamList Comma Exp { 
+                                            $$ = $1; 
+                                            ASTNode* param = ASTNode_create("Param"); 
+                                            ASTNode_add_attr_str(param, "type", "Exp"); // 应该从上下文中推断是 float 或者 int
+                                            ASTNode_add_child(param, $3); 
+                                            ASTNode_add_child($$, param); 
+                                          }
               ;
 
 Number: IntegerConst

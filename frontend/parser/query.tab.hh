@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_QQ_FRONTEND_PARSER_QUERY_TAB_H_INCLUDED
-# define YY_QQ_FRONTEND_PARSER_QUERY_TAB_H_INCLUDED
+#ifndef YY_QQ_FRONTEND_PARSER_QUERY_TAB_HH_INCLUDED
+# define YY_QQ_FRONTEND_PARSER_QUERY_TAB_HH_INCLUDED
 /* Debug traces.  */
 #ifndef QQDEBUG
 # if defined YYDEBUG
@@ -57,7 +57,7 @@ extern int qqdebug;
 
   typedef void* yyscan_t;
 
-#line 61 "frontend/parser/query.tab.h"
+#line 61 "frontend/parser/query.tab.hh"
 
 /* Token kinds.  */
 #ifndef QQTOKENTYPE
@@ -96,7 +96,7 @@ union QQSTYPE
   struct SearchParam searchParam;
   int index;
 
-#line 100 "frontend/parser/query.tab.h"
+#line 100 "frontend/parser/query.tab.hh"
 
 };
 typedef union QQSTYPE QQSTYPE;
@@ -110,4 +110,4 @@ typedef union QQSTYPE QQSTYPE;
 int qqparse (yyscan_t scanner, QueryResult **result, QueryResult **last);
 
 
-#endif /* !YY_QQ_FRONTEND_PARSER_QUERY_TAB_H_INCLUDED  */
+#endif /* !YY_QQ_FRONTEND_PARSER_QUERY_TAB_HH_INCLUDED  */

@@ -1,6 +1,6 @@
-#line 2 "frontend/parser/sysY.lex.c"
+#line 2 "frontend/parser/sysY.lex.cc"
 
-#line 4 "frontend/parser/sysY.lex.c"
+#line 4 "frontend/parser/sysY.lex.cc"
 
 #define  YY_INT_ALIGNED short int
 
@@ -508,7 +508,7 @@ char *yytext;
 
 #include "sysY.h"
 #include "token.h"
-#include "sysY.tab.h"
+#include "sysY.tab.hh"
 
 #define YY_USER_ACTION \
     do { \
@@ -526,9 +526,9 @@ char *yytext;
     } while (0);
 
 extern void yyerror(struct ASTNode **cur, const char *s);
-#line 530 "frontend/parser/sysY.lex.c"
+#line 530 "frontend/parser/sysY.lex.cc"
 
-#line 532 "frontend/parser/sysY.lex.c"
+#line 532 "frontend/parser/sysY.lex.cc"
 
 #define INITIAL 0
 #define MULTI_COMMENT 1
@@ -750,7 +750,7 @@ YY_DECL
 
 #line 35 "frontend/parser/sysY.l"
     /* comments */
-#line 754 "frontend/parser/sysY.lex.c"
+#line 754 "frontend/parser/sysY.lex.cc"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1035,7 +1035,7 @@ YY_RULE_SETUP
 #line 89 "frontend/parser/sysY.l"
 ECHO;
 	YY_BREAK
-#line 1039 "frontend/parser/sysY.lex.c"
+#line 1039 "frontend/parser/sysY.lex.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(MULTI_COMMENT):
 	yyterminate();

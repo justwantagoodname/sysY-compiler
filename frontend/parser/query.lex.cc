@@ -1,6 +1,6 @@
-#line 2 "frontend/parser/query.lex.c"
+#line 2 "frontend/parser/query.lex.cc"
 
-#line 4 "frontend/parser/query.lex.c"
+#line 4 "frontend/parser/query.lex.cc"
 
 #define  YY_INT_ALIGNED short int
 
@@ -671,13 +671,13 @@ static const flex_int16_t yy_chk[76] =
 #line 2 "frontend/parser/query.l"
 #include "sysY.h"
 #include "ast.h"
-#include "query.tab.h"
+#include "query.tab.hh"
 
 #define YYSTYPE QQSTYPE
 
 char* stringBody(const char* text);
-#line 680 "frontend/parser/query.lex.c"
-#line 681 "frontend/parser/query.lex.c"
+#line 680 "frontend/parser/query.lex.cc"
+#line 681 "frontend/parser/query.lex.cc"
 
 #define INITIAL 0
 
@@ -953,7 +953,7 @@ YY_DECL
 	{
 #line 20 "frontend/parser/query.l"
 
-#line 957 "frontend/parser/query.lex.c"
+#line 957 "frontend/parser/query.lex.cc"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1081,7 +1081,7 @@ YY_RULE_SETUP
 #line 34 "frontend/parser/query.l"
 ECHO;
 	YY_BREAK
-#line 1085 "frontend/parser/query.lex.c"
+#line 1085 "frontend/parser/query.lex.cc"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
