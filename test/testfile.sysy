@@ -18,17 +18,21 @@
 // const int b = a[2][0][0];
    
 // const int c[2][2] = {{1,2}, {3,4}};
-   
+
+// const int x[10] = {5};
+// const int y = x[0];
+
+
 // int d[2][2] = {{1, 0}, {0, 1}};
-  int f1(int x1, int x2){
+ int f1(int x1, int x2){
  	return x1 + x2;
  }  
  int f(int x1, int x2){
  	return x1 + x2;
  }
-// void f2(int x1,int x2,int x3,int x4,int x5,int x6){
-// 
-// }
+ void f2(int x1,int x2,int x3,int x4,int x5,int x6){
+	return;
+ }
 
 int main() {
 	int a,b,c;
@@ -44,5 +48,7 @@ int main() {
 	
 //	a = b * c + b * c;
 	a = f(1, 2);
+	f2(1,2,3,4,5,6);
+//	a = d[0][0];
 	return 0;
 }

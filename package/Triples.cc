@@ -91,19 +91,51 @@ void Triples::make()
 			}
 		}
 		ife("Number") {
-			element.add_attr("temp", temp_count);
-			triples.add(Cmd.imdd, element.get_attr_int("value"), 0, temp_count);
-			++temp_count;
+			int val = element.get_attr_int("value");
+			int lcmd = triples.find(Cmd.imdd, val, 0);
+			if (lcmd == -1) {
+				element.add_attr("temp", temp_count);
+				triples.add(Cmd.imdd, val, 0, temp_count);
+				++temp_count;
+			}
+			else {
+				element.add_attr("temp", lcmd);
+			}
+		}
+		ifb("Address") {
+			int size = element.size();
+			if (size > 0) { // is array
+				element[0].add_attr("base", element.get_attr_str("base"));
+			}
 		}
 		ife("Address") {
 			const char* s = element.get_attr_str("base");
 			Element value = element.table(s);
 
 			if (value.get_attr("array")) { // is array
-
+				element.add_attr("array", 1);
+				element.add_attr("temp", element[0].get_attr_int("temp"));
 			}
 
 			element.add_attr("addr", triples.find(value));
+		}
+		ife("Locator") {
+			const char* s = element.get_attr_str("base");
+			Element value = element.table(s);
+
+			int size = element.size();
+			element.add_attr("size", size);
+			int count = 0;
+			ASTNode* cur = NULL;
+			DL_FOREACH(element.unwrap()->children, cur) {
+				int t;
+				++count;
+				ASTNode_get_attr_int(cur, "temp", &t);
+			}
+		}
+		ife("Dimension") {
+			int t = element[0].get_attr_int("temp");
+			element.add_attr("temp", t);
 		}
 		ife("Dest") {
 			int a = element[0].get_attr_int("addr");
@@ -127,15 +159,16 @@ void Triples::make()
 			triples.add(Cmd.write, t, 0, a);
 		}
 
-#define makeCond(cmd)do{\
+#define makeCond(cmd) do{\
 		int t0 = element[0].get_attr_int("temp");\
 		int t1 = element[1].get_attr_int("temp");\
 		int idx = triples.size();\
 		triples.add((cmd), t0, t1, 0);\
 		triples.add(Cmd.jmp, 0, 0, 0);\
 		element.add_attr("true", idx);\
-		element.add_attr("false", idx + 1);}\
-		while(0)
+		element.add_attr("false", idx + 1);\
+		} while(0)
+
 		ife("Equal") {
 			makeCond(Cmd.jeq);
 		}
@@ -217,9 +250,14 @@ void Triples::make()
 			element.add_attr("false", t);
 		}
 		ife("Return") {
-			int t = element[0].get_attr_int("temp");
-			triples.add(Cmd.ret, t, 0, 0);
-			++temp_count;
+			if (element.size() == 0) {
+				triples.add(Cmd.rev, 0, 0, 0);
+			}
+			else {
+				int t = element[0].get_attr_int("temp");
+				triples.add(Cmd.ret, t, 0, 0);
+				++temp_count;
+			}
 		}
 #define EopE(cmd) do{\
 		int t0 = element[0].get_attr_int("temp"); \
@@ -288,6 +326,11 @@ void Triples::make()
 		ifb("Function") {
 			element.add_attr("place", triples.size());
 		}
+		ife("Function") {
+			if (strcmp(element.get_attr_str("return"), "Void") == 0) {
+				triples.add(Cmd.rev, 0, 0, 0);
+			}
+		}
 	}
 }
 
@@ -316,6 +359,9 @@ void Triples::print() const
 		case Cmd.read:
 			printf("read, %s, %d, T%d\n", value_pointer[i.e1].get_attr_str("name"), i.e2, i.to);
 			break;
+		case Cmd.reada:
+			printf("read, %s, T%d, T%d\n", value_pointer[i.e1].get_attr_str("name"), i.e2, i.to);
+			break;
 		case Cmd.write:
 			printf("write, T%d, 0, %s\n", i.e1, value_pointer[i.to].get_attr_str("name"));
 			break;
@@ -342,6 +388,9 @@ void Triples::print() const
 			break;
 		case Cmd.ret:
 			printf("ret, T%d, 0, 0\n", i.e1);
+			break;
+		case Cmd.rev:
+			printf("rev, 0, 0, 0\n");
 			break;
 		case Cmd.add:
 			printf("add, T%d, T%d, T%d\n", i.e1, i.e2, i.to);

@@ -281,6 +281,8 @@ Element Element::table(const char* key) const
 size_t Element::size() const
 {
 	size_t count = 0;
+	if (node->children == NULL)
+		return 0;
 	DL_COUNT(node->children, node->children->prev, count);
 	return count;
 }

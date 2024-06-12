@@ -15,6 +15,7 @@ private:
 			jmp,
 			call,
 			read,
+			reada,
 			write,
 			imdd,
 			jeq,
@@ -24,6 +25,7 @@ private:
 			jge,
 			jle,
 			ret,
+			rev,
 			pux,
 			pus,
 			add,
@@ -51,8 +53,6 @@ private:
 	void add(int, int, int, int);
 	int find(int, int, int, int) const;
 	int find(const Element& e);
-	void push_page();
-	void pop_page();
 
 public:
 	Triples(const Element&);
