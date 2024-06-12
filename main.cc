@@ -60,7 +60,7 @@ int main(int argc, const char** argv) {
 	printf("\n");
 	rewind(yyin);
 #endif
-
+  
 	Element root = Element::CreateByFile(Flag::getFlag().getFlagFor("input").c_str());
 	//ConstNode_unfold(root);
 	//ArrayDecl_flatten(root);
