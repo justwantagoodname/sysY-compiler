@@ -33,6 +33,7 @@ private:
 			mul,
 			div,
 			mod,
+			tag,
 		};
 	}Cmd = CMD();
 
@@ -47,12 +48,16 @@ private:
 
 	std::vector<IntTriple> triples;
 	std::vector<Element> value_pointer;
+	std::vector<Element> function_pointer;
 	//std::vector<Element> value_table;
 	//std::vector<int> page_stack;
 
 	void add(int, int, int, int);
 	int find(int, int, int, int) const;
 	int find(const Element& e);
+	int pushf(const Element& e);
+	int findf(const Element& e);
+	int findf(const char* name);
 
 public:
 	Triples(const Element&);

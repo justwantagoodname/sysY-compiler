@@ -18,3 +18,5 @@ x64/
 *.hpp
 .DS_Store
 **/.DS_Store
+*.lex.*
+*.tab.*

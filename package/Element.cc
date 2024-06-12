@@ -270,9 +270,9 @@ Element Element::querySelectorOne(const char* selector) const {
 
 Element Element::table(const char* key) const
 {
-	char* selector = (char*)malloc(strlen(key) + 25);
+	char* selector = (char*)malloc(strlen(key) + 40);
 	if (!selector)return (ASTNode*)(NULL);
-	snprintf(selector, strlen(key) + 25, "ancestor::Scope/Decl/*[@name='%s']", key);
+	snprintf(selector, strlen(key) + 35, "ancestor::Scope/Decl/*[@name='%s']", key);
 	Element e = this->qo(selector);
 	::free(selector);
 	return e;
