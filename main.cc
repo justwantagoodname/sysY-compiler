@@ -17,18 +17,6 @@ int main(int argc, const char** argv) {
   printf("===After flatten===\n");
   root.print();
 
-  auto as_file = fopen(Flag::getFlag().getFlagFor("output").c_str(), "w");
-
-  fprintf(as_file, R"(main:
-        str     fp, [sp, #-4]!
-        add     fp, sp, #0
-        mov     r3, #0
-        mov     r0, r3
-        add     sp, fp, #0
-        ldr     fp, [sp], #4
-        bx      lr
-)");
-
 #ifdef TRIPLE_DEBUG
 	Triples triples(root);
 	//triples.pretreat();
