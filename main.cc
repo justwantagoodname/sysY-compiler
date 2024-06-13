@@ -19,10 +19,6 @@ int main(int argc, const char** argv) {
 
   auto as_file = fopen(Flag::getFlag().getFlagFor("output").c_str(), "w");
 
-  char s[100] = {0};
-
-  sprintf(s, "Hello, world!");
-
   fprintf(as_file, R"(main:
         str     fp, [sp, #-4]!
         add     fp, sp, #0
