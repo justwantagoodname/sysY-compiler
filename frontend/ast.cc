@@ -309,6 +309,7 @@ void ASTNode_copy_children(ASTNode *from, ASTNode *to) {
     DL_FOREACH(from->children, cur) {
         ASTNode* cloned = ASTNode_clone(cur);
         DL_APPEND(to->children, cloned);
+        cloned->parent = to;
     }
 }
 

@@ -1,21 +1,44 @@
-int x[100];
-int y[100] = {0};
-int z;
-int a = 10;
+//const int c[2][2] = {{1, 2}, {3, 4}};
+   
+int d[2][3] = {{1, 0}, {0, 1}};
+int dd[20] = {0};
+int as = 10;
+const int cas = 10;
+
+//  int f1(int x1, int x2){
+// 	return x1 + x2;
+// }  
+
+
+ int f(int x1, int x2){
+ 	return x1 + x2;
+ }
+
+
+// void f2(int x1,int x2,int x3,int x4,int x5,int x6){
+// 
+// }
 
 int main() {
 	int a,b,c;
-  int x; // should be place in stack
-	if(!(a > 2 && c <= 3) && a == 3){
+
+	int va = 1;
+	const int cb = 1;
+	const int ca = 1 + 1 + 1 + cb;
+
+	if(!(a > 2) && c <= 3 || a == 3 && b != 4){
 		a = c + (a + a);
 	}else{
-		a = 2 + a;
+		b = 2 + a;
 	}
 	while(a<3){
-		a = a + 1;
+		b = a + 1;
 	}
 
 	a = b * c + b * c;
 	a = f(1, 2);
-	return 1 + 1;
+
+	a = d[1][1] + cb;
+
+	return 0;
 }

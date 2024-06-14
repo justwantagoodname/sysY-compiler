@@ -14,10 +14,6 @@ public:
 			mov,
 			jmp,
 			call,
-			read,
-			reada,
-			write,
-			imdd,
 			jeq,
 			jne,
 			jgt,
@@ -26,8 +22,8 @@ public:
 			jle,
 			ret,
 			rev,
-			pux,
 			pus,
+			pop,
 			add,
 			sub,
 			mul,
@@ -46,10 +42,10 @@ public:
 			temp, // 临时变量
 			value,// 变量编号
 			func, // 函数编号
-			local,// 位置
+			lamb,// 标签
 			
 		};
-	}TVTE = TRIPLEVALUE(); // Triple Value Type Enum
+	}TT = TRIPLEVALUE(); // Triple Value Type Enum
 	
 	typedef TRIPLEVALUE::TRIPLEVALUE_ENUM TripleType;
 
@@ -58,8 +54,8 @@ public:
 		int value;
 		TripleType type;
 		
-		TripleValue() : value(0), type(TVTE.null) {}
-		TripleValue(int t) :value(t), type(TVTE.temp) {}
+		TripleValue() : value(0), type(TT.null) {}
+		TripleValue(int t) :value(t), type(TT.temp) {}
 		TripleValue(int v, TripleType ty) :value(v), type(ty) {}
 
 		bool operator==(const TripleValue& t) const;
@@ -85,6 +81,7 @@ private:
 
 	void add(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 
+	TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&) const;
 	TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, int) const;
 	int find(const Element& e);
 	int pushf(const Element& e);
