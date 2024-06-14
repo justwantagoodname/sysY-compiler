@@ -1,7 +1,7 @@
-const int a = 1000;
-const int b[3] = {1, 2};
-const int c[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-const int d[100] = {};
+int x[100];
+int y[100] = {0};
+int z;
+int a = 10;
 
 int X() {
     {
@@ -9,7 +9,6 @@ int X() {
     }
 }
 
-
 int main() {
-	
+	int x; // should be place in stack
 }

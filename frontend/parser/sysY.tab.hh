@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.5.1.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Skeleton interface for Bison GLR parsers in C
 
-   Copyright (C) 2002-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2015, 2018-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -46,48 +46,53 @@ extern int yydebug;
 
 #line 48 "frontend/parser/sysY.tab.hh"
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    Main = 258,
-    Const = 259,
-    Int = 260,
-    Void = 261,
-    While = 262,
-    Break = 263,
-    If = 264,
-    Else = 265,
-    Continue = 266,
-    Return = 267,
-    Not = 268,
-    And = 269,
-    Or = 270,
-    Plus = 271,
-    Minus = 272,
-    Mult = 273,
-    Div = 274,
-    Mod = 275,
-    Less = 276,
-    Greater = 277,
-    GreaterEq = 278,
-    LessEq = 279,
-    Equal = 280,
-    NotEq = 281,
-    Assign = 282,
-    SemiCon = 283,
-    Comma = 284,
-    LeftParent = 285,
-    RightParent = 286,
-    LeftBrack = 287,
-    RightBrack = 288,
-    LeftBrace = 289,
-    RightBrace = 290,
-    IntegerConst = 291,
-    StringConst = 292,
-    Identifier = 293
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    Main = 258,                    /* Main  */
+    Const = 259,                   /* Const  */
+    Int = 260,                     /* Int  */
+    Void = 261,                    /* Void  */
+    While = 262,                   /* While  */
+    Break = 263,                   /* Break  */
+    If = 264,                      /* If  */
+    Else = 265,                    /* Else  */
+    Continue = 266,                /* Continue  */
+    Return = 267,                  /* Return  */
+    Not = 268,                     /* Not  */
+    And = 269,                     /* And  */
+    Or = 270,                      /* Or  */
+    Plus = 271,                    /* Plus  */
+    Minus = 272,                   /* Minus  */
+    Mult = 273,                    /* Mult  */
+    Div = 274,                     /* Div  */
+    Mod = 275,                     /* Mod  */
+    Less = 276,                    /* Less  */
+    Greater = 277,                 /* Greater  */
+    GreaterEq = 278,               /* GreaterEq  */
+    LessEq = 279,                  /* LessEq  */
+    Equal = 280,                   /* Equal  */
+    NotEq = 281,                   /* NotEq  */
+    Assign = 282,                  /* Assign  */
+    SemiCon = 283,                 /* SemiCon  */
+    Comma = 284,                   /* Comma  */
+    LeftParent = 285,              /* LeftParent  */
+    RightParent = 286,             /* RightParent  */
+    LeftBrack = 287,               /* LeftBrack  */
+    RightBrack = 288,              /* RightBrack  */
+    LeftBrace = 289,               /* LeftBrace  */
+    RightBrace = 290,              /* RightBrace  */
+    IntegerConst = 291,            /* IntegerConst  */
+    StringConst = 292,             /* StringConst  */
+    Identifier = 293               /* Identifier  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
@@ -101,7 +106,7 @@ union YYSTYPE
   const char* tokenValue;
   struct ASTNode *astNode;
 
-#line 105 "frontend/parser/sysY.tab.hh"
+#line 110 "frontend/parser/sysY.tab.hh"
 
 };
 typedef union YYSTYPE YYSTYPE;

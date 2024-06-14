@@ -17,7 +17,7 @@ int main(int argc, const char** argv) {
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
   	// printf("===After flatten===\n");
-  	// root.print();
+  	root.print();
 	printf("=== ASM Start ===\n");
 	AssemblyBuilder asfile(Flag::getFlag().getFlagFor("output").c_str());
 
@@ -25,8 +25,8 @@ int main(int argc, const char** argv) {
 			| ".extern putf getint putint putch getch getarray putarray"; // import libsysy.a
 	asfile.line();
 
-	ConstInflater const_inflater(root.unwrap());
-	const_inflater.inflate(asfile);
+	GlobalDeclInflater const_inflater(root.unwrap());
+    const_inflater.inflate(asfile);
 	
 	asfile	| ".text"	
 			| "main:"
