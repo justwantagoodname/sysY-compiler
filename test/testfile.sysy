@@ -3,12 +3,19 @@ int y[100] = {0};
 int z;
 int a = 10;
 
-int X() {
-    {
-        const int x = 123;
-    }
-}
-
 int main() {
-	int x; // should be place in stack
+	int a,b,c;
+  int x; // should be place in stack
+	if(!(a > 2 && c <= 3) && a == 3){
+		a = c + (a + a);
+	}else{
+		a = 2 + a;
+	}
+	while(a<3){
+		a = a + 1;
+	}
+
+	a = b * c + b * c;
+	a = f(1, 2);
+	return 1 + 1;
 }

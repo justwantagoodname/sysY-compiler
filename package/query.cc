@@ -1,5 +1,5 @@
-﻿#include "Query.h"
-#include "Element.h"
+﻿#include "query.h"
+#include "element.h"
 
 Query::Query(QueryResult* res) : result(res) {}
 

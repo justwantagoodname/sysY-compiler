@@ -1,5 +1,5 @@
-#include "Element.h"
-#include "Triples.h"
+#include "element.h"
+#include "triples.h"
 #include "sysY.h"
 #include "ast.h"
 #include "pass.h"
@@ -39,16 +39,19 @@ int main(int argc, const char** argv) {
 		  .raw(".section	.note.GNU-stack,\"\",%progbits")
 		  .line(); // new line in the end
 
-#ifdef TRIPLE_DEBUG
+//#ifdef TRIPLE_DEBUG
 	Triples triples(root);
-	//triples.pretreat();
+	triples.pretreat();
+	printf("===After pretreat===\n");
+
 	root.print();
 
 	triples.make();
+	printf("===After make===\n");
 	root.print();
 
 	triples.print();
-#endif
+//#endif
 
 	return 0;
 }

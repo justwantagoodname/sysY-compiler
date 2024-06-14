@@ -17,3 +17,5 @@ x64/
 *.vcxproj
 .DS_Store
 **/.DS_Store
+*.lex.*
+*.tab.*

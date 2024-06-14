@@ -1,7 +1,7 @@
 #include <stdarg.h>
 
-#include "Element.h"
-#include "Query.h"
+#include "element.h"
+#include "query.h"
 
 extern int yyparse(struct ASTNode** root);
 extern FILE* yyin;
@@ -270,9 +270,9 @@ Element Element::querySelectorOne(const char* selector) const {
 
 Element Element::table(const char* key) const
 {
-	char* selector = (char*)malloc(strlen(key) + 25);
+	char* selector = (char*)malloc(strlen(key) + 40);
 	if (!selector)return (ASTNode*)(NULL);
-	snprintf(selector, strlen(key) + 25, "ancestor::Scope/Decl/*[@name='%s']", key);
+	snprintf(selector, strlen(key) + 35, "ancestor::Scope/Decl/*[@name='%s']", key);
 	Element e = this->qo(selector);
 	::free(selector);
 	return e;
@@ -281,6 +281,8 @@ Element Element::table(const char* key) const
 size_t Element::size() const
 {
 	size_t count = 0;
+	if (node->children == NULL)
+		return 0;
 	DL_COUNT(node->children, node->children->prev, count);
 	return count;
 }
@@ -323,7 +325,7 @@ Element::Iter& Element::Iter::operator++() {
 
 }
 
-bool Element::Iter::operator!=(Element::Iter&& other) {
+bool Element::Iter::operator!=(const Element::Iter& other)const {
 	return it != other.it;
 }
 

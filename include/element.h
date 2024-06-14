@@ -4,7 +4,7 @@
 #include "sysY.h"
 #include "ast.h"
 
-#include "Query.h"
+#include "query.h"
 
 class Element {
 private:
@@ -74,7 +74,7 @@ public:
 		bool flag = false;
 		Iter(ASTNode* q);
 		Iter& operator ++();
-		bool operator!=(Iter&& other);
+		bool operator!=(const Iter& other)const;
 		Element operator*();
 		operator Element();
 	};
