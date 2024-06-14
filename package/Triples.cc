@@ -1,4 +1,4 @@
-﻿#include "Triples.h"
+﻿#include "triples.h"
 #include <vector>
 using std::vector;
 
@@ -97,6 +97,14 @@ void Triples::pretreat()
 		replace.qo("/ArraySize").move_children_to(adecl);
 		replace.free();
 	}
+
+	Query not_nodes = root("//Not");
+	for (auto notnode : not_nodes) {
+		//for (auto it : notnode) {
+		//	
+		//}
+	}
+
 }
 
 void Triples::make()

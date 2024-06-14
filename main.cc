@@ -1,5 +1,5 @@
-#include "Element.h"
-#include "Triples.h"
+#include "element.h"
+#include "triples.h"
 #include "sysY.h"
 #include "ast.h"
 #include "pass.h"
