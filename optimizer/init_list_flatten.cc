@@ -111,7 +111,7 @@ void ConstInitNode_flatten(ASTNode* decl, const std::vector<int>& dim_sizes) {
 
     ASTNode_replace(linear_init, init_value);
     ASTNode_free(init_value);
-    ASTNode_print(linear_init);
+    // ASTNode_print(linear_init);
 }
 
 /**
