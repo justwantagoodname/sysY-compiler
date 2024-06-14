@@ -4,7 +4,7 @@
 #include "sysY.h"
 #include "ast.h"
 
-#include "Query.h"
+#include "query.h"
 
 class Element {
 private:
