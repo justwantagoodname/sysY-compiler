@@ -17,16 +17,19 @@ int main(int argc, const char** argv) {
   printf("===After flatten===\n");
   root.print();
 
-#ifdef TRIPLE_DEBUG
+//#ifdef TRIPLE_DEBUG
 	Triples triples(root);
-	//triples.pretreat();
+	triples.pretreat();
+	printf("===After pretreat===\n");
+
 	root.print();
 
 	triples.make();
+	printf("===After make===\n");
 	root.print();
 
 	triples.print();
-#endif
+//#endif
 
 	return 0;
 }
