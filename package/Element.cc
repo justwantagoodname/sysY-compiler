@@ -1,7 +1,7 @@
 #include <stdarg.h>
 
-#include "Element.h"
-#include "Query.h"
+#include "element.h"
+#include "query.h"
 
 extern int yyparse(struct ASTNode** root);
 extern FILE* yyin;
