@@ -20,7 +20,7 @@ int main(int argc, const char** argv) {
 //#ifdef TRIPLE_DEBUG
 	Triples triples(root);
 	triples.pretreat();
-	//printf("===After pretreat===\n");
+	printf("===After pretreat===\n");
 
 	root.print();
 

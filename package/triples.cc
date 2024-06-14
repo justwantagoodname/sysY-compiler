@@ -92,14 +92,6 @@ size_t Triples::size()
 
 void Triples::pretreat()
 {
-	//Query conds = root("//Cond");
-	//for (auto cond : conds) {
-	//	Element exp = cond.qo("/Exp");
-	//	cond.move_children_from(exp);
-	//	ASTNode*n = cond.unwrap()->children;
-	//	DL_DELETE(n, n);
-	//	//exp.free();
-	//}
 
 	Query array_decls = root("//Decl/*[@array='true']");
 	for (auto adecl : array_decls) {
@@ -137,9 +129,9 @@ void Triples::make()
 		const bool flag = element.flag;
 
 		ifb("Decl") {
+			cut;
 			if (strcmp(element.get_attr_str("name"), "Global") != 0)
 				cut;
-			cut;
 		}
 		ife("Exp") {
 			if (element[0].get_attr("temp")) {

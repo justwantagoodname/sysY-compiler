@@ -1,12 +1,20 @@
 //const int c[2][2] = {{1, 2}, {3, 4}};
    
 int d[2][3] = {{1, 0}, {0, 1}};
+int dd[20] = {0};
+int as = 10;
+const int cas = 10;
+
 //  int f1(int x1, int x2){
 // 	return x1 + x2;
 // }  
+
+
  int f(int x1, int x2){
  	return x1 + x2;
  }
+
+
 // void f2(int x1,int x2,int x3,int x4,int x5,int x6){
 // 
 // }
