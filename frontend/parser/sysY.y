@@ -90,6 +90,7 @@ CompUnit: GlobalDecl GlobalFuncDef MainFuncDef { ASTNode* scope = ASTNode_create
         ;
 
 MainFuncDef: Int Main LeftParent RightParent Block { $$ = ASTNode_create("Main"); 
+                                                     ASTNode_set_attr_str($5, "name", "Main");
                                                      ASTNode_add_child($$, $5); }
            ;
 
