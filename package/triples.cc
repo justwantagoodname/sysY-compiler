@@ -60,7 +60,7 @@ Triples::TripleValue Triples::find(CMD::CMD_ENUM cmd, const TripleValue& e1, con
 	int end = 0;
 	for (int i = triples.size() - 1; i >= end; --i) {
 		const Triple& t = triples[i];
-		if (t.cmd == Cmd.tag || t.cmd == Cmd.tag)
+		if (t.cmd == Cmd.tag)
 			break;
 		if (t.cmd == cmd && t.e1 == e1 && t.e2 == e2) {
 			return t.to;
@@ -88,7 +88,7 @@ size_t Triples::size()
 #define endElement(eqid) (!strcmp(id, (eqid)) && flag)
 #define ife(eqid) if (endElement(eqid))
 #define ifb(eqid) if (beginElement(eqid))
-#define cut iter.flag = true; continue
+#define cut {iter.flag = true; continue;}
 
 void Triples::pretreat()
 {
@@ -118,13 +118,10 @@ void Triples::pretreat()
 				element.add_attr("size", element.size());
 			}
 		}
-		adecl.add_attr("size", adecl[0].get_attr_int("size"));
-		Element replace = (ASTNode*)calloc(1, sizeof(ASTNode));
-		replace.move_children_from(adecl);
-		replace.qo("/ArraySize").move_children_to(adecl);
-		replace.free();
 	}
 
+	Element decls = root("//Scope/Decl");
+	decls.add_attr("name", "Global");
 }
 
 void Triples::make()
@@ -140,6 +137,8 @@ void Triples::make()
 		const bool flag = element.flag;
 
 		ifb("Decl") {
+			if (strcmp(element.get_attr_str("name"), "Global") != 0)
+				cut;
 			cut;
 		}
 		ife("Exp") {
@@ -175,7 +174,7 @@ void Triples::make()
 		ifb("Address") {
 			int size = element.size();
 			if (size > 0) { // is array
-				//element[0].add_attr("base", element.get_attr_str("base"));
+				element[0].add_attr("base", element.get_attr_str("base"));
 			}
 		}
 		ife("Address") {
@@ -192,17 +191,24 @@ void Triples::make()
 		}
 		ife("Locator") {
 			const char* s = element.get_attr_str("base");
-			Element value = element.table(s);
+			Element value = element.table(s)[0];
 
-			int size = element.size();
-			element.add_attr("size", size);
+			int temp = temp_count++;
+
 			int count = 0;
 			ASTNode* cur = NULL;
+			int cr = 1;
 			DL_FOREACH(element.unwrap()->children, cur) {
 				int t;
-				++count;
 				ASTNode_get_attr_int(cur, "temp", &t);
+				if (count > 0) {
+					cr *= value[count].get_attr_int("value");
+					triples.add(Cmd.mul, { t }, { cr, TT.dimd }, { t });
+				}
+				++count;
+				triples.add(Cmd.add, { temp }, { t }, { temp });
 			}
+			element.add_attr("temp", temp);
 		}
 		ife("Dimension") {
 			int t = element[0].get_attr_int("temp");
@@ -214,9 +220,12 @@ void Triples::make()
 		}
 		ife("Fetch") {
 			int a = element[0].get_attr_int("addr");
-			TripleValue lcmd = triples.find(Cmd.mov, { a, TT.value }, {});
+			TripleValue d = {};
+			if (element[0].get_attr("array"))
+				d = element[0].get_attr_int("temp");
+			TripleValue lcmd = triples.find(Cmd.mov, { a, TT.value }, d);
 			if (lcmd.type == TT.null) {
-				triples.add(Cmd.mov, { a, TT.value }, {}, { temp_count });
+				triples.add(Cmd.mov, { a, TT.value }, d, { temp_count });
 				element.add_attr("temp", temp_count);
 				++temp_count;
 			}
@@ -291,7 +300,7 @@ void Triples::make()
 			int f = f1;
 			do {
 				TripleValue tmp = triples[f].to;
-				if(triples[f1 + 1].cmd == Cmd.tag)
+				if (triples[f1 + 1].cmd == Cmd.tag)
 					triples[f].to = { triples[f1 + 1].e1.value, TT.lamb };
 				else
 					triples[f].to = { triples[f1 + 2].e1.value, TT.lamb };
@@ -441,6 +450,18 @@ void Triples::make()
 			int a = triples.find(value);
 			triples.add(Cmd.pop, {}, {}, { a, TT.value });
 		}
+		ifb("Var") {
+			element[0].add_attr("name", element.get_attr_str("name"));
+		}
+		ife("InitValue") {
+			if (element.get_attr("array")) {
+				const char* s = element.get_attr_str("name");
+				Element value = element.table(s);
+				int a = triples.find(value);
+				int t = element[0].get_attr_int("temp");
+				triples.add(Cmd.mov, { t }, {}, { a, TT.value });
+			}
+		}
 	}
 }
 
@@ -507,7 +528,10 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		snprintf(s, 40, "%s", triples.value_pointer[value].get_attr_str("name"));
 		break;
 	case TT.func:
-		snprintf(s, 50, "%s:%d", triples.function_pointer[value].get_attr_str("name"), triples.function_pointer[value].get_attr_int("place"));
+		snprintf(s, 50, "%d@%s",
+			triples.function_pointer[value].get_attr_int("place"),
+			triples.function_pointer[value].get_attr_str("name")
+		);
 		break;
 	case TT.lamb:
 		snprintf(s, 20, ".l%d", value);

@@ -11,16 +11,16 @@ int main(int argc, const char** argv) {
   
 	Element root = Element::CreateByFile(Flag::getFlag().getFlagFor("input").c_str());
 
-  root.print();
+  //root.print();
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
-  printf("===After flatten===\n");
+  //printf("===After flatten===\n");
   root.print();
 
 //#ifdef TRIPLE_DEBUG
 	Triples triples(root);
 	triples.pretreat();
-	printf("===After pretreat===\n");
+	//printf("===After pretreat===\n");
 
 	root.print();
 
