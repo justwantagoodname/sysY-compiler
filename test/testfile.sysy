@@ -14,16 +14,16 @@ int d[2][3] = {{1, 0}, {0, 1}};
 int main() {
 	int a,b,c;
 
-	if(!(a > 2 && c <= 3) && a == 3){
+	if(!(a > 2) && c <= 3 || a == 3 && b != 4){
 		a = c + (a + a);
 	}else{
-		a = 2 + a;
+		b = 2 + a;
 	}
 	while(a<3){
-		a = a + 1;
+		b = a + 1;
 	}
 
 	a = b * c + b * c;
 	a = f(1, 2);
-	return 1 + 1;
+	return 0;
 }
