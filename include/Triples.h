@@ -1,6 +1,6 @@
 ﻿#ifndef TRIPLE_H
 #define TRIPLE_H
-#include "Element.h"
+#include "element.h"
 #include <vector>
 
 class Triples {
