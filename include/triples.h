@@ -30,7 +30,6 @@ public:
 			div,
 			mod,
 			tag,
-			lab,
 		};
 	}Cmd = CMD();
 

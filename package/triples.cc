@@ -60,7 +60,7 @@ Triples::TripleValue Triples::find(CMD::CMD_ENUM cmd, const TripleValue& e1, con
 	int end = 0;
 	for (int i = triples.size() - 1; i >= end; --i) {
 		const Triple& t = triples[i];
-		if (t.cmd == Cmd.lab || t.cmd == Cmd.tag)
+		if (t.cmd == Cmd.tag || t.cmd == Cmd.tag)
 			break;
 		if (t.cmd == cmd && t.e1 == e1 && t.e2 == e2) {
 			return t.to;
@@ -131,6 +131,7 @@ void Triples::make()
 {
 	Triples& triples = *this;
 	int temp_count = 0; // 临时变量计数器 
+	int tag_count = 0; // 临时标签计数器
 
 	//for (auto element : root) {
 	for (Element::Iter iter = root.begin(); iter != root.end(); ++iter) {
@@ -237,7 +238,7 @@ void Triples::make()
 		int idx = triples.size();\
 		triples.add((cmd), {t0}, {t1}, {});\
 		triples.add(Cmd.jmp, {}, {}, {});\
-		triples.add(Cmd.lab, {triples.size(), TT.lamb}, {}, {});\
+		triples.add(Cmd.tag, { tag_count++, TT.lamb}, {}, {});\
 		element.add_attr("true", idx);\
 		element.add_attr("false", idx + 1);\
 		} while(0)
@@ -269,10 +270,10 @@ void Triples::make()
 			int t = t1;
 			do {
 				TripleValue tmp = triples[t].to;
-				if (triples[t1 + 1].cmd == Cmd.lab)
-					triples[t].to = { t1 + 1, TT.lamb };
+				if (triples[t1 + 1].cmd == Cmd.tag)
+					triples[t].to = { triples[t1 + 1].e1.value, TT.lamb };
 				else
-					triples[t].to = { t1 + 2, TT.lamb };
+					triples[t].to = { triples[t1 + 2].e1.value, TT.lamb };
 				t = tmp.value;
 			} while (t != 0);
 
@@ -290,10 +291,10 @@ void Triples::make()
 			int f = f1;
 			do {
 				TripleValue tmp = triples[f].to;
-				if(triples[f1 + 1].cmd == Cmd.lab)
-					triples[f].to = { f1 + 1, TT.lamb };
+				if(triples[f1 + 1].cmd == Cmd.tag)
+					triples[f].to = { triples[f1 + 1].e1.value, TT.lamb };
 				else
-					triples[f].to = { f1 + 2, TT.lamb };
+					triples[f].to = { triples[f1 + 2].e1.value, TT.lamb };
 				f = tmp.value;
 			} while (f != 0);
 
@@ -307,10 +308,9 @@ void Triples::make()
 			element("parent::*")[0].add_attr("false", f);
 			do {
 				TripleValue tmp = triples[t].to;
-				triples[t].to = { triples.size() - 1, TT.lamb };
+				triples[t].to = { triples[triples.size() - 1].e1.value, TT.lamb };
 				t = tmp.value;
 			} while (t != 0);
-			//triples.add(Cmd.lab, { triples.size(), TT.lamb }, {}, {});
 		}
 		ife("Then") {
 			Element if_element = element("parent::If");
@@ -322,27 +322,28 @@ void Triples::make()
 			int f = if_element.get_attr_int("false");
 			do {
 				TripleValue tmp = triples[f].to;
-				triples[f].to = { b, TT.lamb };
+				triples[f].to = { tag_count, TT.lamb };
 				f = tmp.value;
 			} while (f != 0);
-			triples.add(Cmd.lab, { b, TT.lamb }, {}, {});
+			triples.add(Cmd.tag, { tag_count++, TT.lamb }, {}, {});
 		}
 		ife("Else") {
 			Element if_element = element("parent::If");
 			int toend = if_element.get_attr_int("toEnd");
-			triples[toend].to = triples.size();
+			triples[toend].to = { tag_count, TT.lamb };
+			triples.add(Cmd.tag, { tag_count++, TT.lamb }, {}, {});
 		}
 		ifb("While") {
-			int b = triples.size();
+			int b = tag_count++;
 			element.add_attr("begin", b);
-			triples.add(Cmd.lab, { b, TT.lamb }, {}, {});
+			triples.add(Cmd.tag, { b, TT.lamb }, {}, {});
 		}
 		ife("While") {
 			int b = element.get_attr_int("begin");
 			int f = element.get_attr_int("false");
 			triples.add(Cmd.jmp, {}, {}, { b, TT.lamb });
-			triples[f].to = { triples.size(), TT.lamb };
-			triples.add(Cmd.lab, { triples.size(), TT.lamb }, {}, {});
+			triples[f].to = { tag_count, TT.lamb };
+			triples.add(Cmd.tag, { tag_count++, TT.lamb }, {}, {});
 		}
 		ife("Not") {
 			int t = element[0].get_attr_int("true");
@@ -401,12 +402,6 @@ void Triples::make()
 					iter = iter->prev;
 				} while (iter != head->prev);
 			}
-
-			//int top = triples.size() - 1;
-			//for (int i = 0; i < (3 > count ? count : 3); ++i) {
-			//	triples[top - i].cmd = Cmd.pux;
-			//	triples[top - i].to = i;
-			//}
 
 			const char* name = element.get_attr_str("name");
 
@@ -475,13 +470,10 @@ void Triples::print() const
 			"div",
 			"mod",
 			"tag",
-			"lab",
 		};
 		if (i.cmd == Cmd.tag) {
-			printf("%s -%d:\n", function_pointer[i.e1.value].get_attr_str("name"), idx);
-		}
-		else if (i.cmd == Cmd.lab) {
-			printf("%d>.l%d:\n", idx, i.e1.value);
+			i.e1.toString(ts1, *this);
+			printf("%d- %s :\n", idx, ts1);
 		}
 		else {
 			i.e1.toString(ts1, *this);
@@ -518,7 +510,7 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		snprintf(s, 50, "%s:%d", triples.function_pointer[value].get_attr_str("name"), triples.function_pointer[value].get_attr_int("place"));
 		break;
 	case TT.lamb:
-		snprintf(s, 20, ">%d", value);
+		snprintf(s, 20, ".l%d", value);
 		break;
 	default:
 		snprintf(s, 20, "unknow:%d", value);
