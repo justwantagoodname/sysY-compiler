@@ -4,6 +4,7 @@
 #define ARMAS_H
 
 #include "sysY.h"
+#include <cstdarg>
 
 class AssemblyBuilder {
 private:
@@ -24,11 +25,17 @@ public:
         if (output != stdout) fclose(output);
     }
     
-    void line() {
+    AssemblyBuilder& raw(const char* str) {
+        fputs(str, output);
+        return *this;
+    }
+
+    AssemblyBuilder& line() {
         line("\n");
+        return *this;
     }
     
-    void line(const char* format, ...) {
+    AssemblyBuilder& line(const char* format, ...) {
         va_list args;
         va_start(args, format);
         vfprintf(output, format, args);
@@ -36,18 +43,20 @@ public:
             fputc('\n', output);
         }
         va_end(args);
+        return *this;
     }
 
     template<typename T>
-    void p(T line) {
+    AssemblyBuilder& p(T line) {
         fputs(output, line);
         fputc('\n', output);
+        return *this;
     }
     
     template<typename T, typename... Args>
-    void p(T line, Args... args) {
+    AssemblyBuilder& p(T line, Args... args) {
         fputs(output, line);
-        p(args...);
+        return p(args...);
     }
 
     AssemblyBuilder& operator<<(const char* str) {
