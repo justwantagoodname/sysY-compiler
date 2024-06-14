@@ -1,19 +1,11 @@
-//const int c[2][2] = {{1, 2}, {3, 4}};
-   
-int d[2][3] = {{1, 0}, {0, 1}};
-//  int f1(int x1, int x2){
-// 	return x1 + x2;
-// }  
- int f(int x1, int x2){
- 	return x1 + x2;
- }
-// void f2(int x1,int x2,int x3,int x4,int x5,int x6){
-// 
-// }
+int x[100];
+int y[100] = {0};
+int z;
+int a = 10;
 
 int main() {
 	int a,b,c;
-
+  int x; // should be place in stack
 	if(!(a > 2 && c <= 3) && a == 3){
 		a = c + (a + a);
 	}else{

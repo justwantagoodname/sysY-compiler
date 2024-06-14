@@ -92,3 +92,10 @@ ASTNode *collectDecl(ASTNode *scope_node, ASTNode *decls) {
     ASTNode_free(decls);
     return scope_node;
 }
+
+char* getAnonymousName() {
+    static int anonymousCounter = 0;
+    char *name = (char *)calloc(16, sizeof(char));
+    snprintf(name, 16, "unnamed_%d", anonymousCounter++);
+    return name;
+}

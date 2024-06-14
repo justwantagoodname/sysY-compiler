@@ -15,6 +15,8 @@ ASTNode *createWhileNode(ASTNode *cond, ASTNode *stmt);
 
 ASTNode *collectDecl(ASTNode *scope_node, ASTNode *decls);
 
+char* getAnonymousName();
+
 char* trimQuoteStr(const char *str);
 
 AttrOption* AttrOption_create_has(const char* name);

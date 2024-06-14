@@ -94,7 +94,11 @@ parser-files: $(FLEX_C_FILES) $(BISON_C_FILES) $(BISON_H_FILES)
 test-compiler: dev-compiler # 测试的时候使用开发模式，快速编译
 	@clear
 	@date
-	$(DEV_BUILD_DIR)/compiler $(TEST_DIR)/testfile.sysy -S -o -
+	$(DEV_BUILD_DIR)/compiler $(TEST_DIR)/testfile.sysy -S -o $(TEST_DIR)/output.s
+
+run-arm: $(TEST_DIR)/output.s $(TEST_DIR)/libsysy.a
+	arm-linux-gnueabihf-gcc $< $(TEST_DIR)/libsysy.a -static -o $(TEST_DIR)/$(basename $(notdir $<)).arm
+	qemu-arm-static $(TEST_DIR)/$(basename $(notdir $<)).arm
 
 test-submit-compiler: release-compiler # 提交测试模式的时候使用 release 模式，确保没有问题
 	@clear
@@ -114,7 +118,8 @@ clean:
 
 requirements:
 ifeq ($(UNAME), Linux) 
-		sudo apt-get -y install build-essential flex bison entr libxml2-utils
+		sudo apt-get -y install build-essential flex bison entr libxml2-utils \
+						gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user-static
 endif
 
 ifeq ($(UNAME), Darwin)
@@ -124,7 +129,7 @@ endif
 
 dev:
 	echo $(L_FILES) $(Y_FILES) $(C_FILES) $(CC_FILES) $(H_FILES) $(HPP_FILES) $(TEST_DIR)/testfile.sysy Makefile \
-		 | tr '[:blank:]' '\n' | $(WATCHER) -cs 'make -j$(JOBS) test-compiler'
+		 | tr '[:blank:]' '\n' | $(WATCHER) -cs 'make -j$(JOBS) test-compiler; make run-arm'
 
 all: release-compiler
 
