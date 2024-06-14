@@ -7,7 +7,7 @@ class Triples {
 private:
 	Element root;
 
-private:
+public:
 	constexpr static class CMD {
 	public:
 		enum CMD_ENUM {
@@ -37,23 +37,55 @@ private:
 		};
 	}Cmd = CMD();
 
-private:
+	constexpr static class TRIPLEVALUE {
+	public:
+		enum TRIPLEVALUE_ENUM {
+			null,
+			dimd, // int立即数
+			fimd, // float立即数
+			temp, // 临时变量
+			value,// 变量编号
+			func, // 函数编号
+			local,// 位置
+			
+		};
+	}TVTE = TRIPLEVALUE(); // Triple Value Type Enum
+	
+	typedef TRIPLEVALUE::TRIPLEVALUE_ENUM TripleType;
 
-	struct IntTriple {
-		int cmd;
-		int e1, e2, to;
+	struct TripleValue
+	{
+		int value;
+		TripleType type;
+		
+		TripleValue() : value(0), type(TVTE.null) {}
+		TripleValue(int t) :value(t), type(TVTE.temp) {}
+		TripleValue(int v, TripleType ty) :value(v), type(ty) {}
 
-		IntTriple(int, int, int, int);
+		bool operator==(const TripleValue& t) const;
+		//inline operator int() { return value; }
+
+		void toString(char[], const Triples& triples);
 	};
 
-	std::vector<IntTriple> triples;
+private:
+
+	struct Triple {
+		int cmd;
+		TripleValue e1, e2, to;
+
+		Triple(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
+	};
+
+	std::vector<Triple> triples;
 	std::vector<Element> value_pointer;
 	std::vector<Element> function_pointer;
 	//std::vector<Element> value_table;
 	//std::vector<int> page_stack;
 
-	void add(int, int, int, int);
-	int find(int, int, int, int) const;
+	void add(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
+
+	TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, int) const;
 	int find(const Element& e);
 	int pushf(const Element& e);
 	int findf(const Element& e);
@@ -66,13 +98,13 @@ public:
 	void pretreat();
 	void make();
 
-	IntTriple& operator[](int idx) {
+	Triple& operator[](int idx) {
 		return triples[idx];
 	};
 	size_t size();
 
-	std::vector<IntTriple>::iterator begin() { return triples.begin(); }
-	std::vector<IntTriple>::iterator end() { return triples.end(); }
+	std::vector<Triple>::iterator begin() { return triples.begin(); }
+	std::vector<Triple>::iterator end() { return triples.end(); }
 
 	void print() const;
 

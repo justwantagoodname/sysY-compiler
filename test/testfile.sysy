@@ -1,6 +1,6 @@
 //const int c[2][2] = {{1, 2}, {3, 4}};
    
-//int d[2][2] = {{1, 0}, {0, 1}};
+int d[2][3] = {{1, 0}, {0, 1}};
 //  int f1(int x1, int x2){
 // 	return x1 + x2;
 // }  
@@ -14,16 +14,16 @@
 int main() {
 	int a,b,c;
 
-//	if(!a > 2 && c <= 3 && a == 3){
-//		a = c + (a + a);
-//	}else{
-//		a = 2 + a;
-//	}
-//	while(a<3){
-//		a = a + 1;
-//	}
-//
-//	a = b * c + b * c;
+	if(!(a > 2 && c <= 3) && a == 3){
+		a = c + (a + a);
+	}else{
+		a = 2 + a;
+	}
+	while(a<3){
+		a = a + 1;
+	}
+
+	a = b * c + b * c;
 	a = f(1, 2);
 	return 1 + 1;
 }

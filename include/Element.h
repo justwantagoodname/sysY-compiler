@@ -74,7 +74,7 @@ public:
 		bool flag = false;
 		Iter(ASTNode* q);
 		Iter& operator ++();
-		bool operator!=(Iter&& other);
+		bool operator!=(const Iter& other)const;
 		Element operator*();
 		operator Element();
 	};

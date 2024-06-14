@@ -325,7 +325,7 @@ Element::Iter& Element::Iter::operator++() {
 
 }
 
-bool Element::Iter::operator!=(Element::Iter&& other) {
+bool Element::Iter::operator!=(const Element::Iter& other)const {
 	return it != other.it;
 }
 

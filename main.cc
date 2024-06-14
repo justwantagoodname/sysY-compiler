@@ -19,8 +19,10 @@ int main(int argc, const char** argv) {
 
 //#ifdef TRIPLE_DEBUG
 	Triples triples(root);
-	//triples.pretreat();
-	//root.print();
+	triples.pretreat();
+	printf("===After pretreat===\n");
+
+	root.print();
 
 	triples.make();
 	printf("===After make===\n");
