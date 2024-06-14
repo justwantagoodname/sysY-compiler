@@ -401,3 +401,17 @@ bool ASTNode_attr_eq_float(const ASTNode *node, const char* key, float value) {
         return false;
     }
 }
+
+bool ASTNode_set_attr_str(ASTNode *node, const char* key, const char* value) {
+    assert(node != NULL && key != NULL && value != NULL);
+
+    ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
+    if (attr != NULL) {
+        if (attr->type == ATTR_TYPE_STR) {
+            free((char *)attr->value.str_value);
+            attr->value.str_value = strdup(value);
+            return true;
+        }
+    }
+    return false;
+}

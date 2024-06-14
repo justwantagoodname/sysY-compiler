@@ -90,6 +90,7 @@ CompUnit: GlobalDecl GlobalFuncDef MainFuncDef { ASTNode* scope = ASTNode_create
         ;
 
 MainFuncDef: Int Main LeftParent RightParent Block { $$ = ASTNode_create("Main"); 
+                                                     ASTNode_set_attr_str($5, "name", "Main");
                                                      ASTNode_add_child($$, $5); }
            ;
 
@@ -181,6 +182,7 @@ FuncType: Void { $$ = "Void"; }
 FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block { 
             $$ = ASTNode_create_attr("Function", 2, "return", $1, "name", $2);
             ASTNode_add_nchild($$, 2, $4, $6);
+            ASTNode_set_attr_str($6, "name", $2);
             ASTNode* decl = ASTNode_querySelectorOne($6, "/Decl");
             ASTNode_copy_children($4, decl);
           } 
@@ -210,7 +212,13 @@ FuncFParam: PrimaryType Identifier  { $$ = ASTNode_create_attr("ParamDecl", 2, "
 
 Block: LeftBrace BlockItem RightBrace { $$ = $2; };
 
-BlockItem:  /* empty */ { $$ = ASTNode_create("Scope"); ASTNode_add_nchild($$, 2, ASTNode_create("Decl"), ASTNode_create("Block")); }
+BlockItem:  /* empty */ { $$ = ASTNode_create("Scope");
+                          char* scopeName = getAnonymousName();
+                          ASTNode_add_attr_str($$, "name", scopeName);
+                          free(scopeName);
+                          ASTNode_add_nchild($$, 2, ASTNode_create("Decl"), ASTNode_create("Block")); 
+
+                        }
          | BlockItem Decl { $$ = collectDecl($1, $2); }
          | BlockItem Stmt { $$ = $1;
                             ASTNode* block = ASTNode_querySelectorOne($$, "/Block"); 
