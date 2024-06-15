@@ -15,7 +15,8 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %glr-parser
 
-%expect 3
+%expect 1
+%expect-rr 2
 
 %start CompUnit
 
@@ -59,13 +60,15 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %token <strValue> StringConst Identifier
 
-%type <astNode> CompUnit MainFuncDef Block BlockItem Stmt LVal 
-                ConstExp Exp UnaryExp PrimaryExp ExpWrapper ArrayDecl InitValue InitValList ConstInitValue ConstInitValList
-                IfStmt Cond FuncRParams FuncRParamList GlobalFuncDef FuncDef
+%type <astNode> CompUnit GlobalScope 
+                Block BlockItem Stmt LVal 
+                ConstExp Exp UnaryExp PrimaryExp ExpWrapper 
+                InitValue InitValList ConstInitValue ConstInitValList
+                IfStmt Cond FuncRParams FuncRParamList FuncDef
                 FuncFParams FuncFParamList FuncFParam
                 VarDecl VarDefList VarDef 
                 ConstDecl ConstDefList ConstDef 
-                Decl GlobalDecl 
+                Decl ArrayDecl 
                 ArrayLocator ArrayLocatorList 
                 Number
 
@@ -83,25 +86,31 @@ void yyerror(struct ASTNode **cur, const char *s);
 %parse-param {struct ASTNode **root}
 
 %%
-CompUnit: GlobalDecl GlobalFuncDef MainFuncDef { ASTNode* scope = ASTNode_create_attr("Scope", 1, "name", "Global");
+/* CompUnit: GlobalDecl GlobalFuncDef MainFuncDef { 
                                                  *root = $$ = ASTNode_create("CompUnit");
                                                  ASTNode_add_child($$, scope);
                                                  ASTNode_add_nchild(scope, 3, $1, $2, $3);
                                                 }
-        ;
+        ; */
+CompUnit: GlobalScope { *root = $$ = ASTNode_create("CompUnit"); ASTNode_add_child($$, $1); }
 
-MainFuncDef: Int Main LeftParent RightParent Block { $$ = ASTNode_create("Main"); 
-                                                     ASTNode_set_attr_str($5, "name", "Main");
-                                                     ASTNode_add_child($$, $5); }
-           ;
-
-GlobalDecl: /* empty */ { $$ = ASTNode_create("Decl");}
-          | GlobalDecl Decl { $$ = $1; ASTNode_move_children($2, $$); ASTNode_free($2); }
-          ;
-
-GlobalFuncDef: /* empty */ { $$ = ASTNode_create("FunctionDef"); }
-             | GlobalFuncDef FuncDef { $$ = $1; ASTNode_add_child($$, $2);  }
-             ;
+GlobalScope: %empty { 
+                      $$ = ASTNode_create_attr("Scope", 1, "name", "Global");
+                      ASTNode *decl = ASTNode_create("Decl");
+                      ASTNode *func = ASTNode_create("FunctionDef");
+                      ASTNode_add_nchild($$, 2, decl, func);
+                    }
+           | GlobalScope Decl {
+                              $$ = $1;
+                              ASTNode* decl = ASTNode_querySelectorOne($$, "/Decl");
+                              ASTNode_move_children($2, decl);
+                              ASTNode_free($2);
+                           }
+           | GlobalScope FuncDef {
+                                $$ = $1;
+                                ASTNode* func = ASTNode_querySelectorOne($$, "/FunctionDef");
+                                ASTNode_add_child(func, $2);
+                              }
 
 Decl: VarDecl
     | ConstDecl
@@ -130,7 +139,7 @@ ConstInitValue: ConstExp { $$ = ASTNode_create("ConstInitValue"); ASTNode_add_ch
               | LeftBrace ConstInitValList RightBrace { $$ = $2; }
               ;
 
-ConstInitValList: /* empty */ { $$ = ASTNode_create("ConstInitValue"); }
+ConstInitValList: %empty { $$ = ASTNode_create("ConstInitValue"); }
                 | ConstInitValue { $$ = ASTNode_create("ConstInitValue"); ASTNode_add_child($$, $1);}
                 | ConstInitValList Comma ConstInitValue { $$ = $1; ASTNode_add_child($$, $3); }
                 ;
@@ -171,7 +180,7 @@ InitValue: ExpWrapper { $$ = ASTNode_create("InitValue"); ASTNode_add_child($$, 
          | LeftBrace InitValList RightBrace { $$ = $2; }
          ;
 
-InitValList: /* empty */ { $$ = ASTNode_create("InitValue"); }
+InitValList: %empty { $$ = ASTNode_create("InitValue"); }
            | InitValue { $$ = ASTNode_create("InitValue"); ASTNode_add_child($$, $1);}
            | InitValList Comma InitValue { $$ = $1; ASTNode_add_child($$, $3); }
            ;
@@ -190,7 +199,7 @@ FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block {
           } 
        ;
 
-FuncFParams: /* empty */    { $$ = ASTNode_create("Params"); }
+FuncFParams: %empty    { $$ = ASTNode_create("Params"); }
            | FuncFParamList { $$ = ASTNode_create("Params"); ASTNode_move_children($1, $$); ASTNode_free($1);}
            ;
 
@@ -214,7 +223,7 @@ FuncFParam: PrimaryType Identifier  { $$ = ASTNode_create_attr("ParamDecl", 2, "
 
 Block: LeftBrace BlockItem RightBrace { $$ = $2; };
 
-BlockItem:  /* empty */ { $$ = ASTNode_create("Scope");
+BlockItem: %empty { $$ = ASTNode_create("Scope");
                           char* scopeName = getAnonymousName();
                           ASTNode_add_attr_str($$, "name", scopeName);
                           free(scopeName);
@@ -298,7 +307,7 @@ UnaryOp: Plus   { $$ = "UnPlus";  }
        | Not    { $$ = "Not";     }
        ;
 
-FuncRParams: /* empty */    { $$ = ASTNode_create("ParamArray"); }
+FuncRParams: %empty    { $$ = ASTNode_create("ParamArray"); }
            | FuncRParamList { $$ = $1;  }
            ;
 

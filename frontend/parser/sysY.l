@@ -45,7 +45,6 @@ Whitespaces [ \f\n\r\t\v]
 {Comment}       {}
 
     /* keywords */
-"main"          { return Main;    }
 "const"         { return Const;   }
 "int"           { return Int;     }
 "float"         { return Float;   }

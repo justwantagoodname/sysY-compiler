@@ -101,7 +101,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 22 "frontend/parser/sysY.y"
+#line 23 "frontend/parser/sysY.y"
 
   int intValue;
   float floatValue;
