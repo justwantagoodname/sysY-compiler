@@ -777,9 +777,9 @@ YY_DECL
 		}
 
 	{
-#line 35 "frontend/parser/sysY.l"
-
 #line 37 "frontend/parser/sysY.l"
+
+#line 39 "frontend/parser/sysY.l"
     /* comments */
 #line 784 "frontend/parser/sysY.lex.cc"
 
@@ -840,247 +840,247 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 38 "frontend/parser/sysY.l"
+#line 40 "frontend/parser/sysY.l"
 BEGIN(MULTI_COMMENT);
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 39 "frontend/parser/sysY.l"
+#line 41 "frontend/parser/sysY.l"
 BEGIN(INITIAL);
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 40 "frontend/parser/sysY.l"
+#line 42 "frontend/parser/sysY.l"
 {}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 41 "frontend/parser/sysY.l"
+#line 43 "frontend/parser/sysY.l"
 {}
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 43 "frontend/parser/sysY.l"
+#line 45 "frontend/parser/sysY.l"
 {}
 	YY_BREAK
 /* keywords */
 case 6:
 YY_RULE_SETUP
-#line 46 "frontend/parser/sysY.l"
+#line 48 "frontend/parser/sysY.l"
 { return Main;    }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 47 "frontend/parser/sysY.l"
+#line 49 "frontend/parser/sysY.l"
 { return Const;   }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 48 "frontend/parser/sysY.l"
+#line 50 "frontend/parser/sysY.l"
 { return Int;     }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 49 "frontend/parser/sysY.l"
+#line 51 "frontend/parser/sysY.l"
 { return Float;   }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 50 "frontend/parser/sysY.l"
+#line 52 "frontend/parser/sysY.l"
 { return Break;       }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 51 "frontend/parser/sysY.l"
+#line 53 "frontend/parser/sysY.l"
 { return Continue;    }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 52 "frontend/parser/sysY.l"
+#line 54 "frontend/parser/sysY.l"
 { return If;          }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 53 "frontend/parser/sysY.l"
+#line 55 "frontend/parser/sysY.l"
 { return Else;        }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 54 "frontend/parser/sysY.l"
+#line 56 "frontend/parser/sysY.l"
 { return Not;         }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 55 "frontend/parser/sysY.l"
+#line 57 "frontend/parser/sysY.l"
 { return And;         }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 56 "frontend/parser/sysY.l"
+#line 58 "frontend/parser/sysY.l"
 { return Or;          }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 57 "frontend/parser/sysY.l"
+#line 59 "frontend/parser/sysY.l"
 { return While;       }
 	YY_BREAK
 /* "getint"        {push_token("GETINTTK", yytext);       return GetInt;  } */
 /* "printf"        {push_token("PRINTFTK", yytext);       return Printf;  } */
 case 18:
 YY_RULE_SETUP
-#line 60 "frontend/parser/sysY.l"
+#line 62 "frontend/parser/sysY.l"
 { return Return;  }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 61 "frontend/parser/sysY.l"
+#line 63 "frontend/parser/sysY.l"
 { return Plus;    }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 62 "frontend/parser/sysY.l"
+#line 64 "frontend/parser/sysY.l"
 { return Minus;   }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 63 "frontend/parser/sysY.l"
+#line 65 "frontend/parser/sysY.l"
 { return Void;    }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 64 "frontend/parser/sysY.l"
+#line 66 "frontend/parser/sysY.l"
 { return Mult;    }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 65 "frontend/parser/sysY.l"
+#line 67 "frontend/parser/sysY.l"
 { return Div;     }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 66 "frontend/parser/sysY.l"
+#line 68 "frontend/parser/sysY.l"
 { return Mod;     }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 67 "frontend/parser/sysY.l"
+#line 69 "frontend/parser/sysY.l"
 { return Less;    }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 68 "frontend/parser/sysY.l"
+#line 70 "frontend/parser/sysY.l"
 { return LessEq;  }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 69 "frontend/parser/sysY.l"
+#line 71 "frontend/parser/sysY.l"
 { return Greater; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 70 "frontend/parser/sysY.l"
+#line 72 "frontend/parser/sysY.l"
 { return GreaterEq;}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 71 "frontend/parser/sysY.l"
+#line 73 "frontend/parser/sysY.l"
 { return Equal;   }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 72 "frontend/parser/sysY.l"
+#line 74 "frontend/parser/sysY.l"
 { return NotEq;   }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 73 "frontend/parser/sysY.l"
+#line 75 "frontend/parser/sysY.l"
 { return Assign;  }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 74 "frontend/parser/sysY.l"
+#line 76 "frontend/parser/sysY.l"
 { return SemiCon; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 75 "frontend/parser/sysY.l"
+#line 77 "frontend/parser/sysY.l"
 { return Comma;   }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 76 "frontend/parser/sysY.l"
+#line 78 "frontend/parser/sysY.l"
 { return LeftParent;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 77 "frontend/parser/sysY.l"
+#line 79 "frontend/parser/sysY.l"
 { return RightParent;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 78 "frontend/parser/sysY.l"
+#line 80 "frontend/parser/sysY.l"
 { return LeftBrack;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 79 "frontend/parser/sysY.l"
+#line 81 "frontend/parser/sysY.l"
 { return RightBrack;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 80 "frontend/parser/sysY.l"
+#line 82 "frontend/parser/sysY.l"
 { return LeftBrace;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 81 "frontend/parser/sysY.l"
+#line 83 "frontend/parser/sysY.l"
 { return RightBrace;}
 	YY_BREAK
 /* constants and identifiers */
 case 40:
 YY_RULE_SETUP
-#line 84 "frontend/parser/sysY.l"
+#line 86 "frontend/parser/sysY.l"
 { yylval.strValue = strdup(yytext);    return StringConst;  }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 85 "frontend/parser/sysY.l"
+#line 87 "frontend/parser/sysY.l"
 { yylval.intValue = atoi(yytext);      return IntegerConst; }
 	YY_BREAK
-/* 这个从神必网址抄过来的 https://www.regular-expressions.info/floatingpoint.html */
+/* 这个从神必网址抄过来的 https://www.regular-expressions.info/floatingpoint.html 😇 */
 case 42:
 YY_RULE_SETUP
-#line 88 "frontend/parser/sysY.l"
+#line 90 "frontend/parser/sysY.l"
 { char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }
 	YY_BREAK
-/* 这是我自己写的不知道对不对，参考 https://en.cppreference.com/w/c/string/byte/strtof */
+/* 这是我自己写的不知道对不对，参考 https://en.cppreference.com/w/c/string/byte/strtof 🤓 */
 case 43:
 YY_RULE_SETUP
-#line 91 "frontend/parser/sysY.l"
-{ printf("Found hex float"); char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }
+#line 93 "frontend/parser/sysY.l"
+{ char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 93 "frontend/parser/sysY.l"
+#line 95 "frontend/parser/sysY.l"
 { yylval.tokenValue = strdup(yytext);  return Identifier;}
 	YY_BREAK
 /* Whitespaces and error */
 case 45:
 /* rule 45 can match eol */
 YY_RULE_SETUP
-#line 96 "frontend/parser/sysY.l"
+#line 98 "frontend/parser/sysY.l"
 {}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 98 "frontend/parser/sysY.l"
+#line 100 "frontend/parser/sysY.l"
 { yyerror(NULL, "Unknown character");}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 99 "frontend/parser/sysY.l"
+#line 101 "frontend/parser/sysY.l"
 ECHO;
 	YY_BREAK
 #line 1086 "frontend/parser/sysY.lex.cc"
@@ -2089,7 +2089,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 99 "frontend/parser/sysY.l"
+#line 101 "frontend/parser/sysY.l"
 
 
 int yywrap() {

@@ -24,6 +24,8 @@ extern void yyerror(struct ASTNode **cur, const char *s);
 HexDigit [0-9a-fA-F]
 HexPrefix 0x|0X
 
+DecimalFloatConst [-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?
+HexFloatConst [-+]?(0x|0X)[0-9a-zA-Z]*\.?[0-9a-zA-Z]+([pP][-+]?[0-9]+)?
 IntConst [1-9][0-9]*|0
 Identifier [a-zA-Z_][a-zA-Z0-9_]*
 FormatString \".*\"
@@ -83,11 +85,11 @@ Whitespaces [ \f\n\r\t\v]
 {FormatString}  { yylval.strValue = strdup(yytext);    return StringConst;  }
 {IntConst}      { yylval.intValue = atoi(yytext);      return IntegerConst; }
 
-    /* 这个从神必网址抄过来的 https://www.regular-expressions.info/floatingpoint.html */
-[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)? { char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }
+    /* 这个从神必网址抄过来的 https://www.regular-expressions.info/floatingpoint.html 😇 */
+{DecimalFloatConst} { char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }
 
-    /* 这是我自己写的不知道对不对，参考 https://en.cppreference.com/w/c/string/byte/strtof */
-[-+]?(0x|0X)[0-9a-zA-Z]*\.?[0-9a-zA-Z]+([pP][-+]?[0-9]+)? { printf("Found hex float"); char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }
+    /* 这是我自己写的不知道对不对，参考 https://en.cppreference.com/w/c/string/byte/strtof 🤓 */
+{HexFloatConst} { char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }
 
 {Identifier}    { yylval.tokenValue = strdup(yytext);  return Identifier;}
 
