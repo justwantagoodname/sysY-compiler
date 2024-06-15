@@ -1,7 +1,6 @@
 %{
 
 #include "sysY.h"
-#include "token.h"
 #include "ast.h"
 #include "action.h"
 
@@ -16,7 +15,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %glr-parser
 
-%expect 2
+%expect 3
 
 %start CompUnit
 
@@ -30,7 +29,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 %token
     Main Const 
 
-    Int Void 
+    Int Void Float
     
     While Break 
     
@@ -177,6 +176,7 @@ InitValList: /* empty */ { $$ = ASTNode_create("InitValue"); }
 
 FuncType: Void { $$ = "Void"; }
         | Int  { $$ = "Int"; }
+        | Float {$$ = "Float";}
         ;
 
 FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block { 
@@ -227,6 +227,7 @@ BlockItem:  /* empty */ { $$ = ASTNode_create("Scope");
          ;
 
 PrimaryType: Int { $$ = "Int"; }
+           | Float { $$ = "Float"; }
            ;
 
 Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign"); ASTNode* dest = ASTNode_create("Dest"); ASTNode_add_child(dest, $1); ASTNode_add_child($$, dest); ASTNode_add_child($$, $3);}

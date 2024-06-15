@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 11 "frontend/parser/sysY.y"
+#line 10 "frontend/parser/sysY.y"
 
   extern int yylex();
 
@@ -59,38 +59,39 @@ extern int yydebug;
     Const = 259,                   /* Const  */
     Int = 260,                     /* Int  */
     Void = 261,                    /* Void  */
-    While = 262,                   /* While  */
-    Break = 263,                   /* Break  */
-    If = 264,                      /* If  */
-    Else = 265,                    /* Else  */
-    Continue = 266,                /* Continue  */
-    Return = 267,                  /* Return  */
-    Not = 268,                     /* Not  */
-    And = 269,                     /* And  */
-    Or = 270,                      /* Or  */
-    Plus = 271,                    /* Plus  */
-    Minus = 272,                   /* Minus  */
-    Mult = 273,                    /* Mult  */
-    Div = 274,                     /* Div  */
-    Mod = 275,                     /* Mod  */
-    Less = 276,                    /* Less  */
-    Greater = 277,                 /* Greater  */
-    GreaterEq = 278,               /* GreaterEq  */
-    LessEq = 279,                  /* LessEq  */
-    Equal = 280,                   /* Equal  */
-    NotEq = 281,                   /* NotEq  */
-    Assign = 282,                  /* Assign  */
-    SemiCon = 283,                 /* SemiCon  */
-    Comma = 284,                   /* Comma  */
-    LeftParent = 285,              /* LeftParent  */
-    RightParent = 286,             /* RightParent  */
-    LeftBrack = 287,               /* LeftBrack  */
-    RightBrack = 288,              /* RightBrack  */
-    LeftBrace = 289,               /* LeftBrace  */
-    RightBrace = 290,              /* RightBrace  */
-    IntegerConst = 291,            /* IntegerConst  */
-    StringConst = 292,             /* StringConst  */
-    Identifier = 293               /* Identifier  */
+    Float = 262,                   /* Float  */
+    While = 263,                   /* While  */
+    Break = 264,                   /* Break  */
+    If = 265,                      /* If  */
+    Else = 266,                    /* Else  */
+    Continue = 267,                /* Continue  */
+    Return = 268,                  /* Return  */
+    Not = 269,                     /* Not  */
+    And = 270,                     /* And  */
+    Or = 271,                      /* Or  */
+    Plus = 272,                    /* Plus  */
+    Minus = 273,                   /* Minus  */
+    Mult = 274,                    /* Mult  */
+    Div = 275,                     /* Div  */
+    Mod = 276,                     /* Mod  */
+    Less = 277,                    /* Less  */
+    Greater = 278,                 /* Greater  */
+    GreaterEq = 279,               /* GreaterEq  */
+    LessEq = 280,                  /* LessEq  */
+    Equal = 281,                   /* Equal  */
+    NotEq = 282,                   /* NotEq  */
+    Assign = 283,                  /* Assign  */
+    SemiCon = 284,                 /* SemiCon  */
+    Comma = 285,                   /* Comma  */
+    LeftParent = 286,              /* LeftParent  */
+    RightParent = 287,             /* RightParent  */
+    LeftBrack = 288,               /* LeftBrack  */
+    RightBrack = 289,              /* RightBrack  */
+    LeftBrace = 290,               /* LeftBrace  */
+    RightBrace = 291,              /* RightBrace  */
+    IntegerConst = 292,            /* IntegerConst  */
+    StringConst = 293,             /* StringConst  */
+    Identifier = 294               /* Identifier  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -99,14 +100,14 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 23 "frontend/parser/sysY.y"
+#line 22 "frontend/parser/sysY.y"
 
   int intValue;
   const char* strValue;
   const char* tokenValue;
   struct ASTNode *astNode;
 
-#line 110 "frontend/parser/sysY.tab.hh"
+#line 111 "frontend/parser/sysY.tab.hh"
 
 };
 typedef union YYSTYPE YYSTYPE;
