@@ -21,12 +21,13 @@
 extern void yyerror(struct ASTNode **cur, const char *s);
 %}
 
-HexDigit [0-9a-fA-F]
-HexPrefix 0x|0X
-
 DecimalFloatConst [-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?
-HexFloatConst [-+]?(0x|0X)[0-9a-zA-Z]*\.?[0-9a-zA-Z]+([pP][-+]?[0-9]+)?
-IntConst [1-9][0-9]*|0
+HexFloatConst [-+]?(0x|0X)[0-9a-zA-Z]*\.?[0-9a-zA-Z]+([pP][-+]?[0-9]+)
+
+DecConst [1-9][0-9]*
+OctConst 0[0-7]*
+HexConst (0x|0X)[0-9a-fA-F]+
+
 Identifier [a-zA-Z_][a-zA-Z0-9_]*
 FormatString \".*\"
 Comment "//".*\n
@@ -83,7 +84,15 @@ Whitespaces [ \f\n\r\t\v]
 
     /* constants and identifiers */
 {FormatString}  { yylval.strValue = strdup(yytext);    return StringConst;  }
-{IntConst}      { yylval.intValue = atoi(yytext);      return IntegerConst; }
+
+
+    /* 解析十进制常量 */
+{DecConst}      { yylval.intValue = std::stoi(yytext, 0, 10);      return IntegerConst; }
+
+    /* 为了尊重原 sysy 文档实际上 单个零会变成八进制常量，不过这无所谓因为 0 表示是一样的 */
+{OctConst}          { yylval.intValue = std::stoi(yytext, 0, 8);       return IntegerConst; }
+
+{HexConst}          { yylval.intValue = std::stoi(yytext, 0, 16);      return IntegerConst; }
 
     /* 这个从神必网址抄过来的 https://www.regular-expressions.info/floatingpoint.html 😇 */
 {DecimalFloatConst} { char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }

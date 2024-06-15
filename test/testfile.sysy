@@ -1,13 +1,6 @@
 int main() {
-	int x;
-	float y;
-	float z = -123e3;
-	float a = 0.5;
-	float b = -.5;
-	float c = .5;
-	float d = 0.123e2;
-
-	float e = 0x1p10;
-	float f = 0X1P10;
-	float g = 0x1p-10;
+	int a = 0;
+	int b = 123;
+	int c = 0123;
+	int d = 0x123;
 }
