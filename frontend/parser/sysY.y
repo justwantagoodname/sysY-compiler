@@ -1,7 +1,6 @@
 %{
 
 #include "sysY.h"
-#include "token.h"
 #include "ast.h"
 #include "action.h"
 
@@ -16,12 +15,13 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %glr-parser
 
-%expect 2
+%expect 3
 
 %start CompUnit
 
 %union {
   int intValue;
+  float floatValue;
   const char* strValue;
   const char* tokenValue;
   struct ASTNode *astNode;
@@ -30,7 +30,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 %token
     Main Const 
 
-    Int Void 
+    Int Void Float
     
     While Break 
     
@@ -55,9 +55,9 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %token <intValue> IntegerConst
 
-%token <strValue> StringConst Identifier
+%token <floatValue> FloatConst
 
-%type <intValue> Number
+%token <strValue> StringConst Identifier
 
 %type <astNode> CompUnit MainFuncDef Block BlockItem Stmt LVal 
                 ConstExp Exp UnaryExp PrimaryExp ExpWrapper ArrayDecl InitValue InitValList ConstInitValue ConstInitValList
@@ -66,7 +66,8 @@ void yyerror(struct ASTNode **cur, const char *s);
                 VarDecl VarDefList VarDef 
                 ConstDecl ConstDefList ConstDef 
                 Decl GlobalDecl 
-                ArrayLocator ArrayLocatorList
+                ArrayLocator ArrayLocatorList 
+                Number
 
 %type <strValue> UnaryOp
 
@@ -177,6 +178,7 @@ InitValList: /* empty */ { $$ = ASTNode_create("InitValue"); }
 
 FuncType: Void { $$ = "Void"; }
         | Int  { $$ = "Int"; }
+        | Float {$$ = "Float";}
         ;
 
 FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block { 
@@ -227,6 +229,7 @@ BlockItem:  /* empty */ { $$ = ASTNode_create("Scope");
          ;
 
 PrimaryType: Int { $$ = "Int"; }
+           | Float { $$ = "Float"; }
            ;
 
 Stmt: LVal Assign ExpWrapper SemiCon { $$ = ASTNode_create("Assign"); ASTNode* dest = ASTNode_create("Dest"); ASTNode_add_child(dest, $1); ASTNode_add_child($$, dest); ASTNode_add_child($$, $3);}
@@ -286,7 +289,7 @@ UnaryExp: PrimaryExp { $$ = $1; }
         ; 
 
 PrimaryExp: LVal { $$ = ASTNode_create("Fetch"); ASTNode_add_child($$, $1); }
-          | Number { $$ = ASTNode_create("Number"); ASTNode_add_attr_int($$, "value", $1);}
+          | Number { $$ = $1; }
           | LeftParent Exp RightParent { $$ = $2; }
           ;
 
@@ -324,7 +327,8 @@ FuncRParamList: Exp {
                                           }
               ;
 
-Number: IntegerConst
+Number: IntegerConst  { $$ = ASTNode_create("Number"); ASTNode_add_attr_int($$, "value", $1);     }
+      | FloatConst    { $$ = ASTNode_create("Number"); ASTNode_add_attr_float($$, "value", $1);   }
       ;
 
 Cond: ExpWrapper

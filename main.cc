@@ -16,8 +16,9 @@ int main(int argc, const char** argv) {
 	// root.print();
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
-  	// printf("===After flatten===\n");
   	root.print();
+	
+#ifdef ASM_GEN
 	printf("=== ASM Start ===\n");
 	AssemblyBuilder asfile(Flag::getFlag().getFlagFor("output").c_str());
 
@@ -38,8 +39,9 @@ int main(int argc, const char** argv) {
 	asfile.line()
 		  .raw(".section	.note.GNU-stack,\"\",%progbits")
 		  .line(); // new line in the end
+#endif
 
-//#ifdef TRIPLE_DEBUG
+#ifdef TRIPLE_DEBUG
 	Triples triples(root);
 	triples.pretreat();
 	printf("===After pretreat===\n");
@@ -51,7 +53,7 @@ int main(int argc, const char** argv) {
 	root.print();
 
 	triples.print();
-//#endif
+#endif
 
 	return 0;
 }
