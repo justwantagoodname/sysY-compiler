@@ -1,6 +1,10 @@
+int a = 123;
+int b = 0x123ef;
+
+int f() {
+
+}
+
 int main() {
-	int a = 0;
-	int b = 123;
-	int c = 0123;
-	int d = 0x123;
+	
 }

@@ -13,11 +13,14 @@ int main(int argc, const char** argv) {
   
 	Element root = Element::CreateByFile(Flag::getFlag().getFlagFor("input").c_str());
 
-	// root.print();
+	root.print();
+
+#ifdef UNION_OPTIMIZTION
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
   	root.print();
-	
+#endif
+
 #ifdef ASM_GEN
 	printf("=== ASM Start ===\n");
 	AssemblyBuilder asfile(Flag::getFlag().getFlagFor("output").c_str());
