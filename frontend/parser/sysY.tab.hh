@@ -90,8 +90,9 @@ extern int yydebug;
     LeftBrace = 290,               /* LeftBrace  */
     RightBrace = 291,              /* RightBrace  */
     IntegerConst = 292,            /* IntegerConst  */
-    StringConst = 293,             /* StringConst  */
-    Identifier = 294               /* Identifier  */
+    FloatConst = 293,              /* FloatConst  */
+    StringConst = 294,             /* StringConst  */
+    Identifier = 295               /* Identifier  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -103,11 +104,12 @@ union YYSTYPE
 #line 22 "frontend/parser/sysY.y"
 
   int intValue;
+  float floatValue;
   const char* strValue;
   const char* tokenValue;
   struct ASTNode *astNode;
 
-#line 111 "frontend/parser/sysY.tab.hh"
+#line 113 "frontend/parser/sysY.tab.hh"
 
 };
 typedef union YYSTYPE YYSTYPE;

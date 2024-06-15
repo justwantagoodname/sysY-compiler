@@ -21,6 +21,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %union {
   int intValue;
+  float floatValue;
   const char* strValue;
   const char* tokenValue;
   struct ASTNode *astNode;
@@ -54,9 +55,9 @@ void yyerror(struct ASTNode **cur, const char *s);
 
 %token <intValue> IntegerConst
 
-%token <strValue> StringConst Identifier
+%token <floatValue> FloatConst
 
-%type <intValue> Number
+%token <strValue> StringConst Identifier
 
 %type <astNode> CompUnit MainFuncDef Block BlockItem Stmt LVal 
                 ConstExp Exp UnaryExp PrimaryExp ExpWrapper ArrayDecl InitValue InitValList ConstInitValue ConstInitValList
@@ -65,7 +66,8 @@ void yyerror(struct ASTNode **cur, const char *s);
                 VarDecl VarDefList VarDef 
                 ConstDecl ConstDefList ConstDef 
                 Decl GlobalDecl 
-                ArrayLocator ArrayLocatorList
+                ArrayLocator ArrayLocatorList 
+                Number
 
 %type <strValue> UnaryOp
 
@@ -287,7 +289,7 @@ UnaryExp: PrimaryExp { $$ = $1; }
         ; 
 
 PrimaryExp: LVal { $$ = ASTNode_create("Fetch"); ASTNode_add_child($$, $1); }
-          | Number { $$ = ASTNode_create("Number"); ASTNode_add_attr_int($$, "value", $1);}
+          | Number { $$ = $1; }
           | LeftParent Exp RightParent { $$ = $2; }
           ;
 
@@ -325,7 +327,8 @@ FuncRParamList: Exp {
                                           }
               ;
 
-Number: IntegerConst
+Number: IntegerConst  { $$ = ASTNode_create("Number"); ASTNode_add_attr_int($$, "value", $1);     }
+      | FloatConst    { $$ = ASTNode_create("Number"); ASTNode_add_attr_float($$, "value", $1);   }
       ;
 
 Cond: ExpWrapper
