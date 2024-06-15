@@ -21,8 +21,8 @@
 extern void yyerror(struct ASTNode **cur, const char *s);
 %}
 
-DecimalFloatConst [-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?
-HexFloatConst [-+]?(0x|0X)[0-9a-zA-Z]*\.?[0-9a-zA-Z]+([pP][-+]?[0-9]+)
+DecimalFloatConst [0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?
+HexFloatConst (0x|0X)[0-9a-zA-Z]*\.?[0-9a-zA-Z]+([pP][-+]?[0-9]+)
 
 DecConst [1-9][0-9]*
 OctConst 0[0-7]*
