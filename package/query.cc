@@ -110,3 +110,11 @@ Query::Iter Query::begin() {
 Query::Iter Query::end() {
     return nullptr;
 }
+
+size_t Query::size()
+{
+    int count = 0;
+    QueryResult* cur = NULL;
+    DL_COUNT(result, cur, count); 
+    return count;
+}

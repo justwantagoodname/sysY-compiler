@@ -73,16 +73,22 @@ public:
 		ASTNode* it;
 		bool flag = false;
 		Iter(ASTNode* q);
+		Iter(ASTNode* q, bool);
 		Iter& operator ++();
+		Iter& next();
 		bool operator!=(const Iter& other)const;
 		Element operator*();
 		operator Element();
 	};
 
+	Iter dfsbegin() const;
+	Iter dfsend() const;
+
 	Iter begin() const;
 	Iter end() const;
 
 	ASTNode* unwrap() const;
+	ASTNode* children() const;
 };
 
 #endif // ELEMENT_H

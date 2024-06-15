@@ -78,14 +78,11 @@ size_t Triples::size()
 	return triples.size();
 }
 
-#define DFS_Element(root) 	for (Element::Iter iter = root.begin();\
-		 iter != root.end(); ++iter) 
-#define DFS_Element_init\
-		Element element = *iter; \
-		const char* id = element.id(); \
-		const bool flag = element.flag
-#define beginElement(eqid) (!strcmp(id, (eqid)) && !flag)
-#define endElement(eqid) (!strcmp(id, (eqid)) && flag)
+#define DFS_Element(node) 	for (Element::Iter iter = (node).dfsbegin();\
+		 iter != (node).dfsend(); iter.next()) 
+#define DFS_Element_init Element element = *iter
+#define beginElement(eqid) (!strcmp((*iter).id(), (eqid)) && !(*iter).flag)
+#define endElement(eqid) (!strcmp((*iter).id(), (eqid)) && (*iter).flag)
 #define ife(eqid) if (endElement(eqid))
 #define ifb(eqid) if (beginElement(eqid))
 #define cut {iter.flag = true; continue;}
@@ -123,15 +120,11 @@ void Triples::make()
 	int tag_count = 0; // 临时标签计数器
 
 	//for (auto element : root) {
-	for (Element::Iter iter = root.begin(); iter != root.end(); ++iter) {
+	DFS_Element(root) {
 		Element element = *iter;
-		const char* id = element.id();
-		const bool flag = element.flag;
 
 		ifb("Decl") {
 			cut;
-			if (strcmp(element.get_attr_str("name"), "Global") != 0)
-				cut;
 		}
 		ife("Exp") {
 			if (element[0].get_attr("temp")) {
@@ -215,9 +208,9 @@ void Triples::make()
 			TripleValue d = {};
 			if (element[0].get_attr("array"))
 				d = element[0].get_attr_int("temp");
-			TripleValue lcmd = triples.find(Cmd.mov, { a, TT.value }, d);
+			TripleValue lcmd = triples.find(Cmd.mov, { a, TT.value, d }, {});
 			if (lcmd.type == TT.null) {
-				triples.add(Cmd.mov, { a, TT.value }, d, { temp_count });
+				triples.add(Cmd.mov, { a, TT.value, d }, {}, { temp_count });
 				element.add_attr("temp", temp_count);
 				++temp_count;
 			}
@@ -230,7 +223,10 @@ void Triples::make()
 		ife("Assign") {
 			int a = element[0].get_attr_int("addr");
 			int t = element[1].get_attr_int("temp");
-			triples.add(Cmd.mov, { t }, {}, { a, TT.value });
+			TripleValue d = {};
+			if (element[0].get_attr("array"))
+				d = element[0].get_attr_int("temp");
+			triples.add(Cmd.mov, { t }, {}, { a, TT.value, d });
 		}
 
 #define makeCond(cmd) do{\
@@ -443,15 +439,47 @@ void Triples::make()
 			triples.add(Cmd.pop, {}, {}, { a, TT.value });
 		}
 		ifb("Var") {
-			element[0].add_attr("name", element.get_attr_str("name"));
+			Element init = element("/InitValue");
+			if (init) {
+				init.add_attr("name", element.get_attr_str("name"));
+			}
 		}
 		ife("InitValue") {
-			if (element.get_attr("array")) {
+			if (!element.get_attr("array")) {
 				const char* s = element.get_attr_str("name");
 				Element value = element.table(s);
 				int a = triples.find(value);
 				int t = element[0].get_attr_int("temp");
 				triples.add(Cmd.mov, { t }, {}, { a, TT.value });
+			}
+			else {
+				int count = 0;
+				int value_idx = triples.find(element.table(element.get_attr_str("name")));
+				for (auto e : element) {
+					e.add_attr("start", count);
+					count += e.get_attr_int("repeat");
+				}
+				element.add_attr("size", count);
+				triples.add(Cmd.mset,
+					{ 0, TT.value },
+					{ count , TT.dimd }, {});
+
+				for (auto e : element) {
+					int len = e.get_attr_int("repeat");
+					int base = e.get_attr_int("start");
+					TripleValue t;
+					if (e.get_attr("value")) {
+						t = { e.get_attr_int("value"), TT.dimd };
+					} else if (e.get_attr("temp")) {
+						t = { e.get_attr_int("temp"), TT.temp };
+					}
+					if (t.value != 0 || t.type != TT.dimd) {
+						for (int i = 0; i < len; ++i) {
+							triples.add(Cmd.mov, t, {},
+								{ value_idx, TT.value, {base + i, TT.dimd} });
+						}
+					}
+				}
 			}
 		}
 	}
@@ -483,6 +511,9 @@ void Triples::print() const
 			"div",
 			"mod",
 			"tag",
+			"d2f",
+			"f2d",
+			"mset",
 		};
 		if (i.cmd == Cmd.tag) {
 			i.e1.toString(ts1, *this);
@@ -500,11 +531,44 @@ void Triples::print() const
 
 bool Triples::TripleValue::operator==(const Triples::TripleValue& t) const
 {
-	return value == t.value && type == t.type;
+	return value == t.value && type == t.type
+		&& ((added != nullptr && t.added != nullptr && (*added) == (*t.added))
+			|| (added == nullptr && t.added == nullptr));
+}
+
+bool Triples::TripleValue::operator!=(const Triples::TripleValue& t) const
+{
+	return value != t.value || type != t.type
+		|| ((added != nullptr && t.added != nullptr && (*added) != (*t.added))
+			|| ((added == nullptr) ^ (t.added == nullptr)));
+}
+
+Triples::TripleValue::TripleValue(int v,
+	Triples::TripleType ty, const Triples::TripleValue& at)
+	: value(v), type(ty), added(nullptr)
+{
+	if (at.type != TT.null)
+		added = new TripleValue(at);
+	else
+		added = nullptr;
+}
+
+Triples::TripleValue::TripleValue(const TripleValue& at)
+	: value(at.value), type(at.type), added(nullptr)
+{
+	if (at.added != nullptr)
+		added = new TripleValue(*at.added);
+}
+
+Triples::TripleValue::~TripleValue()
+{
+	if (added)
+		delete added;
 }
 
 void Triples::TripleValue::toString(char s[], const Triples& triples)
 {
+	char ts[55];
 	switch (type)
 	{
 	case TT.null:
@@ -517,7 +581,12 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		snprintf(s, 20, "#%d", value);
 		break;
 	case TT.value:
-		snprintf(s, 40, "%s", triples.value_pointer[value].get_attr_str("name"));
+		if (added == nullptr) {
+			snprintf(s, 40, "%s", triples.value_pointer[value].get_attr_str("name"));
+		} else {
+			added->toString(ts, triples);
+			snprintf(s, 50, "%s[%s]", triples.value_pointer[value].get_attr_str("name"), ts);
+		}
 		break;
 	case TT.func:
 		snprintf(s, 50, "%d@%s",

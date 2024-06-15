@@ -21,7 +21,7 @@ Element Element::CreateByFile(const char* filename) {
 
 Element::Element(ASTNode* n) : node(n) {}
 
-Element::Element(ASTNode* n, bool f): node(n), flag(f) {}
+Element::Element(ASTNode* n, bool f) : node(n), flag(f) {}
 
 Element::Element(const Element& e) : node(e.node) {}
 
@@ -68,7 +68,7 @@ Element& Element::operator+=(ASTNode* e) {
 }
 
 ASTAttribute& Element::operator[](const char* key) const {
-    return *ASTNode_get_attr_or_null(node, key);
+	return *ASTNode_get_attr_or_null(node, key);
 }
 
 Element Element::operator[](int index) const {
@@ -183,7 +183,7 @@ bool Element::get_attr(const char* key, const char** value) const {
 }
 
 ASTAttribute* Element::get_attr(const char* key) const {
-    return ASTNode_get_attr_or_null(node, key);
+	return ASTNode_get_attr_or_null(node, key);
 }
 
 int Element::get_attr_int(const char* key) const {
@@ -288,29 +288,41 @@ size_t Element::size() const
 	return count;
 }
 
-Element::Iter Element::begin() const
+Element::Iter Element::dfsbegin() const
 {
 	return Element::Iter(node);
 }
 
+Element::Iter Element::dfsend() const
+{
+	return Element::Iter(node, true);
+}
+
+Element::Iter Element::begin() const
+{
+	return node->children;
+}
+
 Element::Iter Element::end() const
 {
-	return Element::Iter(node -> parent);
+	return nullptr;
 }
 
 Element::Iter::Iter(ASTNode* q) : it(q) {}
 
-Element::Iter& Element::Iter::operator++() {
+Element::Iter::Iter(ASTNode* q, bool f) : it(q), flag(f) {}
 
-	if (it->children && !flag) { //�����Ҷ�ӽڵ㲢��Ϊ����
+Element::Iter& Element::Iter::next() {
+
+	if (it->children && !flag) { 
 		it = it->children;
 		flag = false;
 	}
-	else if (it->next) { //�������һ���ֵܽڵ�
+	else if (it->next) {
 		it = it->next;
 		flag = false;
 	}
-	else if (it->parent) { //����и��ڵ�
+	else if (it->parent) {
 		it = it->parent;
 		flag = true;
 	}
@@ -326,8 +338,13 @@ Element::Iter& Element::Iter::operator++() {
 
 }
 
+Element::Iter& Element::Iter::operator++() {
+	it = it->next;
+	return *this;
+}
+
 bool Element::Iter::operator!=(const Element::Iter& other)const {
-	return it != other.it;
+	return it != other.it || flag != other.flag;
 }
 
 Element Element::Iter::operator*() {
@@ -340,5 +357,10 @@ Element::Iter::operator Element()
 }
 
 ASTNode* Element::unwrap() const {
-    return node;
+	return node;
+}
+
+ASTNode* Element::children() const
+{
+	return node->children;
 }

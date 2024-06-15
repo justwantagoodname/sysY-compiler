@@ -1,7 +1,7 @@
 //const int c[2][2] = {{1, 2}, {3, 4}};
    
 int d[2][3] = {{1, 0}, {0, 1}};
-int dd[20] = {0};
+
 int as = 10;
 const int cas = 10;
 
@@ -21,8 +21,8 @@ const int cas = 10;
 
 int main() {
 	int a,b,c;
-
 	int va = 1;
+	int dd[20][30] = {{1, 1, va}, {0, 1}};
 	const int cb = 1;
 	const int ca = 1 + 1 + 1 + cb;
 

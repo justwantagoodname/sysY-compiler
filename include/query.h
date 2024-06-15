@@ -32,6 +32,7 @@ public:
 
     Iter begin();
     Iter end();
+    size_t size();
 };
 
 #endif // QUERY_H
