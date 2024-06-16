@@ -40,8 +40,7 @@ public:
 	public:
 		enum TRIPLEVALUE_ENUM {
 			null,
-			dimd, // int立即数
-			fimd, // float立即数
+			imd, // int立即数
 			temp, // 临时变量
 			value,// 变量编号
 			func, // 函数编号

@@ -336,8 +336,8 @@ FuncRParamList: Exp {
                                           }
               ;
 
-Number: IntegerConst  { $$ = ASTNode_create("Number"); ASTNode_add_attr_int($$, "value", $1);     }
-      | FloatConst    { $$ = ASTNode_create("Number"); ASTNode_add_attr_float($$, "value", $1);   }
+Number: IntegerConst  { $$ = ASTNode_create_attr("Number", 1, "type", "Int"); ASTNode_add_attr_int($$, "value", $1);     }
+      | FloatConst    { $$ = ASTNode_create_attr("Number", 1, "type", "Float"); ASTNode_add_attr_float($$, "value", $1);   }
       ;
 
 Cond: ExpWrapper

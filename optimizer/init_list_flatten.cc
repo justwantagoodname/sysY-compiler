@@ -32,6 +32,14 @@ bool ArrayInitNode_need_flatten(const ASTNode *root) {
     assert(false); // 不应该到达这里
 }
 
+ASTNode *ArrayInitItem_create(int value, int repeat, const char* type) {
+    ASTNode *ret = ASTNode_create("Number");
+    ASTNode_add_attr_int(ret, "value", value);
+    ASTNode_add_attr_int(ret, "repeat", repeat);
+    ASTNode_add_attr_str(ret, "type", type);
+    return ret;
+}
+
 ASTNode *ArrayInitItem_create(int value, int repeat) {
     ASTNode *ret = ASTNode_create("Number");
     ASTNode_add_attr_int(ret, "value", value);
@@ -72,8 +80,10 @@ void ConstInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_nod
             assert(ASTNode_id_is(number, "Number"));
             int value = -1;
             ASTNode_get_attr_int(number, "value", &value);
+            const char *type;
+            ASTNode_get_attr_str(number, "type", &type);
 
-            ASTNode_add_child(linear_init, ArrayInitItem_create(value, 1));
+            ASTNode_add_child(linear_init, ArrayInitItem_create(value, 1, type));
             --space;
 
             continue;
@@ -150,7 +160,9 @@ void VarInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_node,
             if (ASTNode_id_is(inner, "Number")) {
                 int value = -1;
                 ASTNode_get_attr_int(inner, "value", &value);
-                ASTNode_add_child(linear_init, ArrayInitItem_create(value, 1));
+                const char *type;
+                ASTNode_get_attr_str(inner, "type", &type);
+                ASTNode_add_child(linear_init, ArrayInitItem_create(value, 1, type));
             } else {
                 // 不是字面量，整体clone
                 ASTNode* cloned_exp = ASTNode_clone(child);
