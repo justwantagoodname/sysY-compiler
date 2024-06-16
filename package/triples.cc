@@ -237,7 +237,7 @@ void Triples::make()
 			triples.add(Cmd.mov, { t }, {}, { a, TT.value, d });
 		}
 
-#define EopETypeTras(node, t0, t1) do{		   \
+#define EopETypeTras(node, t0, t1, isfloat) do{		   \
 		const char* ts0 = (node)[0].get_attr_str("type");\
 		const char* ts1 = (node)[1].get_attr_str("type");\
 		if(strcmp(ts0, "Float") == 0 || strcmp(ts1, "Float") == 0){\
@@ -250,18 +250,22 @@ void Triples::make()
 			t1 = temp_count++; \
 			}	\
 			(node).add_attr("type", "Float");\
+			isfloat = true;\
 		}\
 		else{\
 			(node).add_attr("type", "Int");\
+			isfloat = false;\
 		}\
 		}while(0)
 
-#define makeCond(cmd) do{\
+#define makeCond(cmd, fcmd) do{\
+		bool isfloat = false;\
 		int t0 = element[0].get_attr_int("temp");\
 		int t1 = element[1].get_attr_int("temp");\
 		int idx = triples.size();\
-		EopETypeTras(element, t0, t1);\
-		triples.add((cmd), {t0}, {t1}, {});\
+		EopETypeTras(element, t0, t1, isfloat);\
+		CMD::CMD_ENUM tcmd = isfloat ? (fcmd) : (cmd);\
+		triples.add(tcmd, {t0}, {t1}, {});\
 		triples.add(Cmd.jmp, {}, {}, {});\
 		triples.add(Cmd.tag, { tag_count++, TT.lamb}, {}, {});\
 		element.add_attr("true", idx);\
@@ -269,22 +273,22 @@ void Triples::make()
 		} while(0)
 
 		ife("Equal") {
-			makeCond(Cmd.jeq);
+			makeCond(Cmd.jeq, Cmd.jeqf);
 		}
 		ife("NotEq") {
-			makeCond(Cmd.jne);
+			makeCond(Cmd.jne, Cmd.jnef);
 		}
 		ife("Less") {
-			makeCond(Cmd.jlt);
+			makeCond(Cmd.jlt, Cmd.jltf);
 		}
 		ife("LessEq") {
-			makeCond(Cmd.jle);
+			makeCond(Cmd.jle, Cmd.jlef);
 		}
 		ife("Greater") {
-			makeCond(Cmd.jgt);
+			makeCond(Cmd.jgt, Cmd.jgtf);
 		}
 		ife("GreaterEq") {
-			makeCond(Cmd.jge);
+			makeCond(Cmd.jge, Cmd.jgef);
 		}
 		ife("And") {
 			int t1 = element[0].get_attr_int("true"),
@@ -386,13 +390,15 @@ void Triples::make()
 				++temp_count;
 			}
 		}
-#define EopE(cmd) do{\
+#define EopE(cmd, fcmd) do{\
+		bool isfloat = false;\
 		int t0 = element[0].get_attr_int("temp"); \
 		int t1 = element[1].get_attr_int("temp"); \
-		EopETypeTras(element, t0, t1);\
-		TripleValue lcmd = triples.find(cmd, t0, t1); \
+		EopETypeTras(element, t0, t1, isfloat);\
+		CMD::CMD_ENUM cmdt = isfloat? fcmd : cmd;\
+		TripleValue lcmd = triples.find(cmdt, t0, t1); \
 		if(lcmd.type == TT.null){ \
-		triples.add(cmd, {t0}, {t1}, {temp_count}); \
+		triples.add(cmdt, {t0}, {t1}, {temp_count}); \
 			element.add_attr("temp", temp_count); \
 			++temp_count; \
 		}\
@@ -401,19 +407,20 @@ void Triples::make()
 		} \
 		}while (0)
 		ife("Plus") {
-			EopE(Cmd.add);
+			EopE(Cmd.add, Cmd.fadd);
 		}
 		ife("Minus") {
-			EopE(Cmd.sub);
+			EopE(Cmd.sub, Cmd.fsub);
 		}
 		ife("Mult") {
-			EopE(Cmd.mul);
+			EopE(Cmd.mul, Cmd.fmul);
 		}
 		ife("Div") {
-			EopE(Cmd.div);
+			EopE(Cmd.div, Cmd.fdiv);
 		}
 		ife("Mod") {
-			EopE(Cmd.mod);
+			EopE(Cmd.mod, Cmd.mod);
+			assert(strcat("Int", element.get_attr_str("type")) == 0);
 		}
 		ife("Call") {
 			int count = 0;
@@ -539,6 +546,12 @@ void Triples::print() const
 			"jlt",
 			"jge",
 			"jle",
+			"jeqf",
+			"jnef",
+			"jgtf",
+			"jltf",
+			"jgef",
+			"jlef",
 			"ret",
 			"rev",
 			"pus",
@@ -548,6 +561,10 @@ void Triples::print() const
 			"mul",
 			"div",
 			"mod",
+			"fadd",
+			"fsub",
+			"fmul",
+			"fdiv",
 			"tag",
 			"d2f",
 			"f2d",
