@@ -162,7 +162,7 @@ void Triples::make()
 		ife("Address") {
 			const char* s = element.get_attr_str("base");
 			Element value = element.table(s);
-
+            // TODO：考虑到现在没做错误处理，建议价格断言防止引用未定义变量
 			if (value.get_attr("array")) { // is array
 				element.add_attr("array", 1);
 				element.add_attr("temp", element[0].get_attr_int("temp"));
@@ -420,7 +420,7 @@ void Triples::make()
 		}
 		ife("Mod") {
 			EopE(Cmd.mod, Cmd.mod);
-			assert(strcat("Int", element.get_attr_str("type")) == 0);
+			assert(strcmp("Int", element.get_attr_str("type")) == 0);
 		}
 		ife("Call") {
 			int count = 0;
@@ -485,6 +485,7 @@ void Triples::make()
 			const char* et = element.get_attr_str("type");
 
 			if (!element.get_attr("array")) {
+                // TODO: 需要加一个断言，在未展平数组表示前运行到这里会出错
 				const char* s = element.get_attr_str("name");
 				const char* vt = element[0].get_attr_str("type");
 				Element value = element.table(s);
