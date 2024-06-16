@@ -151,3 +151,48 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
         .line("\t.align %d", this->word_align)
         .line();
 }
+
+void GlobalDeclInflater::stringInflate(AssemblyBuilder &asm_builder) {
+    QueryResult *strings = ASTNode_querySelector(compunit, "//Param[@type='StringConst']"),
+            *cur = nullptr;
+
+    DL_FOREACH(strings, cur) {
+        auto *str_decl = cur->node;
+        char* label = getStrLabel(str_decl);
+        ASTNode_add_attr_str(str_decl, "label", label);
+        inflateStringConst(str_decl, asm_builder);
+//        ASTNode_print(var_decl);
+    }
+}
+
+void GlobalDeclInflater::inflateStringConst(ASTNode *string_const, AssemblyBuilder &asm_builder) {
+    assert(ASTNode_id_is(string_const, "Param"));
+    assert(ASTNode_has_attr(string_const, "type"));
+    const char* type_name;
+    ASTNode_get_attr_str(string_const, "type", &type_name);
+    assert(strcmp(type_name, "StringConst") == 0);
+
+    assert(ASTNode_has_attr(string_const, "label"));
+
+    const char* label_name;
+    ASTNode_get_attr_str(string_const, "label", &label_name);
+
+    assert(ASTNode_has_attr(string_const, "value"));
+
+    const char* str_literal;
+    ASTNode_get_attr_str(string_const, "value", &str_literal);
+
+    asm_builder
+        .line("%s:", label_name)
+        .line("\t.asciz \"%s\"", str_literal)
+        .line("\t.section .rodata")
+        .line("\t.align %d", this->word_align)
+        .line();
+}
+
+char *GlobalDeclInflater::getStrLabel([[maybe_unused]] ASTNode *decl) {
+    static int str_count = 0;
+    char *ret = NULL;
+    asprintf(&ret, "STR%d", str_count++);
+    return ret;
+}
