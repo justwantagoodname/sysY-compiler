@@ -9,6 +9,7 @@ void Triples::add(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e
 
 int Triples::find(const Element& e)
 {
+	assert(e);
 	for (int i = 0; i < value_pointer.size(); ++i) {
 		if (value_pointer[i] == e)return i;
 	}
@@ -461,7 +462,7 @@ void Triples::make()
 				}
 				element.add_attr("size", count);
 				triples.add(Cmd.mset,
-					{ 0, TT.value },
+					{ value_idx, TT.value },
 					{ count , TT.dimd }, {});
 
 				for (auto e : element) {
@@ -487,6 +488,7 @@ void Triples::make()
 
 void Triples::print() const
 {
+
 	char ts1[55], ts2[55], ts3[55];
 	int idx = 0;
 	printf("\n");

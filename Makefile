@@ -3,7 +3,7 @@ LEX = flex
 YACC = bison
 ZIP = zip
 
-DEFINES = -DXML_PP -DDEBUG
+DEFINES = -DXML_PP -DDEBUG -DTRIPLE_DEBUG
 CXXFLAGS = -std=c++17 
 LDFLAGS = -lm
 JOBS := 4

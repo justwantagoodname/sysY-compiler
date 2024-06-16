@@ -83,20 +83,53 @@ Element Element::operator[](int index) const {
 	return child;
 }
 
-Query Element::operator()(const char* key) const {
-	return ASTNode_querySelector(node, key);
+//Query Element::operator()(const char* key) const {
+//	return ASTNode_querySelector(node, key);
+//}
+
+Query Element::operator()(const char* fmt, ...) const {
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	QueryResult* result = ASTNode_querySelector(node, selector);
+	::free(selector);
+	return result;
 }
 
 Element Element::operator%(const char* key) const {
 	return ASTNode_querySelectorOne(node, key);
 }
 
-Query Element::q(const char* key) const {
-	return ASTNode_querySelector(node, key);
+Query Element::q(const char* fmt, ...) const {
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	QueryResult* result = ASTNode_querySelector(node, selector);
+	::free(selector);
+	return result;
 }
 
-Element Element::qo(const char* key) const {
-	return ASTNode_querySelectorOne(node, key);
+//Query Element::q(const char* key) const {
+//	return ASTNode_querySelector(node, key);
+//}
+//
+//Element Element::qo(const char* key) const {
+//	return ASTNode_querySelectorOne(node, key);
+//}
+
+Element Element::qo(const char* fmt, ...) const {
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	ASTNode* result = ASTNode_querySelectorOne(node, selector);
+	::free(selector);
+	return result;
 }
 
 Element Element::at(int index) const {
@@ -268,14 +301,33 @@ Element Element::querySelectorOne(const char* selector) const {
 	return ASTNode_querySelectorOne(node, selector);
 }
 
+Query Element::querySelectorf(const char* fmt, ...) const
+{
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	QueryResult* result = ASTNode_querySelector(node, selector);
+	::free(selector);
+	return result;
+}
+
+Element Element::querySelectorOnef(const char* fmt, ...) const
+{
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	ASTNode* result = ASTNode_querySelectorOne(node, selector);
+	::free(selector);
+	return result;
+}
+
 Element Element::table(const char* key) const
 {
-	char* selector = (char*)malloc(strlen(key) + 50);
-	assert(selector);
-	snprintf(selector, strlen(key) + 48, "ancestor::Scope/Decl/*[@name='%s']", key);
-	Element e = this->qo(selector);
-	assert(e.node);
-	::free(selector);
+	Element e = this->qo("ancestor::Scope/Decl/*[@name='%s']", key);
 	return e;
 }
 
