@@ -21,7 +21,7 @@ Element Element::CreateByFile(const char* filename) {
 
 Element::Element(ASTNode* n) : node(n) {}
 
-Element::Element(ASTNode* n, bool f): node(n), flag(f) {}
+Element::Element(ASTNode* n, bool f) : node(n), flag(f) {}
 
 Element::Element(const Element& e) : node(e.node) {}
 
@@ -68,7 +68,7 @@ Element& Element::operator+=(ASTNode* e) {
 }
 
 ASTAttribute& Element::operator[](const char* key) const {
-    return *ASTNode_get_attr_or_null(node, key);
+	return *ASTNode_get_attr_or_null(node, key);
 }
 
 Element Element::operator[](int index) const {
@@ -83,20 +83,53 @@ Element Element::operator[](int index) const {
 	return child;
 }
 
-Query Element::operator()(const char* key) const {
-	return ASTNode_querySelector(node, key);
+//Query Element::operator()(const char* key) const {
+//	return ASTNode_querySelector(node, key);
+//}
+
+Query Element::operator()(const char* fmt, ...) const {
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	QueryResult* result = ASTNode_querySelector(node, selector);
+	::free(selector);
+	return result;
 }
 
 Element Element::operator%(const char* key) const {
 	return ASTNode_querySelectorOne(node, key);
 }
 
-Query Element::q(const char* key) const {
-	return ASTNode_querySelector(node, key);
+Query Element::q(const char* fmt, ...) const {
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	QueryResult* result = ASTNode_querySelector(node, selector);
+	::free(selector);
+	return result;
 }
 
-Element Element::qo(const char* key) const {
-	return ASTNode_querySelectorOne(node, key);
+//Query Element::q(const char* key) const {
+//	return ASTNode_querySelector(node, key);
+//}
+//
+//Element Element::qo(const char* key) const {
+//	return ASTNode_querySelectorOne(node, key);
+//}
+
+Element Element::qo(const char* fmt, ...) const {
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	ASTNode* result = ASTNode_querySelectorOne(node, selector);
+	::free(selector);
+	return result;
 }
 
 Element Element::at(int index) const {
@@ -183,7 +216,7 @@ bool Element::get_attr(const char* key, const char** value) const {
 }
 
 ASTAttribute* Element::get_attr(const char* key) const {
-    return ASTNode_get_attr_or_null(node, key);
+	return ASTNode_get_attr_or_null(node, key);
 }
 
 int Element::get_attr_int(const char* key) const {
@@ -268,14 +301,33 @@ Element Element::querySelectorOne(const char* selector) const {
 	return ASTNode_querySelectorOne(node, selector);
 }
 
+Query Element::querySelectorf(const char* fmt, ...) const
+{
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	QueryResult* result = ASTNode_querySelector(node, selector);
+	::free(selector);
+	return result;
+}
+
+Element Element::querySelectorOnef(const char* fmt, ...) const
+{
+	va_list args;
+	va_start(args, fmt);
+	char* selector = NULL;
+	int ret = vasprintf(&selector, fmt, args);
+	va_end(args);
+	ASTNode* result = ASTNode_querySelectorOne(node, selector);
+	::free(selector);
+	return result;
+}
+
 Element Element::table(const char* key) const
 {
-	char* selector = (char*)malloc(strlen(key) + 50);
-	assert(selector);
-	snprintf(selector, strlen(key) + 48, "ancestor::Scope/Decl/*[@name='%s']", key);
-	Element e = this->qo(selector);
-	assert(e.node);
-	::free(selector);
+	Element e = this->qo("ancestor::Scope/Decl/*[@name='%s']", key);
 	return e;
 }
 
@@ -288,29 +340,41 @@ size_t Element::size() const
 	return count;
 }
 
-Element::Iter Element::begin() const
+Element::Iter Element::dfsbegin() const
 {
 	return Element::Iter(node);
 }
 
+Element::Iter Element::dfsend() const
+{
+	return Element::Iter(node, true);
+}
+
+Element::Iter Element::begin() const
+{
+	return node->children;
+}
+
 Element::Iter Element::end() const
 {
-	return Element::Iter(node -> parent);
+	return nullptr;
 }
 
 Element::Iter::Iter(ASTNode* q) : it(q) {}
 
-Element::Iter& Element::Iter::operator++() {
+Element::Iter::Iter(ASTNode* q, bool f) : it(q), flag(f) {}
 
-	if (it->children && !flag) { //�����Ҷ�ӽڵ㲢��Ϊ����
+Element::Iter& Element::Iter::next() {
+
+	if (it->children && !flag) { 
 		it = it->children;
 		flag = false;
 	}
-	else if (it->next) { //�������һ���ֵܽڵ�
+	else if (it->next) {
 		it = it->next;
 		flag = false;
 	}
-	else if (it->parent) { //����и��ڵ�
+	else if (it->parent) {
 		it = it->parent;
 		flag = true;
 	}
@@ -326,8 +390,13 @@ Element::Iter& Element::Iter::operator++() {
 
 }
 
+Element::Iter& Element::Iter::operator++() {
+	it = it->next;
+	return *this;
+}
+
 bool Element::Iter::operator!=(const Element::Iter& other)const {
-	return it != other.it;
+	return it != other.it || flag != other.flag;
 }
 
 Element Element::Iter::operator*() {
@@ -340,5 +409,10 @@ Element::Iter::operator Element()
 }
 
 ASTNode* Element::unwrap() const {
-    return node;
+	return node;
+}
+
+ASTNode* Element::children() const
+{
+	return node->children;
 }

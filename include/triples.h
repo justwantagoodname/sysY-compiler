@@ -30,6 +30,9 @@ public:
 			div,
 			mod,
 			tag,
+			d2f,
+			f2d,
+			mset,
 		};
 	}Cmd = CMD();
 
@@ -43,22 +46,28 @@ public:
 			value,// 变量编号
 			func, // 函数编号
 			lamb,// 标签
-			
+
 		};
 	}TT = TRIPLEVALUE(); // Triple Value Type Enum
-	
+
 	typedef TRIPLEVALUE::TRIPLEVALUE_ENUM TripleType;
 
 	struct TripleValue
 	{
 		int value;
 		TripleType type;
-		
-		TripleValue() : value(0), type(TT.null) {}
-		TripleValue(int t) :value(t), type(TT.temp) {}
-		TripleValue(int v, TripleType ty) :value(v), type(ty) {}
+		TripleValue* added = nullptr;
+
+		TripleValue() : value(0), type(TT.null), added(nullptr) {}
+		TripleValue(int t) :value(t), type(TT.temp), added(nullptr) {}
+		TripleValue(int v, TripleType ty) :value(v), type(ty), added(nullptr) {}
+		TripleValue(int v, TripleType ty, const TripleValue& at);
+		TripleValue(const TripleValue& at);
+
+		~TripleValue();
 
 		bool operator==(const TripleValue& t) const;
+		bool operator!=(const TripleValue& t) const;
 		//inline operator int() { return value; }
 
 		void toString(char[], const Triples& triples);
@@ -106,4 +115,5 @@ public:
 	void print() const;
 
 };
+
 #endif //TRIPLE_H

@@ -28,10 +28,13 @@ public:
 	Element& operator+=(ASTNode* e);
 	ASTAttribute& operator[](const char* key) const;
 	Element operator[](int index) const;
-	Query operator()(const char* key) const;
+	//Query operator()(const char* key) const;
+	Query operator()(const char* key, ...) const;
 	Element operator%(const char* key) const;
-	Query q(const char* key) const;
-	Element qo(const char* key) const;
+	//Query q(const char* key) const;
+	//Element qo(const char* key) const;
+	Query q(const char* key, ...) const;
+	Element qo(const char* key, ...) const;
 	Element at(int index) const;
 	Element& add_child(int n, ...);
 	Element& add_child(ASTNode* child);
@@ -65,6 +68,8 @@ public:
 	Query createQueryResult() const;
 	Query querySelector(const char* selector) const;
 	Element querySelectorOne(const char* selector) const;
+	Query querySelectorf(const char* fmt, ...) const;
+	Element querySelectorOnef(const char* fmt, ...) const;
 
 	Element table(const char* key) const;
 	size_t size() const;
@@ -73,16 +78,22 @@ public:
 		ASTNode* it;
 		bool flag = false;
 		Iter(ASTNode* q);
+		Iter(ASTNode* q, bool);
 		Iter& operator ++();
+		Iter& next();
 		bool operator!=(const Iter& other)const;
 		Element operator*();
 		operator Element();
 	};
 
+	Iter dfsbegin() const;
+	Iter dfsend() const;
+
 	Iter begin() const;
 	Iter end() const;
 
 	ASTNode* unwrap() const;
+	ASTNode* children() const;
 };
 
 #endif // ELEMENT_H

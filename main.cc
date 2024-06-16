@@ -7,6 +7,9 @@
 #include "codegen/ashelper.hpp"
 #include "codegen/const_inflater.hpp"
 
+#define TRIPLE_DEBUG
+#define UNION_OPTIMIZTION
+
 int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
 	Flag::getFlag().init(argc, argv);
