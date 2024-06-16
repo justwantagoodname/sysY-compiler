@@ -147,15 +147,11 @@ void Triples::make()
 		}
 		ife("Number") {
 			int val = element.get_attr_int("value");
-			TripleValue lcmd = triples.find(Cmd.mov, { val ,TT.dimd }, {});
-			if (lcmd.type == TT.null) {
-				element.add_attr("temp", temp_count);
-				triples.add(Cmd.mov, { val ,TT.dimd }, {}, { temp_count });
-				++temp_count;
-			}
-			else {
-				element.add_attr("temp", lcmd.value);
-			}
+
+			element.add_attr("temp", temp_count);
+			triples.add(Cmd.mov, { val ,TT.imd }, {}, { temp_count });
+			++temp_count;
+
 		}
 		ifb("Address") {
 			int size = element.size();
@@ -189,7 +185,7 @@ void Triples::make()
 				ASTNode_get_attr_int(cur, "temp", &t);
 				if (count > 0) {
 					cr *= value[count].get_attr_int("value");
-					triples.add(Cmd.mul, { t }, { cr, TT.dimd }, { t });
+					triples.add(Cmd.mul, { t }, { cr, TT.imd }, { t });
 				}
 				++count;
 				triples.add(Cmd.add, { temp }, { t }, { temp });
@@ -203,37 +199,68 @@ void Triples::make()
 		ife("Dest") {
 			int a = element[0].get_attr_int("addr");
 			element.add_attr("addr", a);
+			element.add_attr("type", element[0].get_attr_str("type"));
 		}
 		ife("Fetch") {
 			int a = element[0].get_attr_int("addr");
 			TripleValue d = {};
 			if (element[0].get_attr("array"))
 				d = element[0].get_attr_int("temp");
-			TripleValue lcmd = triples.find(Cmd.mov, { a, TT.value, d }, {});
-			if (lcmd.type == TT.null) {
-				triples.add(Cmd.mov, { a, TT.value, d }, {}, { temp_count });
-				element.add_attr("temp", temp_count);
-				++temp_count;
-			}
-			else {
-				element.add_attr("temp", lcmd.value);
-			}
-
+			triples.add(Cmd.mov, { a, TT.value, d }, {}, { temp_count });
+			element.add_attr("temp", temp_count);
+			++temp_count;
 			element.add_attr("type", element[0].get_attr_str("type"));
 		}
+
+#define TypeTras(ty0, ty1, t) do{\
+		if (strcmp(ty0, "Int") == 0 && strcmp(ty1, "Float") == 0) {		\
+			triples.add(Cmd.f2d, t, {}, temp_count);					\
+			t = temp_count++;											\
+		}																\
+		else if (strcmp(ty0, "Float") == 0 && strcmp(ty1, "Int") == 0) {\
+			triples.add(Cmd.d2f, t, {}, temp_count);					\
+			t = temp_count++;											\
+		}																\
+		}while(0)
+
 		ife("Assign") {
 			int a = element[0].get_attr_int("addr");
 			int t = element[1].get_attr_int("temp");
 			TripleValue d = {};
 			if (element[0].get_attr("array"))
 				d = element[0].get_attr_int("temp");
+
+			const char* at = element[0].get_attr_str("type");
+			const char* tt = element[1].get_attr_str("type");
+			TypeTras(at, tt, t);
+
 			triples.add(Cmd.mov, { t }, {}, { a, TT.value, d });
 		}
+
+#define EopETypeTras(node, t0, t1) do{		   \
+		const char* ts0 = (node)[0].get_attr_str("type");\
+		const char* ts1 = (node)[1].get_attr_str("type");\
+		if(strcmp(ts0, "Float") == 0 || strcmp(ts1, "Float") == 0){\
+			if(strcmp(ts0, "Int") == 0 ){\
+			triples.add(Cmd.d2f, t0, {}, temp_count);\
+			t0 = temp_count++; \
+			}	\
+			if(strcmp(ts1, "Int") == 0 ){\
+			triples.add(Cmd.d2f, t1, {}, temp_count);\
+			t1 = temp_count++; \
+			}	\
+			(node).add_attr("type", "Float");\
+		}\
+		else{\
+			(node).add_attr("type", "Int");\
+		}\
+		}while(0)
 
 #define makeCond(cmd) do{\
 		int t0 = element[0].get_attr_int("temp");\
 		int t1 = element[1].get_attr_int("temp");\
 		int idx = triples.size();\
+		EopETypeTras(element, t0, t1);\
 		triples.add((cmd), {t0}, {t1}, {});\
 		triples.add(Cmd.jmp, {}, {}, {});\
 		triples.add(Cmd.tag, { tag_count++, TT.lamb}, {}, {});\
@@ -362,6 +389,7 @@ void Triples::make()
 #define EopE(cmd) do{\
 		int t0 = element[0].get_attr_int("temp"); \
 		int t1 = element[1].get_attr_int("temp"); \
+		EopETypeTras(element, t0, t1);\
 		TripleValue lcmd = triples.find(cmd, t0, t1); \
 		if(lcmd.type == TT.null){ \
 		triples.add(cmd, {t0}, {t1}, {temp_count}); \
@@ -371,7 +399,7 @@ void Triples::make()
 		else { \
 			element.add_attr("temp", lcmd.value); \
 		} \
-	}while (0)
+		}while (0)
 		ife("Plus") {
 			EopE(Cmd.add);
 		}
@@ -425,14 +453,14 @@ void Triples::make()
 				triples.add(Cmd.rev, {}, {}, {});
 			}
 		}
-		ifb("Main") {
-			int fid = triples.pushf(element);
-			element.add_attr("place", triples.size());
-			element.add_attr("name", "main");
-			element.add_attr("fid", fid);
+		//ifb("Main") {
+		//	int fid = triples.pushf(element);
+		//	element.add_attr("place", triples.size());
+		//	element.add_attr("name", "main");
+		//	element.add_attr("fid", fid);
 
-			triples.add(Cmd.tag, { fid, TT.func }, {}, {});
-		}
+		//	triples.add(Cmd.tag, { fid, TT.func }, {}, {});
+		//}
 		ife("ParamDecl") {
 			const char* s = element.get_attr_str("name");
 			Element value = element.qo("ancestor::Function/Scope/Decl").table(s);
@@ -443,14 +471,19 @@ void Triples::make()
 			Element init = element("/InitValue");
 			if (init) {
 				init.add_attr("name", element.get_attr_str("name"));
+				init.add_attr("type", element.get_attr_str("type"));
 			}
 		}
 		ife("InitValue") {
+			const char* et = element.get_attr_str("type");
+
 			if (!element.get_attr("array")) {
 				const char* s = element.get_attr_str("name");
+				const char* vt = element[0].get_attr_str("type");
 				Element value = element.table(s);
 				int a = triples.find(value);
 				int t = element[0].get_attr_int("temp");
+				TypeTras(et, vt, t);
 				triples.add(Cmd.mov, { t }, {}, { a, TT.value });
 			}
 			else {
@@ -463,21 +496,24 @@ void Triples::make()
 				element.add_attr("size", count);
 				triples.add(Cmd.mset,
 					{ value_idx, TT.value },
-					{ count , TT.dimd }, {});
-
+					{ count , TT.imd }, {});
 				for (auto e : element) {
 					int len = e.get_attr_int("repeat");
 					int base = e.get_attr_int("start");
+					const char* vt = e.get_attr_str("type");
+
 					TripleValue t;
 					if (e.get_attr("value")) {
-						t = { e.get_attr_int("value"), TT.dimd };
-					} else if (e.get_attr("temp")) {
+						t = { e.get_attr_int("value"), TT.imd };
+					}
+					else if (e.get_attr("temp")) {
 						t = { e.get_attr_int("temp"), TT.temp };
 					}
-					if (t.value != 0 || t.type != TT.dimd) {
+					if (t.value != 0 || t.type != TT.imd) {
 						for (int i = 0; i < len; ++i) {
+							TypeTras(et, vt, t);
 							triples.add(Cmd.mov, t, {},
-								{ value_idx, TT.value, {base + i, TT.dimd} });
+								{ value_idx, TT.value, {base + i, TT.imd} });
 						}
 					}
 				}
@@ -579,13 +615,14 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 	case TT.temp:
 		snprintf(s, 20, "T%d", value);
 		break;
-	case TT.dimd:
-		snprintf(s, 20, "#%d", value);
+	case TT.imd:
+		snprintf(s, 40, "#%d", value);
 		break;
 	case TT.value:
 		if (added == nullptr) {
 			snprintf(s, 40, "%s", triples.value_pointer[value].get_attr_str("name"));
-		} else {
+		}
+		else {
 			added->toString(ts, triples);
 			snprintf(s, 50, "%s[%s]", triples.value_pointer[value].get_attr_str("name"), ts);
 		}
