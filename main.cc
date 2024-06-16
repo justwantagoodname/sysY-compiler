@@ -18,7 +18,7 @@ int main(int argc, const char** argv) {
 
 	root.print();
 
-#ifdef UNION_OPTIMIZTION
+#ifdef UNI_OPTIMIZTION
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
   	root.print();

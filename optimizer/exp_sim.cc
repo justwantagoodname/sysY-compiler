@@ -1,6 +1,7 @@
 #include "sysY.h"
 #include "ast.h"
 #include "exp_sim.h"
+#include "utils.h"
 
 //#define EXP_LOG printf
 #define EXP_LOG(...) (0)
@@ -56,6 +57,23 @@ sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t rig
 
     assert(false);
     return 0; // Error
+}
+
+/**
+ * 将一个 value 写入 node 中，根据 value 是否是整数决定类型, 需要确保 node 中没有 type 和 value 属性
+ * @param node
+ * @param value
+ */
+void ExpNode_push_value(ASTNode *node, sim_result_t value) {
+    assert(ASTNode_id_is(node, "Number"));
+
+    if (is_integer(value)) {
+        ASTNode_add_attr_int(node, "value", (int) value);
+        ASTNode_add_attr_str(node, "type", "Int");
+    } else {
+        ASTNode_add_attr_float(node, "value", (float) value);
+        ASTNode_add_attr_str(node, "type", "Float");
+    }
 }
 
 /**
@@ -127,9 +145,9 @@ ASTNode *ExpNode_simplify_recursive(const ASTNode *node) {
 }
 
 ASTNode *ExpNode_simplify_unary_operator(const ASTNode *exp) {
-    assert(exp != NULL);
+    assert(exp != nullptr);
     assert(ASTNode_children_size(exp) == 1);
-    ASTNode *ret = NULL;
+    ASTNode *ret = nullptr;
 
     if (ExpNode_is_atomic(exp)) {
         ret = ASTNode_clone(exp);
@@ -139,11 +157,11 @@ ASTNode *ExpNode_simplify_unary_operator(const ASTNode *exp) {
     } else if (ASTNode_id_is(exp, "UnMinus")) {
         ASTNode *child = ASTNode_querySelectorOne(exp, "/*");
         ret = ExpNode_simplify_recursive(child);
-        int value = -1;
-        ASTNode_get_attr_int(ret, "value", &value);
+        sim_result_t value = -1;
+        ASTNode_get_attr_number(ret, "value", &value);
         ASTNode_free(ret);
         ret = ASTNode_create("Number");
-        ASTNode_add_attr_int(ret, "value", -value);
+        ExpNode_push_value(ret, -value);
     } else if (ASTNode_id_is(exp, "Fetch")) {
         return ExpNode_try_fetch_const(exp);
     } else {
@@ -171,20 +189,20 @@ ASTNode *ExpNode_simplify_binary_operator(const ASTNode *exp) {
             right_atomic = ExpNode_is_atomic(sim_right);
 
     /* Obvisually, we can only handle int this time */
-    int left_value = -1, right_value = -1;
+    sim_result_t left_value = -1, right_value = -1;
 
     ASTNode *ret = nullptr;
     if (left_atomic && right_atomic) {
 
-        ASTNode_get_attr_int(sim_left, "value", &left_value);
-        ASTNode_get_attr_int(sim_right, "value", &right_value);
+        ASTNode_get_attr_number(sim_left, "value", &left_value);
+        ASTNode_get_attr_number(sim_right, "value", &right_value);
 
         ASTNode_free(sim_left);
         ASTNode_free(sim_right);
 
         sim_result_t sim_val = ExpNode_op_calc(exp->id, left_value, right_value);
         ret = ASTNode_create("Number");
-        ASTNode_add_attr_int(ret, "value", (int) sim_val);
+        ExpNode_push_value(ret, sim_val);
         EXP_LOG("Sim A ConstExp with %d %s %d = %lf\n",
                 left_value, exp->id, right_value, sim_val);
     } else if (left_atomic ^ right_atomic) {
@@ -195,19 +213,19 @@ ASTNode *ExpNode_simplify_binary_operator(const ASTNode *exp) {
         ASTNode_add_nchild(ret, 2, sim_left, sim_right);
     }
 
-    assert(ret != NULL);
+    assert(ret != nullptr);
     return ret;
 }
 
 ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
-    assert(node != NULL);
+    assert(node != nullptr);
     assert(ASTNode_id_is(node, "Fetch"));
 
     ASTNode *base_node = ASTNode_querySelectorOne(node, "//*[@base][0]");
-    const char *base_name = NULL;
+    const char *base_name = nullptr;
     ASTNode_get_attr_str(base_node, "base", &base_name);
 
-    assert(base_name != NULL);
+    assert(base_name != nullptr);
 
     ASTNode *target = ASTNode_querySelectorfOne(node, "/ancestor::Scope//*[@name='%s'][0]", base_name);
 
@@ -215,13 +233,13 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
         return ASTNode_clone(node);
     }
 
-    assert(target != NULL);
+    assert(target != nullptr);
     // can ref self check
     assert(ASTNode_id_is(target, "Const"));
 
-    ASTNode *value = NULL;
+    ASTNode *value = nullptr;
 
-    if (ASTNode_has_attr(target, "array") || ASTNode_querySelectorOne(node, "//Locator[0]") != NULL) {
+    if (ASTNode_has_attr(target, "array") || ASTNode_querySelectorOne(node, "//Locator[0]") != nullptr) {
         value = ExpNode_fetch_const_array_value(node, target);
     } else {
         value = ASTNode_querySelectorOne(target, "//Exp/Number");
@@ -231,12 +249,12 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
 }
 
 ASTNode *ExpNode_fetch_const_array_value(const ASTNode *fetch, const ASTNode *target) {
-    assert(fetch != NULL && target != NULL);
+    assert(fetch != nullptr && target != nullptr);
     assert(ASTNode_id_is(fetch, "Fetch"));
     assert(ASTNode_id_is(target, "Const"));
 
     /* 化简Fetch元素的每一个层取址表达式 */
-    QueryResult *iter = NULL;
+    QueryResult *iter = nullptr;
     QueryResult *locator_dims = ASTNode_querySelector(fetch, "//Locator/Dimension/*");
     ASTNode *locator_sims = ASTNode_create("Locator"); // Simplified each dimension
 
@@ -252,7 +270,7 @@ ASTNode *ExpNode_fetch_const_array_value(const ASTNode *fetch, const ASTNode *ta
 
     /* 如果不是常量那就仅仅化简取地址表达式 */
     if (!const_foldable) {
-        assert(locator_sims != NULL);
+        assert(locator_sims != nullptr);
         return locator_sims;
     }
 
@@ -267,30 +285,30 @@ ASTNode *ExpNode_fetch_const_array_value(const ASTNode *fetch, const ASTNode *ta
 
     ASTNode *number = ArrayInitNode_get_value_by_linear_index(target, locator_sims);
 
-    assert(number != NULL);
+    assert(number != nullptr);
 
     return number;
 }
 
 ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *sim_right, const bool left_atomic,
                               const bool right_atomic) {
-    assert(exp != NULL);
-    assert(sim_left != NULL);
-    assert(sim_right != NULL);
+    assert(exp != nullptr);
+    assert(sim_left != nullptr);
+    assert(sim_right != nullptr);
     assert(left_atomic ^ right_atomic);
 
-    int partial_value = -1;
+    sim_result_t partial_value = -1;
     if (strcmp(exp->id, "Or") == 0) {
         if (left_atomic) {
-            ASTNode_get_attr_int(sim_left, "value", &partial_value);
-            if (partial_value) {
+            ASTNode_get_attr_number(sim_left, "value", &partial_value);
+            if ((int) partial_value) {
                 return sim_left; // true || a => true
             } else {
                 return sim_right; // false || a => a
             }
         } else {
-            ASTNode_get_attr_int(sim_right, "value", &partial_value);
-            if (partial_value) {
+            ASTNode_get_attr_number(sim_right, "value", &partial_value);
+            if ((int) partial_value) {
                 return sim_right;
             } else {
                 return sim_left;
@@ -299,15 +317,15 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
         }
     } else if (strcmp(exp->id, "And") == 0) {
         if (left_atomic) {
-            ASTNode_get_attr_int(sim_left, "value", &partial_value);
-            if (partial_value) {
+            ASTNode_get_attr_number(sim_left, "value", &partial_value);
+            if ((int) partial_value) {
                 return sim_right; // true && a => a
             } else {
                 return sim_left; // false && a => false
             }
         } else {
-            ASTNode_get_attr_int(sim_right, "value", &partial_value);
-            if (partial_value) {
+            ASTNode_get_attr_number(sim_right, "value", &partial_value);
+            if ((int) partial_value) {
                 return sim_left;
             } else {
                 return sim_right;
@@ -327,9 +345,9 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
 
             // 将非原子节点的常量子节点和原子节点相运算
 
-            int non_atomic_value = -1, atomic_value = -1;
-            ASTNode_get_attr_int(const_of_non_atomic, "value", &non_atomic_value);
-            ASTNode_get_attr_int(atomic, "value", &atomic_value);
+            sim_result_t non_atomic_value = -1, atomic_value = -1;
+            ASTNode_get_attr_number(const_of_non_atomic, "value", &non_atomic_value);
+            ASTNode_get_attr_number(atomic, "value", &atomic_value);
 
             ASTAttribute* value = ASTNode_get_attr_or_null(atomic, "value");
             assert(value != nullptr);
@@ -361,7 +379,7 @@ ASTNode *ExpNode_simplify_call_params(const ASTNode *exp) {
     ASTNode_get_attr_str(exp, "name", &func_name);
     auto ret = ASTNode_create_attr(exp->id, 1, "name", func_name);
 
-    QueryResult *queryResult = ASTNode_querySelector(exp, "Param"), *cur = NULL;
+    QueryResult *queryResult = ASTNode_querySelector(exp, "Param"), *cur = nullptr;
 
     DL_FOREACH(queryResult, cur) {
         if (ASTNode_attr_eq_str(cur->node, "type", "StringConst")) {
@@ -384,7 +402,7 @@ ASTNode *ExpNode_simplify_call_params(const ASTNode *exp) {
  *       **注意这个函数可能会修改原AST的初始化列表**
  */
 ASTNode *ExpNode_simplify(const ASTNode *exp) {
-    assert(exp != NULL);
+    assert(exp != nullptr);
     assert(ASTNode_id_is(exp, "Exp"));
     assert(ASTNode_children_size(exp) == 1);
 
