@@ -59,7 +59,7 @@ ASTAttribute *ASTNode_get_attr_or_null(const ASTNode *node, const char* key);
 bool ASTNode_get_attr_int(const ASTNode *node, const char* key, int *value);
 bool ASTNode_get_attr_str(const ASTNode *node, const char* key, const char **value);
 bool ASTNode_get_attr_float(const ASTNode *node, const char* key, float *value);
-
+bool ASTNode_get_attr_number(const ASTNode *node, const char* key, double *value);
 bool ASTNode_set_attr_str(ASTNode *node, const char* key, const char* value);
 
 bool ASTNode_attr_eq_int(const ASTNode *node, const char* key, int value);
