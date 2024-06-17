@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef ARMAS_H
-#define ARMAS_H
+#ifndef ASM_HELPER_H
+#define ASM_HELPER_H
 
 #include "sysY.h"
 #include <cstdarg>
