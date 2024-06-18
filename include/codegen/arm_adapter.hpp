@@ -39,8 +39,12 @@ public:
         return "pc";
     }
 
-    const void emitSeparator() override {
+    const void emitComment() override {
         asm_file.line();
+    }
+
+    const void emitComment(const std::string& content) override {
+        asm_file.line("# %s", content.c_str());
     }
 
     void emitFunctionLabel(const std::string &funcName) override {

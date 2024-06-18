@@ -20,7 +20,8 @@ public:
    virtual const std::string getReturnAddressName() = 0;
    virtual const std::string getPCName() = 0;
 
-   virtual const void emitSeparator() = 0; // 写入一个仅人类可读的分隔符
+   virtual const void emitComment() = 0; // 仅插入空白行
+   virtual const void emitComment(const std::string& content) = 0; // 写入注释行
 
    virtual void emitFunctionLabel(const std::string& funcName) = 0;
    virtual void emitLabel(const std::string& reg) = 0;

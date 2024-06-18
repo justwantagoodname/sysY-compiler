@@ -39,8 +39,8 @@ public:
             同时在调用*外部*函数时，可以使用 r4 作为 r0 的备份，外部的函数会为我们保存 r4 的值
         */
         // TODO: 考虑到不同平台的调用约定，这里可能需要改为由 Adapter 提供
-        this->tempReg = adapter->getRegName(4); 
-        this->accumulatorReg = adapter->getRegName(0);
+        this->tempReg = "r4";
+        this->accumulatorReg = "r0";
     }
 
     void translate();

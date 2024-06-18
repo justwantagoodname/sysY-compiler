@@ -16,8 +16,8 @@ void StackTranslator::translate() {
  * 栈帧定义：
  * 假定有函数 f(int a, int b, int c, int d, int e)
  *  高地址 --------------------------------------------------------------> 低地址
- *  |  参数 d   |  参数 e   |    旧栈底位置      | 返回地址 |  局部变量区 |   临时变量         |
- *  | 如果存在多于 3 个参数  |     ^-栈底指针     |                     |    ^- 栈顶指针     |
+ *  |  参数 d   |  参数 e  |    旧栈底位置      | 返回地址 |  局部变量区 |   临时变量         |
+ *  | 如果存在多于 3 个参数  |     ^-栈底指针     |                    |    ^- 栈顶指针     |
  *
  * @note 栈顶指针指向栈顶变量地址
  * @param func 函数 AST 节点
@@ -58,15 +58,33 @@ void StackTranslator::translateFunc(ASTNode *func) {
         funcParamIndex++;
     }
 
-    // TODO: 保存局部变量
+    // 保存局部变量
+    // 计算栈帧局部变量大小
+    size_t localVarSize = 0;
+    // 查询所有局部变量包括匿名作用域的变量
+    QueryResult *localVars = ASTNode_querySelector(func, "//Scope/Decl/Var");
+    cur = nullptr;
+    DL_FOREACH(localVars, cur) {
+        auto var = cur->node;
+        if (ASTNode_has_attr(var, "array")) {
+            assert(ASTNode_has_attr(var, "size"));
+            int size;
+            ASTNode_get_attr_int(var, "size", &size);
+            localVarSize += adapter->getWordSize() * size;
+        } else {
+            localVarSize += adapter->getWordSize(); // 单个变量大小
+        }
+        ASTNode_add_attr_int(var, "offset", -localVarSize - adapter->getWordSize()); // 从栈低开始计算
+    }
 
-    // TODO: 实际移动栈顶指针
+    // 实际移动栈顶指针
+    adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize); 
 
     // TODO: 翻译函数体
 
     // TODO: 返回值处理
+    
     // 在函数调用结束后，将返回值保存到 r0 中
-    // 需要研究一下，是将
     adapter->loadImmediate(adapter->getRegName(0), 0); // 临时设置为 0 方便调试
 
     adapter->emitLabel(std::string(funcName) + "_ret");
@@ -75,5 +93,5 @@ void StackTranslator::translateFunc(ASTNode *func) {
     // 这里直接弹出到 pc，寄存器中实现转跳
     adapter->popStack({adapter->getFramePointerName(), adapter->getPCName()});
     
-    adapter->emitSeparator();
+    // adapter->emitComment();
 }
