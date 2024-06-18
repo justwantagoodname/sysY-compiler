@@ -67,6 +67,7 @@ bool ASTNode_attr_eq_str(const ASTNode *node, const char* key, const char* value
 bool ASTNode_attr_eq_float(const ASTNode *node, const char* key, float value);
     /* Utils */
 void ASTNode_print(const ASTNode *node);
+void ASTNode_copy_attr(const ASTNode *from, ASTNode *to);
 void ASTNode_move_children(ASTNode *from, ASTNode *to);
 void ASTNode_copy_children(ASTNode *from, ASTNode *to);
 void ASTNode_replace(ASTNode *after, ASTNode *before);

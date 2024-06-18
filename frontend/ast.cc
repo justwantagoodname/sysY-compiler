@@ -436,3 +436,13 @@ bool ASTNode_set_attr_str(ASTNode *node, const char* key, const char* value) {
     }
     return false;
 }
+
+void ASTNode_copy_attr(const ASTNode *from, ASTNode *to) {
+    assert(from != NULL && to != NULL);
+
+    ASTAttribute *attr = NULL, *tmp = NULL;
+    HASH_ITER(hh, from->attrs, attr, tmp) {
+        ASTAttribute *clone_attr = ASTAttribute_clone(attr);
+        HASH_ADD_STR(to->attrs, key, clone_attr);
+    }
+}
