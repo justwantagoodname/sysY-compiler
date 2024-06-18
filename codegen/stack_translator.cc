@@ -82,7 +82,8 @@ void StackTranslator::translateFunc(ASTNode *func) {
     }
 
     // 实际移动栈顶指针
-    adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize); 
+    if (localVarSize > 0)
+        adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize); 
 
     // TODO: 翻译函数体
 
@@ -97,5 +98,5 @@ void StackTranslator::translateFunc(ASTNode *func) {
     // 这里直接弹出到 pc，寄存器中实现转跳
     adapter->popStack({adapter->getFramePointerName(), adapter->getPCName()});
     
-    // adapter->emitComment();
+    adapter->emitComment();
 }
