@@ -28,6 +28,10 @@ void StackTranslator::translateFunc(ASTNode *func) {
     bool hasFuncName = ASTNode_get_attr_str(func, "name", &funcName);
     assert(hasFuncName);
 
+    std::string retLabel = std::string(funcName) + "_ret";
+
+    ASTNode_add_attr_str(func, "returnLabel", retLabel.c_str());
+
     // 创建函数标签
     adapter->emitFunctionLabel(funcName);
 
@@ -83,11 +87,11 @@ void StackTranslator::translateFunc(ASTNode *func) {
     // TODO: 翻译函数体
 
     // TODO: 返回值处理
-    
+
     // 在函数调用结束后，将返回值保存到 r0 中
     adapter->loadImmediate(adapter->getRegName(0), 0); // 临时设置为 0 方便调试
 
-    adapter->emitLabel(std::string(funcName) + "_ret");
+    adapter->emitLabel(retLabel);
     // 恢复栈顶指针
     adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
     // 这里直接弹出到 pc，寄存器中实现转跳
