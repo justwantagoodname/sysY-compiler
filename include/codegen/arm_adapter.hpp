@@ -15,6 +15,10 @@ public:
 
     ~ARMAdapter() override = default;
 
+    const int getWordSize() override {
+        return 4;
+    }
+
     const std::string getStackPointerName() override {
         return "sp";
     }
@@ -27,15 +31,26 @@ public:
         return "lr";
     }
 
+    void emitFunctionLabel(const std::string &funcName) override {
+        asm_file.line(".global %s", funcName.c_str());
+        asm_file.line(".text");
+        asm_file.line(".type %s, %%function", funcName.c_str());
+        asm_file.line("%s:", funcName.c_str());
+    }
+
     void emitLabel(const std::string &reg) override {
         asm_file.line("%s:", reg.c_str());
     }
 
     void pushStack(std::initializer_list<std::string> regs) override {
         asm_file.raw("\tpush {");
-        for (const auto &reg: regs) {
+        bool first = true;
+        for (const auto &reg : regs) {
+            if (!first) {
+                asm_file.raw(", ");
+            }
             asm_file.raw(reg.c_str());
-            asm_file.raw(",");
+            first = false;
         }
         asm_file.raw("}\n");
     }
