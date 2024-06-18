@@ -27,6 +27,7 @@ void GlobalDeclInflater::inflateConstDecl(ASTNode* const_decl, AssemblyBuilder& 
     assert(label != nullptr);
 
     asm_builder
+        .line("\t.type %s, %%object", label)
         .line("%s:", label);
 
     bool is_array = ASTNode_querySelectorOne(const_decl, "/.[@array]") != nullptr;
@@ -97,6 +98,7 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
     assert(label != nullptr);
 
     asm_builder
+        .line("\t.type %s, %%object", label)
         .line("%s:", label);
     bool is_array = ASTNode_querySelectorOne(static_var_decl, "/.[@array]") != nullptr;
     bool is_inited = ASTNode_querySelectorOne(static_var_decl, "//InitValue[0]") != nullptr;
@@ -183,6 +185,7 @@ void GlobalDeclInflater::inflateStringConst(ASTNode *string_const, AssemblyBuild
     ASTNode_get_attr_str(string_const, "value", &str_literal);
 
     asm_builder
+        .line("\t.type %s, %%object", label_name)
         .line("%s:", label_name)
         .line("\t.asciz \"%s\"", str_literal)
         .line("\t.section .rodata")
