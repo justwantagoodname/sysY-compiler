@@ -19,6 +19,10 @@ public:
         return 4;
     }
 
+    const std::string getRegName(int reg) override {
+        return "r" + std::to_string(reg);
+    }
+
     const std::string getStackPointerName() override {
         return "sp";
     }
@@ -29,6 +33,14 @@ public:
 
     const std::string getReturnAddressName() override {
         return "lr";
+    }
+
+    const std::string getPCName() override {
+        return "pc";
+    }
+
+    const void emitSeparator() override {
+        asm_file.line();
     }
 
     void emitFunctionLabel(const std::string &funcName) override {
@@ -42,17 +54,27 @@ public:
         asm_file.line("%s:", reg.c_str());
     }
 
-    void pushStack(std::initializer_list<std::string> regs) override {
-        asm_file.raw("\tpush {");
+    const std::string createRegList(std::initializer_list<std::string> regs) {
+        // TODO: replace to stringstream
+        std::string reg_list = "{";
         bool first = true;
         for (const auto &reg : regs) {
             if (!first) {
-                asm_file.raw(", ");
+                reg_list += ", ";
             }
-            asm_file.raw(reg.c_str());
+            reg_list += reg;
             first = false;
         }
-        asm_file.raw("}\n");
+        reg_list += "}";
+        return reg_list;
+    }
+
+    void pushStack(std::initializer_list<std::string> regs) override {
+        asm_file.line("\tpush %s", createRegList(regs).c_str());
+    }
+
+    void popStack(std::initializer_list<std::string> regs) override {
+        asm_file.line("\tpop %s", createRegList(regs).c_str());
     }
 
     /**
@@ -69,9 +91,21 @@ public:
         // TODO: implement this
     }
 
-    void add(const std::string& dst, const std::string& src, int imm) override {
+    void uniOp(const std::string& op, const std::string& dst, const std::string& src, int imm) {
         assert(0 <= imm && imm <= 255);
-        asm_file.line("\tadd %s, %s, #%d", dst.c_str(), src.c_str(), imm);
+        asm_file.line("\t%s %s, %s, #%d", op.c_str(), dst.c_str(), src.c_str(), imm);
+    }
+
+    void add(const std::string& dst, const std::string& src, int imm) override {
+        uniOp("add", dst, src, imm);
+    }
+
+    void sub(const std::string& dst, const std::string& src, int imm) override {
+        uniOp("sub", dst, src, imm);
+    }
+
+    void mov(const std::string& dst, const std::string& src) override {
+        asm_file.line("\tmov %s, %s", dst.c_str(), src.c_str());
     }
 };
 

@@ -14,8 +14,8 @@ class StackTranslator {
 private:
     ASTNode* comp_unit;
     std::unique_ptr<Adapter> adapter;
-    std::string tempReg{"r0"};
-    std::string accumulatorReg{"r4"};
+    std::string tempReg;
+    std::string accumulatorReg;
 
     void translateFunc(ASTNode* func);
     void translateStmt(ASTNode* stmt);
@@ -32,6 +32,15 @@ public:
     StackTranslator(ASTNode* comp_unit, std::unique_ptr<Adapter> adapter) : comp_unit(comp_unit), adapter(std::move(adapter)) {
         assert(comp_unit != nullptr);
         assert(ASTNode_id_is(comp_unit, "CompUnit"));
+        /* 
+            使用 r4 作为临时寄存器，根据 ATPCS 规范，r4-r11 是callee-saved寄存器
+            但是我们实际是仅仅是把 r4 作为临时寄存器，保存从堆栈中取出的值，因此我们在我们的调用约定中无需保存 r4 的值
+
+            同时在调用*外部*函数时，可以使用 r4 作为 r0 的备份，外部的函数会为我们保存 r4 的值
+        */
+        // TODO: 考虑到不同平台的调用约定，这里可能需要改为由 Adapter 提供
+        this->tempReg = adapter->getRegName(4); 
+        this->accumulatorReg = adapter->getRegName(0);
     }
 
     void translate();

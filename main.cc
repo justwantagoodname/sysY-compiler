@@ -18,15 +18,14 @@ int main(int argc, const char** argv) {
 #ifdef UNI_OPTIMIZTION
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
-  	root.print();
+  	// root.print();
 #endif
 
 #ifdef ASM_GEN
 	printf("=== ASM Start ===\n");
 	AssemblyBuilder asfile(Flag::getFlag().getFlagFor("output").c_str());
 
-	asfile 	| ".global main" // export main symbol
-			| ".extern putf getint putint putch getch getarray putarray"; // import libsysy.a
+	asfile | ".extern putf getint putint putch getch getarray putarray"; // import libsysy.a
 	asfile.line();
 
 	GlobalDeclInflater const_inflater(root.unwrap());
@@ -38,8 +37,8 @@ int main(int argc, const char** argv) {
 	translator.translate();
 
 	asfile.line()
-		  .raw(".section	.note.GNU-stack,\"\",%progbits")
-		  .line(); // new line in the end
+		  .line(".section	.note.GNU-stack,\"\",%%progbits");
+	root.print();
 #endif
 
 #ifdef TRIPLE_DEBUG

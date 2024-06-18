@@ -14,16 +14,23 @@ public:
 
    virtual const int getWordSize() = 0;
    
+   virtual const std::string getRegName(int reg) = 0;
    virtual const std::string getStackPointerName() = 0;
    virtual const std::string getFramePointerName() = 0;
    virtual const std::string getReturnAddressName() = 0;
+   virtual const std::string getPCName() = 0;
+
+   virtual const void emitSeparator() = 0; // 写入一个仅人类可读的分隔符
 
    virtual void emitFunctionLabel(const std::string& funcName) = 0;
    virtual void emitLabel(const std::string& reg) = 0;
    virtual void loadImmediate(const std::string& reg, int x) = 0;
    virtual void loadImmediate(const std::string& reg, float x) = 0;
    virtual void pushStack(std::initializer_list<std::string> regs) = 0;
+   virtual void popStack(std::initializer_list<std::string> regs) = 0;
    virtual void add(const std::string& dst, const std::string& src, int imm) = 0;
+   virtual void sub(const std::string& dst, const std::string& src, int imm) = 0;
+   virtual void mov(const std::string& dst, const std::string& src) = 0;
 };
 
 #endif

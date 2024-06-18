@@ -29,7 +29,7 @@ void StackTranslator::translateFunc(ASTNode *func) {
     assert(hasFuncName);
 
     // 创建函数标签
-    adapter->emitLabel(funcName);
+    adapter->emitFunctionLabel(funcName);
 
     adapter->pushStack({adapter->getFramePointerName(), adapter->getReturnAddressName()});
 
@@ -37,6 +37,7 @@ void StackTranslator::translateFunc(ASTNode *func) {
     adapter->add(adapter->getFramePointerName(), adapter->getStackPointerName(), 4);
 
     // 查找所有的函数，为函数生成引用 label
+    int paramSize = ASTNode_children_size(ASTNode_querySelectorOne(func, "/Params"));
     QueryResult *params = ASTNode_querySelector(func, "/Params/ParamDecl"), *cur = nullptr;
     int funcParamIndex = 0;
     DL_FOREACH(params, cur) {
@@ -44,7 +45,17 @@ void StackTranslator::translateFunc(ASTNode *func) {
         const char* paramName;
         bool hasParamName = ASTNode_get_attr_str(param, "name", &paramName);
         assert(hasParamName);
-        // 注意修改Decl中的ParamDecl
+        auto param_in_decl = ASTNode_querySelectorfOne(func, "/Scope/Decl/ParamDecl[@name='%s']", paramName);
+        assert(param_in_decl != nullptr);
+        if (funcParamIndex < 3) {
+            // 参数在寄存器中
+            ASTNode_add_attr_str(param_in_decl, "pos", "reg");
+            ASTNode_add_attr_str(param_in_decl, "reg", adapter->getRegName(funcParamIndex + 1).c_str());
+        } else {
+            ASTNode_add_attr_str(param_in_decl, "pos", "stack");
+            ASTNode_add_attr_int(param_in_decl, "offset", adapter->getWordSize() * (paramSize - funcParamIndex));
+        }
+        funcParamIndex++;
     }
 
     // TODO: 保存局部变量
@@ -54,6 +65,15 @@ void StackTranslator::translateFunc(ASTNode *func) {
     // TODO: 翻译函数体
 
     // TODO: 返回值处理
+    // 在函数调用结束后，将返回值保存到 r0 中
+    // 需要研究一下，是将
+    adapter->loadImmediate(adapter->getRegName(0), 0); // 临时设置为 0 方便调试
 
-    // TODO: 返回调用
+    adapter->emitLabel(std::string(funcName) + "_ret");
+    // 恢复栈顶指针
+    adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
+    // 这里直接弹出到 pc，寄存器中实现转跳
+    adapter->popStack({adapter->getFramePointerName(), adapter->getPCName()});
+    
+    adapter->emitSeparator();
 }
