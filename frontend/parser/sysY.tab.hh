@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.5.1.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Skeleton interface for Bison GLR parsers in C
 
-   Copyright (C) 2002-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2015, 2018-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -46,50 +46,55 @@ extern int yydebug;
 
 #line 48 "frontend/parser/sysY.tab.hh"
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    Main = 258,
-    Const = 259,
-    Int = 260,
-    Void = 261,
-    Float = 262,
-    While = 263,
-    Break = 264,
-    If = 265,
-    Else = 266,
-    Continue = 267,
-    Return = 268,
-    Not = 269,
-    And = 270,
-    Or = 271,
-    Plus = 272,
-    Minus = 273,
-    Mult = 274,
-    Div = 275,
-    Mod = 276,
-    Less = 277,
-    Greater = 278,
-    GreaterEq = 279,
-    LessEq = 280,
-    Equal = 281,
-    NotEq = 282,
-    Assign = 283,
-    SemiCon = 284,
-    Comma = 285,
-    LeftParent = 286,
-    RightParent = 287,
-    LeftBrack = 288,
-    RightBrack = 289,
-    LeftBrace = 290,
-    RightBrace = 291,
-    IntegerConst = 292,
-    FloatConst = 293,
-    StringConst = 294,
-    Identifier = 295
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    Main = 258,                    /* Main  */
+    Const = 259,                   /* Const  */
+    Int = 260,                     /* Int  */
+    Void = 261,                    /* Void  */
+    Float = 262,                   /* Float  */
+    While = 263,                   /* While  */
+    Break = 264,                   /* Break  */
+    If = 265,                      /* If  */
+    Else = 266,                    /* Else  */
+    Continue = 267,                /* Continue  */
+    Return = 268,                  /* Return  */
+    Not = 269,                     /* Not  */
+    And = 270,                     /* And  */
+    Or = 271,                      /* Or  */
+    Plus = 272,                    /* Plus  */
+    Minus = 273,                   /* Minus  */
+    Mult = 274,                    /* Mult  */
+    Div = 275,                     /* Div  */
+    Mod = 276,                     /* Mod  */
+    Less = 277,                    /* Less  */
+    Greater = 278,                 /* Greater  */
+    GreaterEq = 279,               /* GreaterEq  */
+    LessEq = 280,                  /* LessEq  */
+    Equal = 281,                   /* Equal  */
+    NotEq = 282,                   /* NotEq  */
+    Assign = 283,                  /* Assign  */
+    SemiCon = 284,                 /* SemiCon  */
+    Comma = 285,                   /* Comma  */
+    LeftParent = 286,              /* LeftParent  */
+    RightParent = 287,             /* RightParent  */
+    LeftBrack = 288,               /* LeftBrack  */
+    RightBrack = 289,              /* RightBrack  */
+    LeftBrace = 290,               /* LeftBrace  */
+    RightBrace = 291,              /* RightBrace  */
+    IntegerConst = 292,            /* IntegerConst  */
+    FloatConst = 293,              /* FloatConst  */
+    StringConst = 294,             /* StringConst  */
+    Identifier = 295               /* Identifier  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
@@ -104,7 +109,7 @@ union YYSTYPE
   const char* tokenValue;
   struct ASTNode *astNode;
 
-#line 108 "frontend/parser/sysY.tab.hh"
+#line 113 "frontend/parser/sysY.tab.hh"
 
 };
 typedef union YYSTYPE YYSTYPE;
