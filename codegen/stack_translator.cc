@@ -85,9 +85,7 @@ void StackTranslator::translateFunc(ASTNode *func) {
     if (localVarSize > 0)
         adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize); 
 
-    // TODO: 翻译函数体
-
-    // TODO: 返回值处理
+    // TODO: 翻译函数体 返回值在翻译 return 语句时设置
 
     // 在函数调用结束后，将返回值保存到 r0 中
     adapter->loadImmediate(adapter->getRegName(0), 0); // 临时设置为 0 方便调试

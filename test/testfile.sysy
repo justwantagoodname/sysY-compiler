@@ -1,10 +1,7 @@
-int f(int a, int b, int c) {
-    return 0;
-}
 int main() {
-    int a[10];
-    {
-        int a, b, c;
-        int a[10];
-    }
+    int a[10] = {12};
+    putf("name");
+    int b = 12;
+    int c[10];
+    int d;
 }

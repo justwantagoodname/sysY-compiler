@@ -82,7 +82,13 @@ ASTNode *collectDecl(ASTNode *scope_node, ASTNode *decls) {
     ASTNode *scope_decl = ASTNode_querySelectorOne(scope_node, "/Decl");
     ASTNode *block = ASTNode_querySelectorOne(scope_node, "/Block");
     if (ASTNode_id_is(decls, "VarTemp")) {
-        ASTNode_copy_children(decls, block);
+        // 查询有InitValue的变量
+        QueryResult *init_vars = ASTNode_querySelector(decls, "/Var/InitValue/.."), *cur = nullptr;
+        DL_FOREACH(init_vars, cur) {
+            auto init_var = cur->node;
+            ASTNode *cloned = ASTNode_clone(init_var);
+            ASTNode_add_child(block, cloned);
+        }
         ASTNode_move_children(decls, scope_decl);
     } else if (ASTNode_id_is(decls, "ConstantTemp")) {
         ASTNode_move_children(decls, scope_decl);    
