@@ -17,6 +17,13 @@ size_t multi_dimensional_index_to_linear_index(const std::vector<int> &dim_sizes
 
 #endif
 
+/**
+ * 根据函数名判断是否为 sysY 库函数
+ * @param func_name 传入函数名
+ * @return
+ */
+bool is_lib_function(const char* func_name);
+
 bool is_integer(double x);
 
 void print_version();

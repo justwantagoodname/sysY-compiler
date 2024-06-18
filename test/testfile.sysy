@@ -1,7 +1,4 @@
 int main() {
-    int a[10] = {12};
-    putf("name");
-    int b = 12;
-    int c[10];
-    int d;
+    starttime();
+    stoptime();
 }

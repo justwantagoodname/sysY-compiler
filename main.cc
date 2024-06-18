@@ -25,7 +25,7 @@ int main(int argc, const char** argv) {
 	printf("=== ASM Start ===\n");
 	AssemblyBuilder asfile(Flag::getFlag().getFlagFor("output").c_str());
 
-	asfile | ".extern putf getint putint putch getch getarray putarray"; // import libsysy.a
+	asfile | ".extern _sysy_starttime _sysy_stoptime after_main before_main getarray getch getfarray getfloat getint putarray putch putf putfarray putfloat putint"; // import libsysy.a
 	asfile.line();
 
 	GlobalDeclInflater const_inflater(root.unwrap());

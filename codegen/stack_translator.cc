@@ -1,5 +1,5 @@
 #include "codegen/stack_translator.hpp"
-
+#include "utils.h"
 
 void StackTranslator::translate() {
     QueryResult* funcs = ASTNode_querySelector(this->comp_unit, "/Scope/FunctionDef/Function"), *cur;
@@ -86,6 +86,9 @@ void StackTranslator::translateFunc(ASTNode *func) {
         adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize); 
 
     // TODO: 翻译函数体 返回值在翻译 return 语句时设置
+    auto *block = ASTNode_querySelectorOne(func, "/Scope/Block");
+
+    translateBlock(block);
 
     // 在函数调用结束后，将返回值保存到 r0 中
     adapter->loadImmediate(adapter->getRegName(0), 0); // 临时设置为 0 方便调试
@@ -97,4 +100,84 @@ void StackTranslator::translateFunc(ASTNode *func) {
     adapter->popStack({adapter->getFramePointerName(), adapter->getPCName()});
     
     adapter->emitComment();
+}
+
+void StackTranslator::translateBlock(ASTNode *block) {
+    assert(ASTNode_id_is(block, "Block"));
+
+    QueryResult *stmts = ASTNode_querySelector(block, "*"), *cur = nullptr;
+    DL_FOREACH(stmts, cur) {
+        auto stmt = cur->node;
+        translateStmt(stmt);
+    }
+}
+
+void StackTranslator::translateStmt(ASTNode *stmt) {
+    if (ASTNode_id_is(stmt, "Exp")) {
+        translateExp(stmt);
+    } else if (ASTNode_id_is(stmt, "Assign")) {
+
+    } else if (ASTNode_id_is(stmt, "Fetch")) {
+
+    } else if (ASTNode_id_is(stmt, "If")) {
+
+    } else if (ASTNode_id_is(stmt, "While")) {
+
+    } else if (ASTNode_id_is(stmt, "Return")) {
+
+    } else {
+        assert(false);
+    }
+
+}
+
+void StackTranslator::translateCall(ASTNode *call) {
+    assert(ASTNode_id_is(call, "Call"));
+    const char* funcName;
+    bool hasFuncName = ASTNode_get_attr_str(call, "name", &funcName);
+    assert(hasFuncName);
+    if (is_lib_function(funcName)) {
+        translateExternCall(call);
+    } else {
+        assert(0);
+    }
+}
+
+void StackTranslator::translateExp(ASTNode *exp) {
+    assert(ASTNode_id_is(exp, "Exp"));
+    auto *child = ASTNode_querySelectorOne(exp, "*");
+    if (ASTNode_id_is(child, "Call")) {
+        translateCall(child);
+    } else {
+        assert(0);
+    }
+}
+
+/**
+ * 调用外部函数
+ * @param call
+ */
+void StackTranslator::translateExternCall(ASTNode *call) {
+    assert(ASTNode_id_is(call, "Call"));
+
+    const char* funcName;
+    ASTNode_get_attr_str(call, "name", &funcName);
+
+    assert(is_lib_function(funcName));
+
+    // 首先计算所有参数
+    if (strcmp(funcName, "putf") == 0) {
+        // 函数第一个参数是字符串，特殊处理一下
+    } else if (strcmp(funcName, "starttime") == 0 || strcmp(funcName, "stoptime") == 0) {
+        // 这俩函数用到行号特殊处理一下
+        int lineno;
+        ASTNode_get_attr_int(call, "line", &lineno);
+        adapter->mov(tempReg, accumulatorReg);
+        adapter->loadImmediate(adapter->getRegName(0), lineno); // TODO: 应该按照平台调用约定来放寄存器
+        adapter->call(std::string("_sysy_") + funcName);
+        adapter->mov(accumulatorReg, tempReg);
+    } else {
+
+    }
+
 }

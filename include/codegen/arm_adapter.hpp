@@ -111,6 +111,10 @@ public:
     void mov(const std::string& dst, const std::string& src) override {
         asm_file.line("\tmov %s, %s", dst.c_str(), src.c_str());
     }
+
+    void call(const std::string& labelName) override {
+        asm_file.line("\tbl %s", labelName.c_str());
+    }
 };
 
 #endif

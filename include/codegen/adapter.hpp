@@ -32,6 +32,7 @@ public:
    virtual void add(const std::string& dst, const std::string& src, int imm) = 0;
    virtual void sub(const std::string& dst, const std::string& src, int imm) = 0;
    virtual void mov(const std::string& dst, const std::string& src) = 0;
+   virtual void call(const std::string& labelName) = 0;
 };
 
 #endif

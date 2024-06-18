@@ -18,6 +18,7 @@ private:
     std::string accumulatorReg;
 
     void translateFunc(ASTNode* func);
+    void translateBlock(ASTNode* block);
     void translateStmt(ASTNode* stmt);
     void translateExp(ASTNode* exp);
     void translateAssign(ASTNode* assign);
