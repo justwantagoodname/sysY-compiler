@@ -198,10 +198,9 @@ void StackTranslator::translateExternCall(ASTNode *call) {
             printf("index: %d\n", idx);
             const char* type;
             bool hasType = ASTNode_get_attr_str(paramNodes[idx], "type", &type);
-            assert(hasType);
-            if (strcmp(type, "StringConst") == 0) {
+            if (hasType && strcmp(type, "StringConst") == 0) {
                 const char* label;
-                ASTNode_get_attr_str(cur->node, "label", &label);
+                ASTNode_get_attr_str(paramNodes[idx], "label", &label);
                 adapter->loadLabelAddress(accumulatorReg, label);
                 // 这里因为 putf 的字符参数必定是第一个，所以不入栈了
                 // adapter->pushStack({accumulatorReg});
