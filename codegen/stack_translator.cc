@@ -174,12 +174,7 @@ void StackTranslator::translateExternCall(ASTNode *call) {
     int paramSize = ASTNode_children_size(call);
 
     assert(is_lib_function(funcName));
-    if (paramSize) {
-        // 如果存在参数，先计算参数，需要保存累加器
-        adapter->pushStack({accumulatorReg});
-    } else {
-        adapter->mov(tempReg, accumulatorReg); // 这两个函数的参数是放在 r0 中的 没有对应的实际参数所以可以直接
-    }
+    // TODO: 检查参数数量是否正确和参数类型是否正确
     
     // 首先计算所有参数
     if (strcmp(funcName, "starttime") == 0 || strcmp(funcName, "stoptime") == 0) {
@@ -189,42 +184,38 @@ void StackTranslator::translateExternCall(ASTNode *call) {
         
         adapter->loadImmediate(adapter->getRegName(0), lineno); // TODO: 应该按照平台调用约定来放寄存器
         adapter->call(std::string("_sysy_") + funcName);
-    } else if (strcmp(funcName, "putf") == 0) {
-        // putf 和其他可变参数需要特殊处理，因为 GNU C 语法中可变参数在栈上是从右向左入栈的，和我们的约定相反
-        // 计算所有参数
-        QueryResult *params = ASTNode_querySelector(call, "Param"), *cur = params->prev;
-        int idx = paramSize - 1;
-        do {
-            // 反向遍历参数
-            const char* type;
-            bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
-            if (hasType && strcmp(type, "StringConst") == 0) {
-                // 字符串常量 特殊处理，因为没有字符串常量类型
-                const char* label;
-                ASTNode_get_attr_str(cur->node, "label", &label);
-                adapter->loadLabelAddress(accumulatorReg, label);
-            } else {
-                // 计算参数
-                assert(ASTNode_id_is(cur->node, "Param"));
-                ASTNode* inner = ASTNode_querySelectorOne(cur->node, "*");
-                translateExpInner(inner);
-            }
-            if (idx != 0) adapter->pushStack({accumulatorReg}); // 第一个参数不需要 push
-            cur = cur->prev;
-            idx--;
-        } while (cur != params->prev);
-        int reg_param_size = std::min(4, paramSize);
-        std::vector<std::string> regs;
-        for (int i = 1;i < reg_param_size;i++) {
-            regs.push_back(adapter->getRegName(i));
-        }
-        adapter->popStack(regs);
-        adapter->call(funcName);
-    }
-    // 根据保存的累加器的方式恢复值
-    if (paramSize) {
-        adapter->popStack({accumulatorReg});
     } else {
-        adapter->mov(tempReg, accumulatorReg);
+        // putf 和其他可变参数需要特殊处理，因为 GNU C 语法中可变参数在栈上是从右向左入栈的，和我们的约定相反
+        if (paramSize) {
+            // 计算所有参数
+            QueryResult *params = ASTNode_querySelector(call, "Param"), *cur = params->prev;
+            int idx = paramSize - 1;
+            do {
+                // 反向遍历参数
+                const char* type;
+                bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
+                if (hasType && strcmp(type, "StringConst") == 0) {
+                    // 字符串常量 特殊处理，因为没有字符串常量类型
+                    const char* label;
+                    ASTNode_get_attr_str(cur->node, "label", &label);
+                    adapter->loadLabelAddress(accumulatorReg, label);
+                } else {
+                    // 计算参数
+                    assert(ASTNode_id_is(cur->node, "Param"));
+                    ASTNode* inner = ASTNode_querySelectorOne(cur->node, "*");
+                    translateExpInner(inner);
+                }
+                if (idx != 0) adapter->pushStack({accumulatorReg}); // 第一个参数不需要 push
+                cur = cur->prev;
+                idx--;
+            } while (cur != params->prev);
+            int reg_param_size = std::min(4, paramSize);
+            std::vector<std::string> regs;
+            for (int i = 1;i < reg_param_size;i++) {
+                regs.push_back(adapter->getRegName(i));
+            }
+            adapter->popStack(regs);
+        }
+        adapter->call(funcName);
     }
 }
