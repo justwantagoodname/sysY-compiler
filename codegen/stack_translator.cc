@@ -145,9 +145,12 @@ void StackTranslator::translateCall(ASTNode *call) {
 
 void StackTranslator::translateExp(ASTNode *exp) {
     assert(ASTNode_id_is(exp, "Exp"));
-    auto *child = ASTNode_querySelectorOne(exp, "*");
-    if (ASTNode_id_is(child, "Call")) {
-        translateCall(child);
+    translateExpInner(ASTNode_querySelectorOne(exp, "*"));
+}
+
+void StackTranslator::translateExpInner(ASTNode *exp) {
+    if (ASTNode_id_is(exp, "Call")) {
+        translateCall(exp);
     } else {
         assert(0);
     }
@@ -163,12 +166,12 @@ void StackTranslator::translateExternCall(ASTNode *call) {
     const char* funcName;
     ASTNode_get_attr_str(call, "name", &funcName);
 
+    auto paramSize = ASTNode_children_size(call);
+
     assert(is_lib_function(funcName));
 
     // 首先计算所有参数
-    if (strcmp(funcName, "putf") == 0) {
-        // 函数第一个参数是字符串，特殊处理一下
-    } else if (strcmp(funcName, "starttime") == 0 || strcmp(funcName, "stoptime") == 0) {
+    if (strcmp(funcName, "starttime") == 0 || strcmp(funcName, "stoptime") == 0) {
         // 这俩函数用到行号特殊处理一下
         int lineno;
         ASTNode_get_attr_int(call, "line", &lineno);
@@ -176,8 +179,36 @@ void StackTranslator::translateExternCall(ASTNode *call) {
         adapter->loadImmediate(adapter->getRegName(0), lineno); // TODO: 应该按照平台调用约定来放寄存器
         adapter->call(std::string("_sysy_") + funcName);
         adapter->mov(accumulatorReg, tempReg);
-    } else {
+    } else if (strcmp(funcName, "putf") == 0) {
+        // putf 和其他可变参数需要特殊处理，因为 GNU C 语法中可变参数在栈上是从右向左入栈的，和我们的约定相反
+        adapter->pushStack({accumulatorReg});
+        // 计算所有参数
+        QueryResult *params = ASTNode_querySelector(call, "Param"), *cur = params->prev;
+        int index = paramSize - 1;
+        do {
+            // 反向遍历参数
+            const char* type;
+            ASTNode_get_attr_str(cur->node, "type", &type);
+            if (strcmp(type, "StringConst") == 0) {
+                const char* label;
+                ASTNode_get_attr_str(cur->node, "label", &label);
+                adapter->loadLabelAddress(accumulatorReg, label);
+                // 这里因为 putf 的字符参数必定是第一个，所以不入栈了
+                // adapter->pushStack({accumulatorReg});
+            } else {
+                // 计算参数
+                translateExpInner(cur->node);
+                if (index >= 3) {
+                    adapter->pushStack({accumulatorReg});
+                } else {
+                    adapter->mov(adapter->getRegName(index), accumulatorReg);
+                }
+            }
 
+            cur = cur->prev, index--;
+        } while (cur->prev != params->prev);
+        adapter->call(funcName);
+        adapter->popStack({accumulatorReg});
     }
 
 }

@@ -27,6 +27,7 @@ public:
    virtual void emitLabel(const std::string& reg) = 0;
    virtual void loadImmediate(const std::string& reg, int x) = 0;
    virtual void loadImmediate(const std::string& reg, float x) = 0;
+   virtual void loadLabelAddress(const std::string& reg, const std::string& labelName) = 0;
    virtual void pushStack(std::initializer_list<std::string> regs) = 0;
    virtual void popStack(std::initializer_list<std::string> regs) = 0;
    virtual void add(const std::string& dst, const std::string& src, int imm) = 0;

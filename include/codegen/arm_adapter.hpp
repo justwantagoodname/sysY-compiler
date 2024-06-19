@@ -50,6 +50,7 @@ public:
     void emitFunctionLabel(const std::string &funcName) override {
         asm_file.line(".global %s", funcName.c_str());
         asm_file.line(".text");
+        asm_file.line(".align 2");
         asm_file.line(".type %s, %%function", funcName.c_str());
         asm_file.line("%s:", funcName.c_str());
     }
@@ -93,6 +94,10 @@ public:
 
     void loadImmediate(const std::string& reg, float x) override {
         // TODO: implement this
+    }
+
+    void loadLabelAddress(const std::string& reg, const std::string& labelName) override {
+        asm_file.line("\tldr %s, =%s", reg.c_str(), labelName.c_str());
     }
 
     void uniOp(const std::string& op, const std::string& dst, const std::string& src, int imm) {

@@ -1,4 +1,3 @@
 int main() {
-    starttime();
-    stoptime();
+    putf("Hello, world\n");
 }

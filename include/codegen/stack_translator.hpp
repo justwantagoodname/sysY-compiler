@@ -21,6 +21,7 @@ private:
     void translateBlock(ASTNode* block);
     void translateStmt(ASTNode* stmt);
     void translateExp(ASTNode* exp);
+    void translateExpInner(ASTNode* exp);
     void translateAssign(ASTNode* assign);
     void translateFetch(ASTNode* fetch);
     void translateCall(ASTNode* call);
