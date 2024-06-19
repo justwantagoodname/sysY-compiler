@@ -91,13 +91,19 @@ public:
     }
 
     /**
-     * 存储立即数，目前只能处理立即数小于等于 255 的情况
+     * 存储立即数到寄存器
      * @param reg
      * @param x
      */
     void loadImmediate(const std::string& reg, int x) override {
-        assert(0 <= x && x <= 255);
-        asm_file.line("\tmov %s, #%d", reg.c_str(), x);
+        auto ux = static_cast<unsigned int>(x);
+        if (ux & 0xFFFF0000) {
+            asm_file.line("\tmov %s, #%u", reg.c_str(), ux);
+        } else {
+            unsigned int lo = ux & 0xFFFF, hi = ux >> 16;
+            asm_file.line("\tmovw %s, #%d", reg.c_str(), lo);
+            asm_file.line("\tmovt %s, #%d", reg.c_str(), hi);
+        }
     }
 
     void loadImmediate(const std::string& reg, float x) override {
