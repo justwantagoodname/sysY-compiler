@@ -37,7 +37,8 @@ int main(int argc, const char** argv) {
 	translator.translate();
 
 	asfile.line()
-		  .line(".section	.note.GNU-stack,\"\",%%progbits");
+		  .line(".section	.note.GNU-stack,\"\",%%progbits")
+		  .line();
 	root.print();
 #endif
 

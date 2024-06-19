@@ -151,6 +151,11 @@ void StackTranslator::translateExp(ASTNode *exp) {
 void StackTranslator::translateExpInner(ASTNode *exp) {
     if (ASTNode_id_is(exp, "Call")) {
         translateCall(exp);
+    } else if (ASTNode_id_is(exp, "Number")) {
+        int value;
+        int hasValue = ASTNode_get_attr_int(exp, "value", &value);
+        assert(hasValue);
+        adapter->loadImmediate(accumulatorReg, value);
     } else {
         assert(0);
     }
@@ -184,11 +189,16 @@ void StackTranslator::translateExternCall(ASTNode *call) {
         adapter->pushStack({accumulatorReg});
         // 计算所有参数
         QueryResult *params = ASTNode_querySelector(call, "Param"), *cur = params->prev;
-        int index = paramSize - 1;
-        do {
+        std::vector<ASTNode*> paramNodes;
+        DL_FOREACH(params, cur) {
+            paramNodes.push_back(cur->node);
+        }
+        for (int idx = paramNodes.size() - 1; idx >= 0; idx--) {
             // 反向遍历参数
+            printf("index: %d\n", idx);
             const char* type;
-            ASTNode_get_attr_str(cur->node, "type", &type);
+            bool hasType = ASTNode_get_attr_str(paramNodes[idx], "type", &type);
+            assert(hasType);
             if (strcmp(type, "StringConst") == 0) {
                 const char* label;
                 ASTNode_get_attr_str(cur->node, "label", &label);
@@ -197,16 +207,16 @@ void StackTranslator::translateExternCall(ASTNode *call) {
                 // adapter->pushStack({accumulatorReg});
             } else {
                 // 计算参数
-                translateExpInner(cur->node);
-                if (index >= 3) {
+                assert(ASTNode_id_is(paramNodes[idx], "Param"));
+                ASTNode* inner = ASTNode_querySelectorOne(paramNodes[idx], "*");
+                translateExpInner(inner);
+                if (idx >= 3) {
                     adapter->pushStack({accumulatorReg});
                 } else {
-                    adapter->mov(adapter->getRegName(index), accumulatorReg);
+                    adapter->mov(adapter->getRegName(idx), accumulatorReg);
                 }
             }
-
-            cur = cur->prev, index--;
-        } while (cur->prev != params->prev);
+        }
         adapter->call(funcName);
         adapter->popStack({accumulatorReg});
     }
