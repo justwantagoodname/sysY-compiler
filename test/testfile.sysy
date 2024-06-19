@@ -1,3 +1,4 @@
+int a;
 int main() {
-    putf("Hello, you input is %d my const is %d\n", getint(), 42);
+    putf("Result %d\n", a);
 }

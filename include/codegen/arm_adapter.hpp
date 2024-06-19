@@ -96,8 +96,9 @@ public:
      * @param x
      */
     void loadImmediate(const std::string& reg, int x) override {
+        // TODO：也许得考虑编译机器大小端
         auto ux = static_cast<unsigned int>(x);
-        if (ux & 0xFFFF0000) {
+        if (ux & 0xFFFF0000 || ux == 0) {
             asm_file.line("\tmov %s, #%u", reg.c_str(), ux);
         } else {
             unsigned int lo = ux & 0xFFFF, hi = ux >> 16;
@@ -114,17 +115,45 @@ public:
         asm_file.line("\tldr %s, =%s", reg.c_str(), labelName.c_str());
     }
 
-    void uniOp(const std::string& op, const std::string& dst, const std::string& src, int imm) {
+    void loadRegister(const std::string& dst, const std::string& src, int offset) override {
+        asm_file.line("\tldr %s, [%s, #%d]", dst.c_str(), src.c_str(), offset);
+    }
+
+    void uniOpWithImm(const std::string& op, const std::string& dst, const std::string& src, int imm) {
         assert(0 <= imm && imm <= 255);
         asm_file.line("\t%s %s, %s, #%d", op.c_str(), dst.c_str(), src.c_str(), imm);
     }
 
+    void uniOp(const std::string& op, const std::string& dst, const std::string& src) {
+        asm_file.line("\t%s %s, %s", op.c_str(), dst.c_str(), src.c_str());
+    }
+
     void add(const std::string& dst, const std::string& src, int imm) override {
-        uniOp("add", dst, src, imm);
+        uniOpWithImm("add", dst, src, imm);
+    }
+
+    void add(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        uniOp("add", dst, src1);
     }
 
     void sub(const std::string& dst, const std::string& src, int imm) override {
-        uniOp("sub", dst, src, imm);
+        uniOpWithImm("sub", dst, src, imm);
+    }
+
+    void sub(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        uniOp("sub", dst, src1);
+    }
+
+    void mul(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        uniOp("mul", dst, src1);
+    }
+
+    void div(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        assert(false); // TODO: 研究使用 fpu 或者软浮点实现
+    }
+
+    void mod(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        assert(false); // TODO: 研究使用 fpu 或者软浮点实现，可以想办法优化对特定数的And
     }
 
     void mov(const std::string& dst, const std::string& src) override {

@@ -21,7 +21,12 @@ private:
     void translateBlock(ASTNode* block);
     void translateStmt(ASTNode* stmt);
     void translateExp(ASTNode* exp);
+    /*
+     * 在翻译过程中计算属性类型
+     */
     void translateExpInner(ASTNode* exp);
+    void translateArithmeticOp(ASTNode* exp);
+
     void translateAssign(ASTNode* assign);
     void translateFetch(ASTNode* fetch);
     void translateCall(ASTNode* call);

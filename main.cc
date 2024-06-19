@@ -18,7 +18,7 @@ int main(int argc, const char** argv) {
 #ifdef UNI_OPTIMIZTION
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
-  	// root.print();
+  	root.print();
 #endif
 
 #ifdef ASM_GEN

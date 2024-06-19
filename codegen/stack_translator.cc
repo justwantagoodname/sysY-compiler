@@ -2,9 +2,9 @@
 #include "utils.h"
 
 void StackTranslator::translate() {
-    QueryResult* funcs = ASTNode_querySelector(this->comp_unit, "/Scope/FunctionDef/Function"), *cur;
+    QueryResult *funcs = ASTNode_querySelector(this->comp_unit, "/Scope/FunctionDef/Function"), *cur;
     DL_FOREACH(funcs, cur) {
-        ASTNode* func = cur->node;
+        ASTNode *func = cur->node;
         translateFunc(func);
     }
 }
@@ -24,7 +24,7 @@ void StackTranslator::translate() {
  */
 void StackTranslator::translateFunc(ASTNode *func) {
     assert(ASTNode_id_is(func, "Function"));
-    const char* funcName;
+    const char *funcName;
     bool hasFuncName = ASTNode_get_attr_str(func, "name", &funcName);
     assert(hasFuncName);
 
@@ -46,7 +46,7 @@ void StackTranslator::translateFunc(ASTNode *func) {
     int funcParamIndex = 0;
     DL_FOREACH(params, cur) {
         auto param = cur->node;
-        const char* paramName;
+        const char *paramName;
         bool hasParamName = ASTNode_get_attr_str(param, "name", &paramName);
         assert(hasParamName);
         auto param_in_decl = ASTNode_querySelectorfOne(func, "/Scope/Decl/ParamDecl[@name='%s']", paramName);
@@ -83,7 +83,7 @@ void StackTranslator::translateFunc(ASTNode *func) {
 
     // 实际移动栈顶指针
     if (localVarSize > 0)
-        adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize); 
+        adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize);
 
     // TODO: 翻译函数体 返回值在翻译 return 语句时设置
     auto *block = ASTNode_querySelectorOne(func, "/Scope/Block");
@@ -98,7 +98,7 @@ void StackTranslator::translateFunc(ASTNode *func) {
     adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
     // 这里直接弹出到 pc，寄存器中实现转跳
     adapter->popStack({adapter->getFramePointerName(), adapter->getPCName()});
-    
+
     adapter->emitComment();
 }
 
@@ -133,7 +133,7 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
 
 void StackTranslator::translateCall(ASTNode *call) {
     assert(ASTNode_id_is(call, "Call"));
-    const char* funcName;
+    const char *funcName;
     bool hasFuncName = ASTNode_get_attr_str(call, "name", &funcName);
     assert(hasFuncName);
     if (is_lib_function(funcName)) {
@@ -149,6 +149,10 @@ void StackTranslator::translateExp(ASTNode *exp) {
 }
 
 void StackTranslator::translateExpInner(ASTNode *exp) {
+    static std::set<std::string> relOp = {"Or", "And", "Equal", "NotEq", "Less", "LessEq", "Greater", "GreaterEq",
+                                          "Not"};
+    static std::set<std::string> arithOp = {"Plus", "Minus", "Mult", "Div", "Mod"};
+    static std::set<std::string> unaryOp = {"UnPlus", "UnMinus"};
     if (ASTNode_id_is(exp, "Call")) {
         translateCall(exp);
     } else if (ASTNode_id_is(exp, "Number")) {
@@ -156,8 +160,43 @@ void StackTranslator::translateExpInner(ASTNode *exp) {
         int hasValue = ASTNode_get_attr_int(exp, "value", &value);
         assert(hasValue);
         adapter->loadImmediate(accumulatorReg, value);
+    } else if (ASTNode_id_is(exp, "Fetch")) {
+        translateFetch(exp);
+    } else if (relOp.find(exp->id) != relOp.end()) {
+        // 逻辑运算
+    } else if (arithOp.find(exp->id) != arithOp.end()) {
+        // 算术运算
+        translateArithmeticOp(exp);
+    } else if (unaryOp.find(exp->id) != unaryOp.end()) {
+        // 一元运算
     } else {
         assert(0);
+    }
+}
+
+void StackTranslator::translateArithmeticOp(ASTNode *exp) {
+    assert(ASTNode_id_is(exp, "Plus")
+           || ASTNode_id_is(exp, "Minus")
+           || ASTNode_id_is(exp, "Mult")
+           || ASTNode_id_is(exp, "Div")
+           || ASTNode_id_is(exp, "Mod"));
+
+    ASTNode *lhs = ASTNode_querySelectorOne(exp, "*[1]"), *rhs = ASTNode_querySelectorOne(exp, "*[2]");
+
+    translateExpInner(lhs);
+    adapter->pushStack({accumulatorReg});
+    translateExpInner(rhs);
+    adapter->popStack({tempReg});
+    if (ASTNode_id_is(exp, "Plus")) {
+        adapter->add(accumulatorReg, accumulatorReg, tempReg);
+    } else if (ASTNode_id_is(exp, "Minus")) {
+        adapter->sub(accumulatorReg, accumulatorReg, tempReg);
+    } else if (ASTNode_id_is(exp, "Mult")) {
+        adapter->mul(accumulatorReg, accumulatorReg, tempReg);
+    } else if (ASTNode_id_is(exp, "Div")) {
+        adapter->div(accumulatorReg, accumulatorReg, tempReg);
+    } else if (ASTNode_id_is(exp, "Mod")) {
+        adapter->mod(accumulatorReg, accumulatorReg, tempReg);
     }
 }
 
@@ -168,20 +207,20 @@ void StackTranslator::translateExpInner(ASTNode *exp) {
 void StackTranslator::translateExternCall(ASTNode *call) {
     assert(ASTNode_id_is(call, "Call"));
 
-    const char* funcName;
+    const char *funcName;
     ASTNode_get_attr_str(call, "name", &funcName);
 
     int paramSize = ASTNode_children_size(call);
 
     assert(is_lib_function(funcName));
     // TODO: 检查参数数量是否正确和参数类型是否正确
-    
+
     // 首先计算所有参数
     if (strcmp(funcName, "starttime") == 0 || strcmp(funcName, "stoptime") == 0) {
         // 这俩函数用到行号特殊处理一下
         int lineno;
         ASTNode_get_attr_int(call, "line", &lineno);
-        
+
         adapter->loadImmediate(adapter->getRegName(0), lineno); // TODO: 应该按照平台调用约定来放寄存器
         adapter->call(std::string("_sysy_") + funcName);
     } else {
@@ -192,27 +231,28 @@ void StackTranslator::translateExternCall(ASTNode *call) {
             int idx = paramSize - 1;
             do {
                 // 反向遍历参数
-                const char* type;
+                const char *type;
                 bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
                 if (hasType && strcmp(type, "StringConst") == 0) {
                     // 字符串常量 特殊处理，因为没有字符串常量类型
-                    const char* label;
+                    const char *label;
                     ASTNode_get_attr_str(cur->node, "label", &label);
                     adapter->loadLabelAddress(accumulatorReg, label);
                 } else {
                     // 计算参数
                     assert(ASTNode_id_is(cur->node, "Param"));
-                    ASTNode* inner = ASTNode_querySelectorOne(cur->node, "*");
+                    ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
                     translateExpInner(inner);
                 }
                 if (idx != 0) adapter->pushStack({accumulatorReg}); // 第一个参数不需要 push
                 cur = cur->prev;
                 idx--;
             } while (cur != params->prev);
+            // TODO: 这里需要为putf修改float传递方式
             int reg_param_size = std::min(4, paramSize);
             if (reg_param_size - 1 > 0) {
                 std::vector<std::string> regs;
-                for (int i = 1;i < reg_param_size;i++) {
+                for (int i = 1; i < reg_param_size; i++) {
                     regs.push_back(adapter->getRegName(i));
                 }
                 adapter->popStack(regs);
@@ -220,4 +260,30 @@ void StackTranslator::translateExternCall(ASTNode *call) {
         }
         adapter->call(funcName);
     }
+}
+
+void StackTranslator::translateFetch(ASTNode *fetch) {
+    assert(ASTNode_id_is(fetch, "Fetch"));
+    auto address = ASTNode_querySelectorOne(fetch, "Address");
+
+    const char *name;
+    bool hasName = ASTNode_get_attr_str(address, "base", &name);
+    assert(hasName);
+
+    auto decl = ASTNode_querySelectorfOne(fetch, "/ancestor::Scope/Decl/*[@name='%s']", name);
+    assert(decl);
+
+    const char* label;
+    bool hasLabel = ASTNode_get_attr_str(decl, "label", &label);
+    if (hasLabel) {
+        // 全局变量
+        adapter->loadLabelAddress(accumulatorReg, label);
+    } else {
+        int offset;
+        bool hasOffset = ASTNode_get_attr_int(decl, "offset", &offset);
+        assert(hasOffset);
+        // 局部变量
+        adapter->loadRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+    }
+
 }
