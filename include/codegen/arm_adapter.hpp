@@ -59,7 +59,7 @@ public:
         asm_file.line("%s:", reg.c_str());
     }
 
-    const std::string createRegList(std::initializer_list<std::string> regs) {
+    const std::string createRegList(const std::vector<std::string> &regs) {
         // TODO: replace to stringstream
         std::string reg_list = "{";
         bool first = true;
@@ -78,7 +78,15 @@ public:
         asm_file.line("\tpush %s", createRegList(regs).c_str());
     }
 
+    void pushStack(const std::vector<std::string> &regs) override {
+        asm_file.line("\tpush %s", createRegList(regs).c_str());
+    }
+
     void popStack(std::initializer_list<std::string> regs) override {
+        asm_file.line("\tpop %s", createRegList(regs).c_str());
+    }
+
+    void popStack(const std::vector<std::string> &regs) override {
         asm_file.line("\tpop %s", createRegList(regs).c_str());
     }
 

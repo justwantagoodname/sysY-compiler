@@ -29,7 +29,9 @@ public:
    virtual void loadImmediate(const std::string& reg, float x) = 0;
    virtual void loadLabelAddress(const std::string& reg, const std::string& labelName) = 0;
    virtual void pushStack(std::initializer_list<std::string> regs) = 0;
+   virtual void pushStack(const std::vector<std::string>& regs) = 0;
    virtual void popStack(std::initializer_list<std::string> regs) = 0;
+   virtual void popStack(const std::vector<std::string>& regs) = 0;
    virtual void add(const std::string& dst, const std::string& src, int imm) = 0;
    virtual void sub(const std::string& dst, const std::string& src, int imm) = 0;
    virtual void mov(const std::string& dst, const std::string& src) = 0;
