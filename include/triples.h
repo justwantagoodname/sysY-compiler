@@ -55,7 +55,7 @@ public:
 			value,// 变量编号
 			func, // 函数编号
 			lamb,// 标签
-
+			str, // 格式化字符串常量
 		};
 	}TT = TRIPLEVALUE(); // Triple Value Type Enum
 
@@ -71,6 +71,7 @@ public:
 		TripleValue(int t) :value(t), type(TT.temp), added(nullptr) {}
 		TripleValue(int v, TripleType ty) :value(v), type(ty), added(nullptr) {}
 		TripleValue(int v, TripleType ty, const TripleValue& at);
+		TripleValue(const char* str);
 		TripleValue(const TripleValue& at);
 
 		~TripleValue();
