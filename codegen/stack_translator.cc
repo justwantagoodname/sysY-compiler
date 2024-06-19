@@ -210,11 +210,13 @@ void StackTranslator::translateExternCall(ASTNode *call) {
                 idx--;
             } while (cur != params->prev);
             int reg_param_size = std::min(4, paramSize);
-            std::vector<std::string> regs;
-            for (int i = 1;i < reg_param_size;i++) {
-                regs.push_back(adapter->getRegName(i));
+            if (reg_param_size - 1 > 0) {
+                std::vector<std::string> regs;
+                for (int i = 1;i < reg_param_size;i++) {
+                    regs.push_back(adapter->getRegName(i));
+                }
+                adapter->popStack(regs);
             }
-            adapter->popStack(regs);
         }
         adapter->call(funcName);
     }
