@@ -195,7 +195,6 @@ void StackTranslator::translateExternCall(ASTNode *call) {
         }
         for (int idx = paramNodes.size() - 1; idx >= 0; idx--) {
             // 反向遍历参数
-            printf("index: %d\n", idx);
             const char* type;
             bool hasType = ASTNode_get_attr_str(paramNodes[idx], "type", &type);
             if (hasType && strcmp(type, "StringConst") == 0) {
