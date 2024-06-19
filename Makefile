@@ -100,6 +100,13 @@ run-arm: $(TEST_DIR)/output.s $(TEST_DIR)/libsysy.a
 	arm-linux-gnueabihf-gcc $< $(TEST_DIR)/libsysy.a -static -o $(TEST_DIR)/$(basename $(notdir $<)).arm
 	qemu-arm-static $(TEST_DIR)/$(basename $(notdir $<)).arm
 
+debug-arm: $(TEST_DIR)/output.s $(TEST_DIR)/libsysy.a
+	arm-linux-gnueabihf-gcc -g $< $(TEST_DIR)/libsysy.a -static -o $(TEST_DIR)/$(basename $(notdir $<)).arm
+	qemu-arm-static -g 1234 $(TEST_DIR)/$(basename $(notdir $<)).arm
+
+start-gdb:
+	gdb-multiarch $(TEST_DIR)/$(basename $(notdir $(TEST_DIR)/output.s)).arm -ex "target remote localhost:1234"
+
 test-submit-compiler: release-compiler # 提交测试模式的时候使用 release 模式，确保没有问题
 	@clear
 	@date
@@ -119,7 +126,7 @@ clean:
 requirements:
 ifeq ($(UNAME), Linux) 
 		sudo apt-get -y install build-essential flex bison entr libxml2-utils \
-						gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user-static
+						gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user-static gdb-multiarch
 endif
 
 ifeq ($(UNAME), Darwin)
@@ -133,6 +140,6 @@ dev:
 
 all: release-compiler
 
-.PHONY: clean dev zip test-compiler release-compiler dev-compiler parser-files requirements
+.PHONY: clean dev zip test-compiler release-compiler dev-compiler parser-files requirements start-gdb run-arm debug-arm test-submit-compiler
 
 .DEFAULT_GOAL := all
