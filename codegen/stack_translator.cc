@@ -313,7 +313,8 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
         DL_FOREACH(dims, cur) {
             int size;
             ASTNode_get_attr_int(cur->node, "value", &size);
-            dim_sizes.push_back(size);
+            // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
+            dim_sizes.push_back(size * adapter->getWordSize());
         }
 
         // 参数声明中的数组第一维大小是不确定的需要算出来
