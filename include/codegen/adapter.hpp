@@ -33,11 +33,16 @@ public:
    virtual void pushStack(const std::vector<std::string>& regs) = 0;
    virtual void popStack(std::initializer_list<std::string> regs) = 0;
    virtual void popStack(const std::vector<std::string>& regs) = 0;
+
    virtual void add(const std::string& dst, const std::string& src, int imm) = 0;
    virtual void add(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
    virtual void sub(const std::string& dst, const std::string& src, int imm) = 0;
    virtual void sub(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
+   virtual void mul(const std::string& dst, const std::string& src1, const int imm) = 0;
    virtual void mul(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
    virtual void div(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
    virtual void mod(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
    virtual void mov(const std::string& dst, const std::string& src) = 0;

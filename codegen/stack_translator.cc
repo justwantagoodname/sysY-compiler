@@ -296,17 +296,86 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
     assert(hasType);
     ASTNode_add_attr_str(fetch, "type", type);
 
+    bool is_array = ASTNode_has_attr(decl, "array");
+
+    std::vector<int> dim_sizes; // 数组的声明顺序
+
+    if (is_array) {
+        // 是数组，获取数组的索引
+        // 获取访问的顺序
+        auto *locator = ASTNode_querySelectorOne(fetch, "//Locator[0]");
+        assert(locator); // 访问数组必须有 locator 元素
+
+        QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize/Dimension/Exp/Number"), *cur = nullptr; // 必须确保所有数组大小被计算好了
+
+
+
+        DL_FOREACH(dims, cur) {
+            int size;
+            ASTNode_get_attr_int(cur->node, "value", &size);
+            dim_sizes.push_back(size);
+        }
+
+        // 参数声明中的数组第一维大小是不确定的需要算出来
+        if (ASTNode_id_is(decl, "ParamDecl")) {
+            int sub_array_size = 1; // 除去第一维的数组大小
+            for (int dim_size : dim_sizes) {
+                sub_array_size *= dim_size; // 计算除去第一维的数组大小
+            }
+            dim_sizes.insert(dim_sizes.begin(), sub_array_size); // 插入第一维的大小
+        }
+
+        // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
+        *dim_sizes.rbegin() = adapter->getWordSize(); // 最后一个地址改为元素大小 如果是第一维也要改
+
+        // 访问数组 依次计算索引，这里翻译为一个连加，因为我们可以控制过程，所以优化一下
+        QueryResult *locators = ASTNode_querySelector(fetch, "//Dimension/*");
+        cur = nullptr;
+        int idx = 0;
+        DL_FOREACH(locators, cur) {
+            // 计算索引
+            translateExpInner(cur->node);
+            // 乘以维度大小
+            if (dim_sizes[idx] != 1) {
+                adapter->loadImmediate(tempReg, dim_sizes[idx]);
+                adapter->mul(accumulatorReg, accumulatorReg, tempReg);
+            }
+
+            if (idx != 0) {
+                // 如果不是第一个维度，先加上前面的维度大小
+                adapter->popStack({tempReg});
+                adapter->add(accumulatorReg, accumulatorReg, tempReg);
+            }
+
+            if (idx != dim_sizes.size() - 1) {
+                adapter->pushStack({accumulatorReg}); // 如果后面还有维度，先保存
+            }
+
+            idx++;
+        }
+    }
+
     bool hasLabel = ASTNode_get_attr_str(decl, "label", &label);
     if (hasLabel) {
         // 全局变量
-        adapter->loadLabelAddress(tempReg, label);
-        adapter->loadRegister(accumulatorReg, tempReg, 0);
+        adapter->loadLabelAddress(tempReg, label); // 先加载基址
+        if (is_array) {
+            adapter->add(accumulatorReg, tempReg, accumulatorReg); // 如果是数组，那么确定实际的地址
+        }
+        adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
     } else {
         int offset;
         bool hasOffset = ASTNode_get_attr_int(decl, "offset", &offset);
         assert(hasOffset);
         // 局部变量
-        adapter->loadRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+        // TODO: 这里目前还有bug，如果是超级大的栈帧，那么这里的 offset 是不对的，不过应该交给loadRegister来处理
+        if (is_array) {
+            adapter->add(tempReg, adapter->getFramePointerName(), offset); // 先计算基址
+            adapter->add(accumulatorReg, tempReg, accumulatorReg); // 然后确定实际地址
+            adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+        } else {
+            adapter->loadRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+        }
     }
 
 }
