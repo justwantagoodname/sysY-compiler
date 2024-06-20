@@ -98,7 +98,7 @@ public:
     void loadImmediate(const std::string& reg, int x) override {
         // TODO：也许得考虑编译机器大小端
         auto ux = static_cast<unsigned int>(x);
-        if (ux & 0xFFFF0000 || ux == 0) {
+        if ((ux & 0xFFFF0000) == 0) {
             asm_file.line("\tmov %s, #%u", reg.c_str(), ux);
         } else {
             unsigned int lo = ux & 0xFFFF, hi = ux >> 16;
@@ -125,8 +125,8 @@ public:
         asm_file.line("\t%s %s, %s, #%d", op.c_str(), dst.c_str(), src.c_str(), imm);
     }
 
-    void uniOp(const std::string& op, const std::string& dst, const std::string& src) {
-        asm_file.line("\t%s %s, %s", op.c_str(), dst.c_str(), src.c_str());
+    void uniOp(const std::string& op, const std::string& dst, const std::string& src, const std::string& src2) {
+        asm_file.line("\t%s %s, %s, %s", op.c_str(), dst.c_str(), src.c_str(), src2.c_str());
     }
 
     void add(const std::string& dst, const std::string& src, int imm) override {
@@ -134,7 +134,7 @@ public:
     }
 
     void add(const std::string& dst, const std::string& src1, const std::string& src2) override {
-        uniOp("add", dst, src1);
+        uniOp("add", dst, src1, src2);
     }
 
     void sub(const std::string& dst, const std::string& src, int imm) override {
@@ -142,11 +142,11 @@ public:
     }
 
     void sub(const std::string& dst, const std::string& src1, const std::string& src2) override {
-        uniOp("sub", dst, src1);
+        uniOp("sub", dst, src1, src2);
     }
 
     void mul(const std::string& dst, const std::string& src1, const std::string& src2) override {
-        uniOp("mul", dst, src1);
+        uniOp("mul", dst, src1, src2);
     }
 
     void div(const std::string& dst, const std::string& src1, const std::string& src2) override {
