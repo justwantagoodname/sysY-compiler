@@ -29,6 +29,7 @@ void GlobalDeclInflater::inflateConstDecl(ASTNode* const_decl, AssemblyBuilder& 
     asm_builder
         .line("\t.type %s, %%object", label)
         .line("\t.section .rodata")
+        .line("\t.align %d", this->word_align)
         .line("%s:", label);
 
     bool is_array = ASTNode_querySelectorOne(const_decl, "/.[@array]") != nullptr;
@@ -56,7 +57,6 @@ void GlobalDeclInflater::inflateConstDecl(ASTNode* const_decl, AssemblyBuilder& 
     }
 
     asm_builder 
-        .line("\t.align %d", this->word_align)
         .line();
     
 }
@@ -103,6 +103,7 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
     asm_builder
         .line("\t.type %s, %%object", label)
         .line("\t.section .%s", is_inited ? "data" : "bss")
+        .line("\t.align %d", this->word_align)
         .line("%s:", label);
 
     if (is_array) {
@@ -120,8 +121,6 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
                     }
                 }
             }
-            asm_builder
-                .line("\t.section .data");
         } else {
             int array_size = 1;
             QueryResult *array_sizes = ASTNode_querySelector(static_var_decl, "/ArraySize/Dimension//Number"), *cur = nullptr;
@@ -132,8 +131,7 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
                 array_size *= size;
             }
             asm_builder
-                .line("\t.space %d", array_size * this->word_size)
-                .line("\t.section .bss");
+                .line("\t.space %d", array_size * this->word_size);
         }
     } else {
         // 不是数组
@@ -150,7 +148,6 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
         }
     }
     asm_builder
-        .line("\t.align %d", this->word_align)
         .line();
 }
 
@@ -187,9 +184,9 @@ void GlobalDeclInflater::inflateStringConst(ASTNode *string_const, AssemblyBuild
     asm_builder
         .line("\t.type %s, %%object", label_name)
         .line("\t.section .rodata")
+        .line("\t.align %d", this->word_align)
         .line("%s:", label_name)
         .line("\t.asciz \"%s\"", str_literal)
-        .line("\t.align %d", this->word_align)
         .line();
 }
 
