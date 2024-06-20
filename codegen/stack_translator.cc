@@ -189,6 +189,22 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
     adapter->pushStack({accumulatorReg});
     translateExpInner(rhs);
     adapter->popStack({tempReg});
+
+    const char *rhs_type, *lhs_type;
+    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", &rhs_type);
+    bool lhs_has_type = ASTNode_get_attr_str(lhs, "type", &lhs_type);
+    
+    assert(rhs_has_type && lhs_has_type);
+    assert(strcmp(lhs_type, "Void") != 0 && strcmp(rhs_type, "Void") != 0);
+
+    if (strcmp(lhs_type, "Float") == 0 || strcmp(rhs_type, "Float") == 0) {
+        // 浮点数运算类型变为浮点
+        ASTNode_add_attr_str(exp, "type", "Float");
+    } else {
+        // 整数运算类型变为整数
+        ASTNode_add_attr_str(exp, "type", "Int");
+    }
+
     if (ASTNode_id_is(exp, "Plus")) {
         adapter->add(accumulatorReg, tempReg, accumulatorReg);
     } else if (ASTNode_id_is(exp, "Minus")) {
@@ -275,7 +291,11 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
     auto decl = ASTNode_querySelectorfOne(fetch, "/ancestor::Scope/Decl/*[@name='%s']", name);
     assert(decl);
 
-    const char* label;
+    const char* label, *type;
+    bool hasType = ASTNode_get_attr_str(decl, "type", &type);
+    assert(hasType);
+    ASTNode_add_attr_str(fetch, "type", type);
+
     bool hasLabel = ASTNode_get_attr_str(decl, "label", &label);
     if (hasLabel) {
         // 全局变量
