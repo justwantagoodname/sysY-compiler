@@ -277,7 +277,8 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
     bool hasLabel = ASTNode_get_attr_str(decl, "label", &label);
     if (hasLabel) {
         // 全局变量
-        adapter->loadLabelAddress(accumulatorReg, label);
+        adapter->loadLabelAddress(tempReg, label);
+        adapter->loadRegister(accumulatorReg, tempReg, 0);
     } else {
         int offset;
         bool hasOffset = ASTNode_get_attr_int(decl, "offset", &offset);

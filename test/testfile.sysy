@@ -1,4 +1,6 @@
-int a;
+int a = 114514;
 int main() {
+    starttime();
     putf("Result %d\n", a);
+    stoptime();
 }

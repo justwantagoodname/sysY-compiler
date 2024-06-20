@@ -116,7 +116,8 @@ public:
     }
 
     void loadRegister(const std::string& dst, const std::string& src, int offset) override {
-        asm_file.line("\tldr %s, [%s, #%d]", dst.c_str(), src.c_str(), offset);
+        if (offset == 0) asm_file.line("\tldr %s, [%s]", dst.c_str(), src.c_str());
+        else asm_file.line("\tldr %s, [%s, #%d]", dst.c_str(), src.c_str(), offset);
     }
 
     void uniOpWithImm(const std::string& op, const std::string& dst, const std::string& src, int imm) {
