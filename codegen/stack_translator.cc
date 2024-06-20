@@ -184,21 +184,21 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
     ASTNode *lhs = ASTNode_querySelectorOne(exp, "*[0]"), *rhs = ASTNode_querySelectorOne(exp, "*[1]");
 
     assert(lhs != nullptr && rhs != nullptr);
-    
+
     translateExpInner(lhs);
     adapter->pushStack({accumulatorReg});
     translateExpInner(rhs);
     adapter->popStack({tempReg});
     if (ASTNode_id_is(exp, "Plus")) {
-        adapter->add(accumulatorReg, accumulatorReg, tempReg);
+        adapter->add(accumulatorReg, tempReg, accumulatorReg);
     } else if (ASTNode_id_is(exp, "Minus")) {
-        adapter->sub(accumulatorReg, accumulatorReg, tempReg);
+        adapter->sub(accumulatorReg, tempReg, accumulatorReg);
     } else if (ASTNode_id_is(exp, "Mult")) {
-        adapter->mul(accumulatorReg, accumulatorReg, tempReg);
+        adapter->mul(accumulatorReg, tempReg, accumulatorReg);
     } else if (ASTNode_id_is(exp, "Div")) {
-        adapter->div(accumulatorReg, accumulatorReg, tempReg);
+        adapter->div(accumulatorReg, tempReg, accumulatorReg);
     } else if (ASTNode_id_is(exp, "Mod")) {
-        adapter->mod(accumulatorReg, accumulatorReg, tempReg);
+        adapter->mod(accumulatorReg, tempReg, accumulatorReg);
     }
 }
 
