@@ -12,12 +12,13 @@ void StackTranslator::translate() {
 /**
  * 翻译函数申明，因为这里是堆栈模式，我们自己的调用约定如下：
  * 1. 函数的返回值保存在 r0 中
- * 2. 函数的参数保存在 r0-r3 中，大于4个参数的情况下，多余4个的参数保存在栈中
+ * 2. 函数的参数全部保存栈上，放在old fp之前
+ * 3. 参数的入栈顺序是从右到左
  * 栈帧定义：
- * 假定有函数 f(int a, int b, int c, int d, int e)
+ * 假定有函数 f(int a, int b)
  *  高地址 --------------------------------------------------------------> 低地址
- *  |  参数  e  |  参数 d  |    旧栈底位置      | 返回地址 |  局部变量区 |   临时变量         |
- *  | 如果存在多于 4 个参数  |     ^-栈底指针     |                    |    ^- 栈顶指针     |
+ *  |  参数  b  |  参数 a  |    旧栈底位置      | 返回地址 |  局部变量区 |   临时变量         |
+ *  |        参数区        |     ^-栈底指针     |                    |    ^- 栈顶指针     |
  *
  * @note 栈顶指针指向栈顶变量地址
  * @param func 函数 AST 节点
@@ -51,14 +52,18 @@ void StackTranslator::translateFunc(ASTNode *func) {
         assert(hasParamName);
         auto param_in_decl = ASTNode_querySelectorfOne(func, "/Scope/Decl/ParamDecl[@name='%s']", paramName);
         assert(param_in_decl != nullptr);
+#if 0
         if (funcParamIndex < 3) {
             // 参数在寄存器中
             ASTNode_add_attr_str(param_in_decl, "pos", "reg");
             ASTNode_add_attr_str(param_in_decl, "reg", adapter->getRegName(funcParamIndex + 1).c_str());
         } else {
+#endif
             ASTNode_add_attr_str(param_in_decl, "pos", "stack");
             ASTNode_add_attr_int(param_in_decl, "offset", adapter->getWordSize() * (paramSize - funcParamIndex));
+#if 0
         }
+#endif
         funcParamIndex++;
     }
 
