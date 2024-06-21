@@ -337,24 +337,23 @@ void StackTranslator::translateLVal(ASTNode *lval) {
             int size;
             ASTNode_get_attr_int(cur->node, "value", &size);
             // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
-            dim_sizes.push_back(size * adapter->getWordSize());
-        }
-
-        // 参数声明中的数组第一维大小是不确定的需要算出来
-        if (ASTNode_id_is(decl, "ParamDecl")) {
-            int sub_array_size = 1; // 除去第一维的数组大小
-            for (int dim_size : dim_sizes) {
-                sub_array_size *= dim_size; // 计算除去第一维的数组大小
-            }
-            dim_sizes.insert(dim_sizes.begin(), sub_array_size); // 插入第一维的大小
+            dim_sizes.push_back(size);
         }
 
         // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
-        *dim_sizes.rbegin() = adapter->getWordSize(); // 最后一个地址改为元素大小 如果是第一维也要改
+        dim_sizes.push_back(adapter->getWordSize()); // 最后一个地址是元素大小
+
+        for (auto i = dim_sizes.size() - 1; i > 0; i--) {
+            dim_sizes[i - 1] = dim_sizes[i - 1] * dim_sizes[i];
+        }
+
+        // 参数声明中的数组第一维大小是缺失的所以不用删除第一个了
+        if (!ASTNode_id_is(decl, "ParamDecl")) {
+            dim_sizes.erase(dim_sizes.begin());
+        }
 
         // 访问数组 依次计算索引，这里翻译为一个连加，因为我们可以控制过程，所以优化一下
         QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*");
-        cur = nullptr;
         int idx = 0;
         DL_FOREACH(locators, cur) {
             // 计算索引
