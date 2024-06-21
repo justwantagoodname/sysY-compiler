@@ -287,19 +287,39 @@ void StackTranslator::translateExternCall(ASTNode *call) {
 
 void StackTranslator::translateFetch(ASTNode *fetch) {
     assert(ASTNode_id_is(fetch, "Fetch"));
+
     auto address = ASTNode_querySelectorOne(fetch, "Address");
+    assert(address);
+    translateLVal(address);
+
+    const char* type;
+    bool hasType = ASTNode_get_attr_str(address, "type", &type);
+    assert(hasType);
+    ASTNode_add_attr_str(fetch, "type", type);
+
+    adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+}
+
+/**
+ * 翻译左值, 由于左值是一个地址, 计算完成的结果*地址*会放在 accumulatorReg 中
+ * @param lval
+ */
+void StackTranslator::translateLVal(ASTNode *lval) {
+    assert(ASTNode_id_is(lval, "Address"));
+
+    auto address = lval;
 
     const char *name;
     bool hasName = ASTNode_get_attr_str(address, "base", &name);
     assert(hasName);
 
-    auto decl = ASTNode_querySelectorfOne(fetch, "/ancestor::Scope/Decl/*[@name='%s']", name);
-    assert(decl);
+    auto decl = ASTNode_querySelectorfOne(address, "/ancestor::Scope/Decl/*[@name='%s']", name);
+    assert(decl); // 使用的变量名必须声明过
 
     const char* label, *type;
     bool hasType = ASTNode_get_attr_str(decl, "type", &type);
     assert(hasType);
-    ASTNode_add_attr_str(fetch, "type", type);
+    ASTNode_add_attr_str(address, "type", type);
 
     bool is_array = ASTNode_has_attr(decl, "array");
 
@@ -308,12 +328,10 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
     if (is_array) {
         // 是数组，获取数组的索引
         // 获取访问的顺序
-        auto *locator = ASTNode_querySelectorOne(fetch, "//Locator[0]");
+        auto *locator = ASTNode_querySelectorOne(address, "/Locator");
         assert(locator); // 访问数组必须有 locator 元素
 
         QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize/Dimension/Exp/Number"), *cur = nullptr; // 必须确保所有数组大小被计算好了
-
-
 
         DL_FOREACH(dims, cur) {
             int size;
@@ -335,7 +353,7 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
         *dim_sizes.rbegin() = adapter->getWordSize(); // 最后一个地址改为元素大小 如果是第一维也要改
 
         // 访问数组 依次计算索引，这里翻译为一个连加，因为我们可以控制过程，所以优化一下
-        QueryResult *locators = ASTNode_querySelector(fetch, "//Dimension/*");
+        QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*");
         cur = nullptr;
         int idx = 0;
         DL_FOREACH(locators, cur) {
@@ -364,11 +382,12 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
     bool hasLabel = ASTNode_get_attr_str(decl, "label", &label);
     if (hasLabel) {
         // 全局变量
-        adapter->loadLabelAddress(tempReg, label); // 先加载基址
         if (is_array) {
-            adapter->add(tempReg, tempReg, accumulatorReg); // 如果是数组，那么确定实际的地址
+            adapter->loadLabelAddress(tempReg, label); // 先加载基址
+            adapter->add(accumulatorReg, tempReg, accumulatorReg); // 如果是数组，那么确定实际的地址
+        } else {
+            adapter->loadLabelAddress(accumulatorReg, label);
         }
-        adapter->loadRegister(accumulatorReg, tempReg, 0);
     } else {
         int offset;
         bool hasOffset = ASTNode_get_attr_int(decl, "offset", &offset);
@@ -378,10 +397,8 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
         if (is_array) {
             adapter->add(tempReg, adapter->getFramePointerName(), offset); // 先计算基址
             adapter->add(accumulatorReg, tempReg, accumulatorReg); // 然后确定实际地址
-            adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
         } else {
-            adapter->loadRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+            adapter->add(accumulatorReg, adapter->getFramePointerName(), offset);
         }
     }
-
 }
