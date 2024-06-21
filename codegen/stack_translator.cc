@@ -358,6 +358,13 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         DL_FOREACH(locators, cur) {
             // 计算索引
             translateExpInner(cur->node);
+
+            // 索引类型校验
+            const char* locator_type;
+            bool hasLocatorType = ASTNode_get_attr_str(cur->node, "type", &locator_type);
+            assert(hasLocatorType);
+            assert(strcmp(locator_type, "Int") == 0);
+
             // 乘以维度大小
             if (dim_sizes[idx] != 1) {
                 adapter->loadImmediate(tempReg, dim_sizes[idx]);
