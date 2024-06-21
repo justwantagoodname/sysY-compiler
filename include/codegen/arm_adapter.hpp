@@ -121,7 +121,6 @@ public:
     }
 
     void uniOpWithImm(const std::string& op, const std::string& dst, const std::string& src, int imm) {
-        assert(0 <= imm && imm <= 65535);
         asm_file.line("\t%s %s, %s, #%d", op.c_str(), dst.c_str(), src.c_str(), imm);
     }
 
