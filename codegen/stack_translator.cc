@@ -361,9 +361,9 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
         // 全局变量
         adapter->loadLabelAddress(tempReg, label); // 先加载基址
         if (is_array) {
-            adapter->add(accumulatorReg, tempReg, accumulatorReg); // 如果是数组，那么确定实际的地址
+            adapter->add(tempReg, tempReg, accumulatorReg); // 如果是数组，那么确定实际的地址
         }
-        adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+        adapter->loadRegister(accumulatorReg, tempReg, 0);
     } else {
         int offset;
         bool hasOffset = ASTNode_get_attr_int(decl, "offset", &offset);
