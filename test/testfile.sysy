@@ -1,8 +1,8 @@
-int a[10];
-int b[10][10];
-int c = 5;
+int a;
+int b = 6;
 
 int main() {
-    // a[5];
-    b[c][9];
+    putf("%d\n", b);
+    b = a;
+    putf("%d\n", b);
 }

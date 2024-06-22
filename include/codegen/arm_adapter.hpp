@@ -120,6 +120,11 @@ public:
         else asm_file.line("\tldr %s, [%s, #%d]", dst.c_str(), src.c_str(), offset);
     }
 
+    void storeRegister(const std::string& src, const std::string& dst, int offset) override {
+        if (offset == 0) asm_file.line("\tstr %s, [%s]", src.c_str(), dst.c_str());
+        else asm_file.line("\tstr %s, [%s, #%d]", src.c_str(), dst.c_str(), offset);
+    }
+
     void uniOpWithImm(const std::string& op, const std::string& dst, const std::string& src, int imm) {
         asm_file.line("\t%s %s, %s, #%d", op.c_str(), dst.c_str(), src.c_str(), imm);
     }

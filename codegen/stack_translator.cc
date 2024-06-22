@@ -1,6 +1,14 @@
 #include "codegen/stack_translator.hpp"
 #include "utils.h"
 
+void passType(ASTNode* cur, const ASTNode *inner) {
+    const char *type;
+    bool hasInner = ASTNode_get_attr_str(inner, "type", &type);
+    if (hasInner) {
+        ASTNode_add_attr_str(cur, "type", type);
+    }
+}
+
 void StackTranslator::translate() {
     QueryResult *funcs = ASTNode_querySelector(this->comp_unit, "/Scope/FunctionDef/Function"), *cur;
     DL_FOREACH(funcs, cur) {
@@ -121,7 +129,7 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
     if (ASTNode_id_is(stmt, "Exp")) {
         translateExp(stmt);
     } else if (ASTNode_id_is(stmt, "Assign")) {
-
+        translateAssign(stmt);
     } else if (ASTNode_id_is(stmt, "Fetch")) {
 
     } else if (ASTNode_id_is(stmt, "If")) {
@@ -150,7 +158,9 @@ void StackTranslator::translateCall(ASTNode *call) {
 
 void StackTranslator::translateExp(ASTNode *exp) {
     assert(ASTNode_id_is(exp, "Exp"));
-    translateExpInner(ASTNode_querySelectorOne(exp, "*"));
+    auto inner_node = ASTNode_querySelectorOne(exp, "*");
+    translateExpInner(inner_node);
+    passType(exp, inner_node);
 }
 
 void StackTranslator::translateExpInner(ASTNode *exp) {
@@ -407,4 +417,32 @@ void StackTranslator::translateLVal(ASTNode *lval) {
             adapter->add(accumulatorReg, adapter->getFramePointerName(), offset);
         }
     }
+}
+
+void StackTranslator::translateAssign(ASTNode *assign) {
+    assert(ASTNode_id_is(assign, "Assign"));
+
+    auto lval = ASTNode_querySelectorOne(assign, "/Dest/Address");
+    auto exp = ASTNode_querySelectorOne(assign, "Exp");
+
+    assert(lval && exp);
+
+    translateExp(exp);
+
+    adapter->pushStack({accumulatorReg});
+
+    translateLVal(lval);
+
+    adapter->popStack({tempReg});
+
+    const char* lval_type, *exp_type;
+    bool hasLValType = ASTNode_get_attr_str(lval, "type", &lval_type);
+    bool hasExpType = ASTNode_get_attr_str(exp, "type", &exp_type);
+    assert(hasLValType && hasExpType);
+
+    assert(strcmp(lval_type, exp_type) == 0);
+
+    // TODO: 这里需要根据类型来判断是否需要转换类型
+
+    adapter->storeRegister(tempReg, accumulatorReg, 0);
 }
