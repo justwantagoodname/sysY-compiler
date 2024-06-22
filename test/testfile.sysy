@@ -1,8 +1,7 @@
-int a;
-int b = 6;
+int f(int a, int b) {
+    
+}
 
 int main() {
-    putf("%d\n", b);
-    b = a;
-    putf("%d\n", b);
+    putf("%d\n", f(1,2));
 }

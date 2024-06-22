@@ -1,11 +1,12 @@
 #include "codegen/stack_translator.hpp"
 #include "utils.h"
 
-void passType(ASTNode* cur, const ASTNode *inner) {
+void passAttr(ASTNode* cur, const ASTNode *inner, const char* to_attr = "type", const char* from_attr = "type") {
     const char *type;
-    bool hasInner = ASTNode_get_attr_str(inner, "type", &type);
+    bool hasInner = ASTNode_get_attr_str(inner, from_attr, &type);
+    assert(hasInner);
     if (hasInner) {
-        ASTNode_add_attr_str(cur, "type", type);
+        ASTNode_add_attr_str(cur, to_attr, type);
     }
 }
 
@@ -151,16 +152,54 @@ void StackTranslator::translateCall(ASTNode *call) {
     assert(hasFuncName);
     if (is_lib_function(funcName)) {
         translateExternCall(call);
-    } else {
-        assert(0);
+        return;
     }
+
+    // 寻找函数声明
+    auto func = ASTNode_querySelectorfOne(this->comp_unit, "/Scope/FunctionDef/Function[@name='%s']", funcName);
+    assert(func);
+
+    passAttr(call, func, "type", "return");
+
+    int paramSize = ASTNode_children_size(call);
+
+    assert(paramSize == ASTNode_children_size(ASTNode_querySelectorOne(func, "/Params"))); // 参数数量必须一致
+
+    // TODO: 做类型检查
+
+    if (paramSize) {
+        // 计算所有参数
+        QueryResult *params = ASTNode_querySelector(call, "Param"), *cur = params->prev;
+        int idx = paramSize - 1;
+        do {
+            // 反向遍历参数
+            const char *type;
+            bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
+            if (hasType && strcmp(type, "StringConst") == 0) {
+                // 字符串常量 特殊处理，因为没有字符串常量类型
+                const char *label;
+                ASTNode_get_attr_str(cur->node, "label", &label);
+                adapter->loadLabelAddress(accumulatorReg, label);
+            } else {
+                // 计算参数
+                assert(ASTNode_id_is(cur->node, "Param"));
+                ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
+                translateExpInner(inner);
+            }
+            adapter->pushStack({accumulatorReg}); // 第一个参数不需要 push
+            cur = cur->prev;
+            idx--;
+        } while (cur != params->prev);
+    }
+    adapter->call(funcName);
 }
 
 void StackTranslator::translateExp(ASTNode *exp) {
     assert(ASTNode_id_is(exp, "Exp"));
     auto inner_node = ASTNode_querySelectorOne(exp, "*");
     translateExpInner(inner_node);
-    passType(exp, inner_node);
+    ASTNode_print(inner_node);
+    passAttr(exp, inner_node);
 }
 
 void StackTranslator::translateExpInner(ASTNode *exp) {
@@ -233,6 +272,25 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
     }
 }
 
+const char* lib_function_get_return_type(const char* type) {
+    static std::map<std::string, std::string> lib_func_return_type = {
+        {"starttime", "Void"},
+        {"stoptime", "Void"},
+        {"getarray", "Int"},
+        {"getch", "Int"},
+        {"getfarray", "Int"},
+        {"getfloat", "Float"},
+        {"getint", "Int"},
+        {"putarray", "Void"},
+        {"putch", "Void"},
+        {"putf", "Void"},
+        {"putfarray", "Void"},
+        {"putfloat", "Void"},
+        {"putint", "Void"},
+    };
+    return lib_func_return_type[type].c_str();
+}
+
 /**
  * 调用外部函数
  * @param call
@@ -247,6 +305,9 @@ void StackTranslator::translateExternCall(ASTNode *call) {
 
     assert(is_lib_function(funcName));
     // TODO: 检查参数数量是否正确和参数类型是否正确
+
+    const char* ret_type = lib_function_get_return_type(funcName);
+    ASTNode_add_attr_str(call, "type", ret_type);
 
     // 首先计算所有参数
     if (strcmp(funcName, "starttime") == 0 || strcmp(funcName, "stoptime") == 0) {
