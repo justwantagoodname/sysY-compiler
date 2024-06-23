@@ -34,6 +34,7 @@ private:
     void translateExternCall(ASTNode* call);
     void translateIf(ASTNode* ifstmt);
     void translateWhile(ASTNode* whilestmt);
+    void translateReturn(ASTNode* ret);
 
 
 public:

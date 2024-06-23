@@ -38,7 +38,7 @@ void StackTranslator::translateFunc(ASTNode *func) {
     bool hasFuncName = ASTNode_get_attr_str(func, "name", &funcName);
     assert(hasFuncName);
 
-    std::string retLabel = std::string(funcName) + "_ret";
+    std::string retLabel = generateLabel();
 
     ASTNode_add_attr_str(func, "returnLabel", retLabel.c_str());
 
@@ -49,6 +49,10 @@ void StackTranslator::translateFunc(ASTNode *func) {
 
     // 让栈底寄存器指向栈帧的开始（栈底为上一个栈帧的栈底值）
     adapter->add(adapter->getFramePointerName(), adapter->getStackPointerName(), 4);
+
+#ifdef DEBUG
+    adapter->emitComment("栈帧建立好了");
+#endif
 
     // 查找所有的函数，为函数生成引用 label
     int paramSize = ASTNode_children_size(ASTNode_querySelectorOne(func, "/Params"));
@@ -99,13 +103,19 @@ void StackTranslator::translateFunc(ASTNode *func) {
     if (localVarSize > 0)
         adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize);
 
+#ifdef DEBUG
+    adapter->emitComment("局部变量空间分配好了");
+#endif
+
     // TODO: 翻译函数体 返回值在翻译 return 语句时设置
     auto *block = ASTNode_querySelectorOne(func, "/Scope/Block");
 
     translateBlock(block);
 
-    // 在函数调用结束后，将返回值保存到 r0 中
-    adapter->loadImmediate(adapter->getRegName(0), 0); // 临时设置为 0 方便调试
+    // 在 sysy 中，有返回值的函数没有返回是未定义行为，所以这里直接返回 0，也是合理的
+    adapter->loadImmediate(adapter->getRegName(0), 0);
+
+    // TODO: 考虑合并到 return 语句中
 
     adapter->emitLabel(retLabel);
     // 恢复栈顶指针
@@ -138,7 +148,7 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
     } else if (ASTNode_id_is(stmt, "While")) {
 
     } else if (ASTNode_id_is(stmt, "Return")) {
-
+        translateReturn(stmt);
     } else {
         assert(false);
     }
@@ -198,7 +208,6 @@ void StackTranslator::translateExp(ASTNode *exp) {
     assert(ASTNode_id_is(exp, "Exp"));
     auto inner_node = ASTNode_querySelectorOne(exp, "*");
     translateExpInner(inner_node);
-    ASTNode_print(inner_node);
     passAttr(exp, inner_node);
 }
 
@@ -506,4 +515,21 @@ void StackTranslator::translateAssign(ASTNode *assign) {
     // TODO: 这里需要根据类型来判断是否需要转换类型
 
     adapter->storeRegister(tempReg, accumulatorReg, 0);
+}
+
+void StackTranslator::translateReturn(ASTNode *ret) {
+    assert(ASTNode_id_is(ret, "Return"));
+
+    auto exp = ASTNode_querySelectorOne(ret, "Exp");
+    if (exp) {
+        translateExp(exp);
+    }
+
+    auto func = ASTNode_querySelectorOne(ret, "/ancestor::Function");
+    const char* ret_label;
+    bool hasRetLabel = ASTNode_get_attr_str(func, "returnLabel", &ret_label);
+    assert(hasRetLabel);
+
+    adapter->jump(ret_label);
+
 }

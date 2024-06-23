@@ -172,6 +172,10 @@ public:
     void call(const std::string& labelName) override {
         asm_file.line("\tbl %s", labelName.c_str());
     }
+
+    void jump(const std::string& labelName) override {
+        asm_file.line("\tb %s", labelName.c_str());
+    }
 };
 
 #endif

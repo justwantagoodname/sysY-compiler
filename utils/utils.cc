@@ -58,3 +58,9 @@ bool is_lib_function(const char* func_name) {
     static std::set<std::string> lib_func = {"starttime","stoptime","getarray","getch","getfarray","getfloat","getint","putarray","putch","putf","putfarray","putfloat","putint"};
     return lib_func.find(func_name) != lib_func.end();
 }
+
+std::string generateLabel() {
+    static int label_count = 0;
+    // TODO: Change before release
+    return "SYS_Y_" + std::to_string(label_count++);
+}

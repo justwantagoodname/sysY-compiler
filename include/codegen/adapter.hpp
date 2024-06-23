@@ -48,7 +48,9 @@ public:
    virtual void div(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
    virtual void mod(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
    virtual void mov(const std::string& dst, const std::string& src) = 0;
+
    virtual void call(const std::string& labelName) = 0;
+   virtual void jump(const std::string& labelName) = 0;
 };
 
 #endif

@@ -30,4 +30,10 @@ void print_version();
 
 void print_help(const char* program_name);
 
+/**
+ * 生成一个唯一的标签, 仅保证在当前编译单元内唯一！
+ * @return
+ */
+std::string generateLabel();
+
 #endif //UTILS_H
