@@ -51,6 +51,8 @@ public:
 
    virtual void call(const std::string& labelName) = 0;
    virtual void jump(const std::string& labelName) = 0;
+
+   virtual void nop() = 0;
 };
 
 #endif

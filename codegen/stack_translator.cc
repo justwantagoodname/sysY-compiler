@@ -141,14 +141,14 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
         translateExp(stmt);
     } else if (ASTNode_id_is(stmt, "Assign")) {
         translateAssign(stmt);
-    } else if (ASTNode_id_is(stmt, "Fetch")) {
-
     } else if (ASTNode_id_is(stmt, "If")) {
-
+        // TODO
     } else if (ASTNode_id_is(stmt, "While")) {
-
+        // TODO
     } else if (ASTNode_id_is(stmt, "Return")) {
         translateReturn(stmt);
+    } else if (ASTNode_id_is(stmt, "NOP")) {
+        adapter->nop();
     } else {
         assert(false);
     }

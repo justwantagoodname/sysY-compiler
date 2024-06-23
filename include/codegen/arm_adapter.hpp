@@ -176,6 +176,10 @@ public:
     void jump(const std::string& labelName) override {
         asm_file.line("\tb %s", labelName.c_str());
     }
+
+    void nop() override {
+        asm_file.line("\tnop");
+    }
 };
 
 #endif
