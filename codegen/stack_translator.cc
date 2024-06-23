@@ -147,6 +147,10 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
         // TODO
     } else if (ASTNode_id_is(stmt, "Return")) {
         translateReturn(stmt);
+    } else if (ASTNode_id_is(stmt, "Scope")) {
+        // 已经在函数入口处理好局部变量了
+        auto inner_block = ASTNode_querySelectorOne(stmt, "Block");
+        translateBlock(inner_block);
     } else if (ASTNode_id_is(stmt, "NOP")) {
         adapter->nop();
     } else {
