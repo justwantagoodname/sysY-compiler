@@ -142,7 +142,7 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
     } else if (ASTNode_id_is(stmt, "Assign")) {
         translateAssign(stmt);
     } else if (ASTNode_id_is(stmt, "If")) {
-        // TODO
+        translateIf(stmt);
     } else if (ASTNode_id_is(stmt, "While")) {
         // TODO
     } else if (ASTNode_id_is(stmt, "Return")) {
@@ -216,8 +216,8 @@ void StackTranslator::translateExp(ASTNode *exp) {
 }
 
 void StackTranslator::translateExpInner(ASTNode *exp) {
-    static std::set<std::string> relOp = {"Or", "And", "Equal", "NotEq", "Less", "LessEq", "Greater", "GreaterEq",
-                                          "Not"};
+    static std::set<std::string> logicOp = {"Or", "And", "Not"};
+    static std::set<std::string> relOp = { "Equal", "NotEq", "Less", "LessEq", "Greater", "GreaterEq"};
     static std::set<std::string> arithOp = {"Plus", "Minus", "Mult", "Div", "Mod"};
     static std::set<std::string> unaryOp = {"UnPlus", "UnMinus"};
     if (ASTNode_id_is(exp, "Call")) {
@@ -231,21 +231,12 @@ void StackTranslator::translateExpInner(ASTNode *exp) {
         translateFetch(exp);
     } else if (relOp.find(exp->id) != relOp.end()) {
         // 逻辑运算
+        translateRelOp(exp);
     } else if (arithOp.find(exp->id) != arithOp.end()) {
         // 算术运算
         translateArithmeticOp(exp);
     } else if (unaryOp.find(exp->id) != unaryOp.end()) {
-        // 一元运算
-        if (ASTNode_id_is(exp, "UnPlus")) {
-            auto inner = ASTNode_querySelectorOne(exp, "*");
-            translateExpInner(inner);
-        } else if (ASTNode_id_is(exp, "UnMinus")) {
-            auto inner = ASTNode_querySelectorOne(exp, "*");
-            translateExpInner(inner);
-            adapter->neg(accumulatorReg, accumulatorReg);
-        } else {
-            assert(0);
-        }
+        translateUnaryOp(exp);
     } else {
         assert(0);
     }
@@ -546,4 +537,96 @@ void StackTranslator::translateReturn(ASTNode *ret) {
 
     adapter->jump(ret_label);
 
+}
+
+void StackTranslator::translateIf(ASTNode *ifstmt) {
+    assert(ASTNode_id_is(ifstmt, "If"));
+
+    // 生成真分支和假分支标签
+    // TODO： 也许可以研究一下分支优化的策略，生成更好的代码
+
+    auto true_label = generateLabel(),
+        false_label = generateLabel(),
+        end_label = generateLabel();
+
+    ASTNode_add_attr_str(ifstmt, "trueLabel", true_label.c_str());
+    ASTNode_add_attr_str(ifstmt, "falseLabel", false_label.c_str());
+
+    auto cond = ASTNode_querySelectorOne(ifstmt, "Cond/*");
+    assert(cond);
+    translateExp(cond);
+
+    // 添加条件跳转作为单变量情况判断的 handle
+    adapter->jumpEqual(accumulatorReg, 0, false_label);
+
+    adapter->emitLabel(true_label);
+    auto true_branch = ASTNode_querySelectorOne(ifstmt, "Then/*");
+    assert(true_branch);
+    translateStmt(true_branch);
+    adapter->jump(end_label);
+
+
+    adapter->emitLabel(false_label);
+    auto false_branch = ASTNode_querySelectorOne(ifstmt, "Else/*");
+    if (false_branch) {
+        translateStmt(false_branch);
+    }
+    adapter->emitLabel(end_label);
+}
+
+void StackTranslator::translateUnaryOp(ASTNode *exp) {
+    assert(ASTNode_id_is(exp, "UnPlus") || ASTNode_id_is(exp, "UnMinus") || ASTNode_id_is(exp, "Not"));
+
+    if (ASTNode_id_is(exp, "UnPlus")) {
+        auto inner = ASTNode_querySelectorOne(exp, "*");
+        translateExpInner(inner);
+    } else if (ASTNode_id_is(exp, "UnMinus")) {
+        auto inner = ASTNode_querySelectorOne(exp, "*");
+        translateExpInner(inner);
+        adapter->neg(accumulatorReg, accumulatorReg);
+    } else if (ASTNode_id_is(exp, "Not")) {
+        adapter->notReg(accumulatorReg, accumulatorReg);
+    } else {
+        assert(0);
+    }
+}
+
+void StackTranslator::translateRelOp(ASTNode *exp) {
+    assert(ASTNode_id_is(exp, "Equal") || ASTNode_id_is(exp, "NotEq") || ASTNode_id_is(exp, "Less") || ASTNode_id_is(exp, "LessEq") || ASTNode_id_is(exp, "Greater") || ASTNode_id_is(exp, "GreaterEq"));
+
+    ASTNode *lhs = ASTNode_querySelectorOne(exp, "*[0]"),
+            *rhs = ASTNode_querySelectorOne(exp, "*[1]");
+
+    assert(lhs != nullptr && rhs != nullptr);
+
+    translateExpInner(lhs);
+    adapter->pushStack({accumulatorReg});
+    translateExpInner(rhs);
+    adapter->popStack({tempReg});
+
+    const char *rhs_type, *lhs_type;
+    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", &rhs_type);
+    bool lhs_has_type = ASTNode_get_attr_str(lhs, "type", &lhs_type);
+    assert(lhs_has_type && rhs_has_type);
+
+    assert(strcmp(lhs_type, "Void") != 0 && strcmp(rhs_type, "Void") != 0);
+
+    // TODO: 根据浮点数和整数的类型来判断
+    assert(strcmp(lhs_type, rhs_type) == 0);
+
+    ASTNode_add_attr_str(exp, "type", "Int");
+
+    if (ASTNode_id_is(exp, "Equal")) {
+        adapter->cmpEqual(accumulatorReg, tempReg, accumulatorReg);
+    } else if (ASTNode_id_is(exp, "NotEq")) {
+        adapter->cmpNotEqual(accumulatorReg, tempReg, accumulatorReg);
+    } else if (ASTNode_id_is(exp, "Less")) {
+        adapter->cmpLess(accumulatorReg, tempReg, accumulatorReg);
+    } else if (ASTNode_id_is(exp, "LessEq")) {
+        adapter->cmpLessEqual(accumulatorReg, tempReg, accumulatorReg);
+    } else if (ASTNode_id_is(exp, "Greater")) {
+        adapter->cmpGreater(accumulatorReg, tempReg, accumulatorReg);
+    } else if (ASTNode_id_is(exp, "GreaterEq")) {
+        adapter->cmpGreaterEqual(accumulatorReg, tempReg, accumulatorReg);
+    }
 }

@@ -13,7 +13,7 @@ public:
    virtual ~Adapter() = default;
 
    virtual const int getWordSize() = 0;
-   
+
    virtual const std::string getRegName(int reg) = 0;
    virtual const std::string getStackPointerName() = 0;
    virtual const std::string getFramePointerName() = 0;
@@ -55,6 +55,22 @@ public:
    virtual void jump(const std::string& labelName) = 0;
 
    virtual void nop() = 0;
+
+   virtual void jumpEqual(const std::string& src1, const std::string& src2, const std::string& labelName) = 0;
+   virtual void jumpEqual(const std::string& src1, int imm, const std::string& labelName) = 0;
+
+   virtual void jumpNotEqual(const std::string& src1, const std::string& src2, const std::string& labelName) = 0;
+   virtual void jumpNotEqual(const std::string& src1, int imm, const std::string& labelName) = 0;
+
+   // sysY中规定取反的真值是非0，这里为了方便起见，规定非0值为1和条件逻辑运算一致
+   virtual void notReg(const std::string& dst, const std::string& src) = 0;
+
+   virtual void cmpEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void cmpNotEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void cmpLess(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void cmpLessEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void cmpGreater(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void cmpGreaterEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
 };
 
 #endif

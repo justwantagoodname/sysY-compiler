@@ -184,6 +184,77 @@ public:
     void nop() override {
         asm_file.line("\tnop");
     }
+
+    void jumpEqual(const std::string& src1, const std::string& src2, const std::string& labelName) override {
+        asm_file.line("\tcmp %s, %s", src1.c_str(), src2.c_str());
+        asm_file.line("\tbeq %s", labelName.c_str());
+    }
+
+    void jumpEqual(const std::string& src1, int imm, const std::string& labelName) override {
+        asm_file.line("\tcmp %s, #%d", src1.c_str(), imm);
+        asm_file.line("\tbeq %s", labelName.c_str());
+    }
+
+    void jumpNotEqual(const std::string& src1, const std::string& src2, const std::string& labelName) override {
+        asm_file.line("\tcmp %s, %s", src1.c_str(), src2.c_str());
+        asm_file.line("\tbne %s", labelName.c_str());
+    }
+
+    void jumpNotEqual(const std::string& src1, int imm, const std::string& labelName) override {
+        asm_file.line("\tcmp %s, #%d", src1.c_str(), imm);
+        asm_file.line("\tbne %s", labelName.c_str());
+    }
+
+    void notReg(const std::string& dst, const std::string& src) override {
+        /**
+         * 这段代码确有妙处，乃从 GCC 中学来，以计算前导零之法巧取逻辑反转，可谓匠心独运。
+         * 用 clz 计算前导零后，右移五位，逻辑反转之效立现。
+         * 诚然，若以条件传送，需三指令之功，而此法则一石二鸟，殊为简洁。
+         * 技法如此，真妙至极。
+         */
+        asm_file.line("\tclz %s, %s", src.c_str(), src.c_str());
+        asm_file.line("\tlsrs %s, %s, #5", dst.c_str(), src.c_str());
+    }
+
+    void cmpGeneral(const std::string& src1, const std::string& src2) {
+        asm_file.line("\tcmp %s, %s", src1.c_str(), src2.c_str());
+    }
+
+    void cmpEqual(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        cmpGeneral(src1, src2);
+        asm_file.line("\tmoveq %s, #1", dst.c_str());
+        asm_file.line("\tmovne %s, #0", dst.c_str());
+    }
+
+    void cmpNotEqual(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        cmpGeneral(src1, src2);
+        asm_file.line("\tmovne %s, #1", dst.c_str());
+        asm_file.line("\tmoveq %s, #0", dst.c_str());
+    }
+
+    void cmpLess(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        cmpGeneral(src1, src2);
+        asm_file.line("\tmovlt %s, #1", dst.c_str());
+        asm_file.line("\tmovge %s, #0", dst.c_str());
+    }
+
+    void cmpLessEqual(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        cmpGeneral(src1, src2);
+        asm_file.line("\tmovle %s, #1", dst.c_str());
+        asm_file.line("\tmovgt %s, #0", dst.c_str());
+    }
+
+    void cmpGreater(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        cmpGeneral(src1, src2);
+        asm_file.line("\tmovgt %s, #1", dst.c_str());
+        asm_file.line("\tmovle %s, #0", dst.c_str());
+    }
+
+    void cmpGreaterEqual(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        cmpGeneral(src1, src2);
+        asm_file.line("\tmovge %s, #1", dst.c_str());
+        asm_file.line("\tmovlt %s, #0", dst.c_str());
+    }
 };
 
 #endif

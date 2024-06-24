@@ -26,12 +26,16 @@ private:
      */
     void translateExpInner(ASTNode* exp);
     void translateArithmeticOp(ASTNode* exp);
+    void translateUnaryOp(ASTNode* exp);
 
     void translateLVal(ASTNode* lval);
     void translateAssign(ASTNode* assign);
     void translateFetch(ASTNode* fetch);
     void translateCall(ASTNode* call);
     void translateExternCall(ASTNode* call);
+    void translateRelOp(ASTNode* exp);
+    void translateLogicOp(ASTNode* exp);
+
     void translateIf(ASTNode* ifstmt);
     void translateWhile(ASTNode* whilestmt);
     void translateReturn(ASTNode* ret);

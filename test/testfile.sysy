@@ -1,7 +1,6 @@
+int a;
 int main() {
-    ;
-    {
-        putf("Hello\n");
+    if (a == a) {
+        putf("a is true\n");
     }
-    ;
 }
