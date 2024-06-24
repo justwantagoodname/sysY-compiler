@@ -236,6 +236,16 @@ void StackTranslator::translateExpInner(ASTNode *exp) {
         translateArithmeticOp(exp);
     } else if (unaryOp.find(exp->id) != unaryOp.end()) {
         // 一元运算
+        if (ASTNode_id_is(exp, "UnPlus")) {
+            auto inner = ASTNode_querySelectorOne(exp, "*");
+            translateExpInner(inner);
+        } else if (ASTNode_id_is(exp, "UnMinus")) {
+            auto inner = ASTNode_querySelectorOne(exp, "*");
+            translateExpInner(inner);
+            adapter->neg(accumulatorReg, accumulatorReg);
+        } else {
+            assert(0);
+        }
     } else {
         assert(0);
     }

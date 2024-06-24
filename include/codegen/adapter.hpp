@@ -36,6 +36,8 @@ public:
    virtual void popStack(std::initializer_list<std::string> regs) = 0;
    virtual void popStack(const std::vector<std::string>& regs) = 0;
 
+   virtual void neg(const std::string& dst, const std::string& src) = 0;
+
    virtual void add(const std::string& dst, const std::string& src, int imm) = 0;
    virtual void add(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
 
