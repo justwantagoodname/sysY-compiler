@@ -1,7 +1,4 @@
-int f(int a, int b) {
-    return a + b;
-}
-
+int a = 114514;
 int main() {
-    putf("%d\n", f(1,2));
+    putf("%d\n", -a);
 }
