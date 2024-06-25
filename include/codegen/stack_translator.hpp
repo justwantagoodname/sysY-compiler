@@ -34,7 +34,7 @@ private:
     void translateCall(ASTNode* call);
     void translateExternCall(ASTNode* call);
     void translateRelOp(ASTNode* exp);
-    void translateLogicOp(ASTNode* exp);
+    void translateShortCircuitLogicOp(ASTNode *logic);
 
     void translateIf(ASTNode* ifstmt);
     void translateWhile(ASTNode* whilestmt);
@@ -61,8 +61,6 @@ public:
     }
 
     void translate();
-
-    void translateShortCircuitLogicOp(ASTNode *logic);
 };
 
 #endif
