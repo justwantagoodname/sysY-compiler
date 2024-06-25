@@ -570,6 +570,20 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
         int size;
         bool hasSize = ASTNode_get_attr_int(decl_entity, "size", &size);
         assert(hasSize);
+
+        // 首先调用 memset 初始化数组, 这里使用 memset 的阈值是 8
+        if (size >= 8) {
+            adapter->loadImmediate(adapter->getRegName(2), size * adapter->getWordSize());
+            adapter->loadImmediate(adapter->getRegName(1), 0);
+            adapter->add(adapter->getRegName(0), adapter->getFramePointerName(), offset);
+            adapter->call("memset");
+        } else {
+            adapter->loadImmediate(tempReg, 0);
+            for (int i = 0; i < size; i++) {
+                adapter->storeRegister(tempReg, adapter->getFramePointerName(), offset + i * adapter->getWordSize());
+            }
+        }
+
     } else {
         // 单个变量
         // 变量初始化表达式

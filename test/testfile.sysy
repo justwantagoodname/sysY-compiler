@@ -1,6 +1,5 @@
 int c = 123;
 int main() {
-    int a[2] = {1,2,3,4};
-    int b = c;
-    putint(b);
+    int a[7] = {};
+    putf("Output: %d\n", a[6]);
 }
