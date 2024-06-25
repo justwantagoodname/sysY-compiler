@@ -452,21 +452,29 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*");
         int idx = 0;
         DL_FOREACH(locators, cur) {
-            // 计算索引
-            translateExpInner(cur->node);
+            if (ASTNode_id_is(cur->node, "Number")) {
+                // TODO: 判断Number的类型
+                // 当前索引是数组的常量索引，在编译期完成计算
+                int value;
+                ASTNode_get_attr_int(cur->node, "value", &value);
+                adapter->loadImmediate(accumulatorReg, value * dim_sizes[idx]);
+            } else {
+                // 计算索引
+                translateExpInner(cur->node);
 
-            // 索引类型校验
-            const char* locator_type;
-            bool hasLocatorType = ASTNode_get_attr_str(cur->node, "type", &locator_type);
-            assert(hasLocatorType);
-            assert(strcmp(locator_type, "Int") == 0);
+                // 索引类型校验
+                const char* locator_type;
+                bool hasLocatorType = ASTNode_get_attr_str(cur->node, "type", &locator_type);
+                assert(hasLocatorType);
+                assert(strcmp(locator_type, "Int") == 0);
 
-            // 乘以维度大小
-            if (dim_sizes[idx] != 1) {
-                adapter->loadImmediate(tempReg, dim_sizes[idx]);
-                adapter->mul(accumulatorReg, accumulatorReg, tempReg);
+                // 乘以维度大小
+                if (dim_sizes[idx] != 1) {
+                    adapter->loadImmediate(tempReg, dim_sizes[idx]);
+                    adapter->mul(accumulatorReg, accumulatorReg, tempReg);
+                }
             }
-
+            
             if (idx != 0) {
                 // 如果不是第一个维度，先加上前面的维度大小
                 adapter->popStack({tempReg});
