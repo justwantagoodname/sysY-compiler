@@ -384,10 +384,12 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
     assert(address);
     translateLVal(address);
 
-    const char* type;
-    bool hasType = ASTNode_get_attr_str(address, "type", &type);
-    assert(hasType);
-    ASTNode_add_attr_str(fetch, "type", type);
+    passAttr(fetch, address);
+
+    if (ASTNode_has_attr(address, "incomplete")) {
+        // 如果是不完整的数组，那么直接返回地址
+        return;
+    }
 
     adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
 }
@@ -409,9 +411,6 @@ void StackTranslator::translateLVal(ASTNode *lval) {
     assert(decl); // 使用的变量名必须声明过
 
     const char* label, *type;
-    bool hasType = ASTNode_get_attr_str(decl, "type", &type);
-    assert(hasType);
-    ASTNode_add_attr_str(address, "type", type);
 
     bool is_array = ASTNode_has_attr(decl, "array");
 
@@ -420,6 +419,8 @@ void StackTranslator::translateLVal(ASTNode *lval) {
     if (is_array) {
         // 是数组，获取数组的索引
         // 获取访问的顺序
+        int decl_dim_size = 0, access_dim_size = 0;
+
         auto *locator = ASTNode_querySelectorOne(address, "/Locator");
         assert(locator); // 访问数组必须有 locator 元素
 
@@ -430,6 +431,8 @@ void StackTranslator::translateLVal(ASTNode *lval) {
             ASTNode_get_attr_int(cur->node, "value", &size);
             // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
             dim_sizes.push_back(size);
+
+            decl_dim_size++;
         }
 
         // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
@@ -482,8 +485,17 @@ void StackTranslator::translateLVal(ASTNode *lval) {
             }
 
             idx++;
+            access_dim_size++;
+        }
+        assert(access_dim_size <= decl_dim_size);
+
+        if (access_dim_size < decl_dim_size)  {
+            // 维度不足的情况下是指针类型
+            ASTNode_add_attr_str(lval, "incomplete", "true");
         }
     }
+
+    passAttr(lval, decl);
 
     bool hasLabel = ASTNode_get_attr_str(decl, "label", &label);
     if (hasLabel) {
@@ -522,6 +534,9 @@ void StackTranslator::translateAssign(ASTNode *assign) {
     adapter->pushStack({accumulatorReg});
 
     translateLVal(lval);
+
+    // 这里必须是完整的数组访问
+    assert(!ASTNode_has_attr(lval, "incomplete"));
 
     adapter->popStack({tempReg});
 
