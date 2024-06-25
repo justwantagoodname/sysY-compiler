@@ -153,6 +153,8 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
         translateBlock(inner_block);
     } else if (ASTNode_id_is(stmt, "NOP")) {
         adapter->nop();
+    } else if (ASTNode_id_is(stmt, "Var")) {
+        translateVarDecl(stmt);
     } else {
         assert(false);
     }
@@ -443,19 +445,27 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*");
         int idx = 0;
         DL_FOREACH(locators, cur) {
-            // 计算索引
-            translateExpInner(cur->node);
+            if (ASTNode_id_is(cur->node, "Number")) {
+                // TODO: 判断Number的类型
+                // 当前索引是数组的常量索引，在编译期完成计算
+                int value;
+                ASTNode_get_attr_int(cur->node, "value", &value);
+                adapter->loadImmediate(accumulatorReg, value * dim_sizes[idx]);
+            } else {
+                // 计算索引
+                translateExpInner(cur->node);
 
-            // 索引类型校验
-            const char* locator_type;
-            bool hasLocatorType = ASTNode_get_attr_str(cur->node, "type", &locator_type);
-            assert(hasLocatorType);
-            assert(strcmp(locator_type, "Int") == 0);
+                // 索引类型校验
+                const char* locator_type;
+                bool hasLocatorType = ASTNode_get_attr_str(cur->node, "type", &locator_type);
+                assert(hasLocatorType);
+                assert(strcmp(locator_type, "Int") == 0);
 
-            // 乘以维度大小
-            if (dim_sizes[idx] != 1) {
-                adapter->loadImmediate(tempReg, dim_sizes[idx]);
-                adapter->mul(accumulatorReg, accumulatorReg, tempReg);
+                // 乘以维度大小
+                if (dim_sizes[idx] != 1) {
+                    adapter->loadImmediate(tempReg, dim_sizes[idx]);
+                    adapter->mul(accumulatorReg, accumulatorReg, tempReg);
+                }
             }
 
             if (idx != 0) {
@@ -541,6 +551,75 @@ void StackTranslator::translateReturn(ASTNode *ret) {
 
 }
 
+
+void StackTranslator::translateVarDecl(ASTNode* var_decl) {
+    assert(ASTNode_id_is(var_decl, "Var"));
+
+    const char *name;
+    bool hasName = ASTNode_get_attr_str(var_decl, "name", &name);
+    assert(hasName);
+    // 先找到Decl中变量的声明
+    auto decl_entity = ASTNode_querySelectorfOne(var_decl, "ancestor::Scope/Decl/Var[@name='%s']", name);
+    assert(decl_entity);
+
+    int offset;
+    bool hasOffset = ASTNode_get_attr_int(decl_entity, "offset", &offset);
+    assert(hasOffset);
+
+    if (ASTNode_has_attr(decl_entity, "array")) {
+        // 数组
+        int size;
+        bool hasSize = ASTNode_get_attr_int(decl_entity, "size", &size);
+        assert(hasSize);
+
+        bool cleared = false;
+        // 首先调用 memset 初始化数组, 这里使用 memset 的阈值是 8
+        if (size >= 8) {
+            adapter->loadImmediate(adapter->getRegName(2), size * adapter->getWordSize());
+            adapter->loadImmediate(adapter->getRegName(1), 0);
+            adapter->add(adapter->getRegName(0), adapter->getFramePointerName(), offset);
+            adapter->call("memset");
+            cleared = true;
+        }
+        QueryResult *inits = ASTNode_querySelector(decl_entity, "InitValue/*"), *cur;
+        int idx = 0;
+        DL_FOREACH(inits, cur) {
+            auto init = cur->node;
+            int value, repeat;
+            bool hasValue = ASTNode_get_attr_int(init, "value", &value);
+            bool hasRepeat = ASTNode_get_attr_int(init, "repeat", &repeat);
+            assert(hasRepeat);
+
+            if (ASTNode_id_is(init, "Exp")) {
+                translateExp(init);
+            } else {
+                assert(hasValue);
+                if (value!= 0 || !cleared) adapter->loadImmediate(accumulatorReg, value);
+            }
+
+            if (value != 0 || !cleared) {
+                // 如果不是 0 或者没有清空过，那么就赋值
+                for (int i = 0; i < repeat; i++) {
+                    adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset + idx * adapter->getWordSize());
+                    idx++;
+                }
+            } else {
+                idx += repeat;
+            }
+        }
+        assert(idx == size);
+    } else {
+        // 单个变量
+        // 变量初始化表达式
+        auto init_exp = ASTNode_querySelectorOne(decl_entity, "InitValue/Exp");
+        // 在文法里已经确定过了，必定有初始化表达式
+        assert(init_exp);
+
+        translateExp(init_exp);
+
+        adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+    }
+}
 void StackTranslator::translateIf(ASTNode *ifstmt) {
     assert(ASTNode_id_is(ifstmt, "If"));
 
