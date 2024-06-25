@@ -555,7 +555,6 @@ void StackTranslator::translateReturn(ASTNode *ret) {
 
 }
 
-
 void StackTranslator::translateVarDecl(ASTNode* var_decl) {
     assert(ASTNode_id_is(var_decl, "Var"));
 
@@ -624,6 +623,7 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
         adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset);
     }
 }
+
 void StackTranslator::translateIf(ASTNode *ifstmt) {
     assert(ASTNode_id_is(ifstmt, "If"));
 
