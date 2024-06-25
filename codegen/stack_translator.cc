@@ -579,23 +579,46 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
         bool hasSize = ASTNode_get_attr_int(decl_entity, "size", &size);
         assert(hasSize);
 
+        bool cleared = false;
         // 首先调用 memset 初始化数组, 这里使用 memset 的阈值是 8
         if (size >= 8) {
             adapter->loadImmediate(adapter->getRegName(2), size * adapter->getWordSize());
             adapter->loadImmediate(adapter->getRegName(1), 0);
             adapter->add(adapter->getRegName(0), adapter->getFramePointerName(), offset);
             adapter->call("memset");
-        } else {
-            adapter->loadImmediate(tempReg, 0);
-            for (int i = 0; i < size; i++) {
-                adapter->storeRegister(tempReg, adapter->getFramePointerName(), offset + i * adapter->getWordSize());
+            cleared = true;
+        }
+        QueryResult *inits = ASTNode_querySelector(decl_entity, "InitValue/*"), *cur;
+        int idx = 0;
+        DL_FOREACH(inits, cur) {
+            auto init = cur->node;
+            int value, repeat;
+            bool hasValue = ASTNode_get_attr_int(init, "value", &value);
+            bool hasRepeat = ASTNode_get_attr_int(init, "repeat", &repeat);
+            assert(hasRepeat);
+
+            if (ASTNode_id_is(init, "Exp")) {
+                translateExp(init);
+            } else {
+                assert(hasValue);
+                if (value!= 0 || !cleared) adapter->loadImmediate(accumulatorReg, value);
+            }
+
+            if (value != 0 || !cleared) {
+                // 如果不是 0 或者没有清空过，那么就赋值
+                for (int i = 0; i < repeat; i++) {
+                    adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset + idx * adapter->getWordSize());
+                    idx++;
+                }
+            } else {
+                idx += repeat;
             }
         }
-
+        assert(idx == size);
     } else {
         // 单个变量
         // 变量初始化表达式
-        auto init_exp = ASTNode_querySelectorOne(var_decl, "InitValue/Exp");
+        auto init_exp = ASTNode_querySelectorOne(decl_entity, "InitValue/Exp");
         // 在文法里已经确定过了，必定有初始化表达式
         assert(init_exp);
 
