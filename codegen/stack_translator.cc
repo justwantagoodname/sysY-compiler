@@ -107,15 +107,12 @@ void StackTranslator::translateFunc(ASTNode *func) {
     adapter->emitComment("局部变量空间分配好了");
 #endif
 
-    // TODO: 翻译函数体 返回值在翻译 return 语句时设置
     auto *block = ASTNode_querySelectorOne(func, "/Scope/Block");
 
     translateBlock(block);
 
     // 在 sysy 中，有返回值的函数没有返回是未定义行为，所以这里直接返回 0，也是合理的
     adapter->loadImmediate(adapter->getRegName(0), 0);
-
-    // TODO: 考虑合并到 return 语句中
 
     adapter->emitLabel(retLabel);
     // 恢复栈顶指针
@@ -551,7 +548,10 @@ void StackTranslator::translateReturn(ASTNode *ret) {
     bool hasRetLabel = ASTNode_get_attr_str(func, "returnLabel", &ret_label);
     assert(hasRetLabel);
 
-    adapter->jump(ret_label);
+    // 直接返回不做转跳了，应该没有什么问题
+    adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
+    // 这里直接弹出到 pc，寄存器中实现转跳
+    adapter->popStack({adapter->getFramePointerName(), adapter->getPCName()});
 
 }
 
