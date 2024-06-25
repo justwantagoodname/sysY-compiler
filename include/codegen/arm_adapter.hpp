@@ -15,6 +15,12 @@ public:
 
     ~ARMAdapter() override = default;
 
+    void postGenerate() override {
+        asm_file.line()
+                .line(".section	.note.GNU-stack,\"\",%%progbits")
+                .line();
+    }
+
     const int getWordSize() override {
         return 4;
     }

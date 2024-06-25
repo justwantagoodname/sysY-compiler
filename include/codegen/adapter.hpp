@@ -12,6 +12,16 @@ public:
    Adapter() = default;
    virtual ~Adapter() = default;
 
+   /**
+    * 生成汇编代码后的准备工作
+    */
+   virtual void postGenerate() {}
+
+   /**
+    * 生成汇编代码后的准备工作
+    */
+   virtual void preGenerate() {}
+
    virtual const int getWordSize() = 0;
 
    virtual const std::string getRegName(int reg) = 0;

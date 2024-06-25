@@ -22,20 +22,17 @@ int main(int argc, const char** argv) {
 #endif
 
 #ifdef ASM_GEN
-	printf("=== ASM Start ===\n");
-	AssemblyBuilder asfile(Flag::getFlag().getFlagFor("output").c_str());
+	AssemblyBuilder asm_file(Flag::getFlag().getFlagFor("output").c_str());
 
 	GlobalDeclInflater const_inflater(root.unwrap());
-    const_inflater.inflate(asfile);
+    const_inflater.inflate(asm_file);
 
-    ARMAdapter arm_adapter(asfile);
+    ARMAdapter arm_adapter(asm_file);
 
     StackTranslator translator(root.unwrap(), std::make_unique<ARMAdapter>(arm_adapter));
 	translator.translate();
 
-	asfile.line()
-		  .line(".section	.note.GNU-stack,\"\",%%progbits")
-		  .line();
+    printf("=== ASM Start ===\n");
 	root.print();
 #endif
 

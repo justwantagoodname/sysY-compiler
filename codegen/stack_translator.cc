@@ -11,11 +11,13 @@ void passAttr(ASTNode* cur, const ASTNode *inner, const char* to_attr = "type", 
 }
 
 void StackTranslator::translate() {
+    adapter->preGenerate();
     QueryResult *funcs = ASTNode_querySelector(this->comp_unit, "/Scope/FunctionDef/Function"), *cur;
     DL_FOREACH(funcs, cur) {
         ASTNode *func = cur->node;
         translateFunc(func);
     }
+    adapter->postGenerate();
 }
 
 /**
