@@ -36,6 +36,10 @@ private:
     void translateWhile(ASTNode* whilestmt);
     void translateReturn(ASTNode* ret);
 
+    /**
+     * 翻译栈上变量的初始化
+     */
+    void translateVarDecl(ASTNode* var_decl);
 
 public:
     StackTranslator(ASTNode* comp_unit, std::unique_ptr<Adapter> adapter) : comp_unit(comp_unit), adapter(std::move(adapter)) {

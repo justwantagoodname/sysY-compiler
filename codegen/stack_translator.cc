@@ -153,6 +153,8 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
         translateBlock(inner_block);
     } else if (ASTNode_id_is(stmt, "NOP")) {
         adapter->nop();
+    } else if (ASTNode_id_is(stmt, "Var")) {
+        translateVarDecl(stmt);
     } else {
         assert(false);
     }
@@ -546,4 +548,37 @@ void StackTranslator::translateReturn(ASTNode *ret) {
 
     adapter->jump(ret_label);
 
+}
+
+
+void StackTranslator::translateVarDecl(ASTNode* var_decl) {
+    assert(ASTNode_id_is(var_decl, "Var"));
+    
+    const char *name;
+    bool hasName = ASTNode_get_attr_str(var_decl, "name", &name);
+    assert(hasName);
+    // 先找到Decl中变量的声明
+    auto decl_entity = ASTNode_querySelectorfOne(var_decl, "ancestor::Scope/Decl/Var[@name='%s']", name);
+    assert(decl_entity);
+    
+    int offset;
+    bool hasOffset = ASTNode_get_attr_int(decl_entity, "offset", &offset);
+    assert(hasOffset);
+
+    if (ASTNode_has_attr(decl_entity, "array")) {
+        // 数组
+        int size;
+        bool hasSize = ASTNode_get_attr_int(decl_entity, "size", &size);
+        assert(hasSize);
+    } else {
+        // 单个变量
+        // 变量初始化表达式
+        auto init_exp = ASTNode_querySelectorOne(var_decl, "InitValue/Exp");
+        // 在文法里已经确定过了，必定有初始化表达式
+        assert(init_exp);
+
+        translateExp(init_exp);
+
+        adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+    }
 }
