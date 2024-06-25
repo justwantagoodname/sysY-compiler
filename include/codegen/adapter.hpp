@@ -58,6 +58,7 @@ public:
 
    virtual void jumpEqual(const std::string& src1, const std::string& src2, const std::string& labelName) = 0;
    virtual void jumpEqual(const std::string& src1, int imm, const std::string& labelName) = 0;
+   virtual void jumpEqual(const std::string& src1, int imm, const std::string& eqLabel, const std::string& neLabel) = 0;
 
    virtual void jumpNotEqual(const std::string& src1, const std::string& src2, const std::string& labelName) = 0;
    virtual void jumpNotEqual(const std::string& src1, int imm, const std::string& labelName) = 0;

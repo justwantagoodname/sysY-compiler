@@ -195,6 +195,12 @@ public:
         asm_file.line("\tbeq %s", labelName.c_str());
     }
 
+    void jumpEqual(const std::string& src1, int imm, const std::string& eqLabel, const std::string& neLabel) override {
+        asm_file.line("\tcmp %s, #%d", src1.c_str(), imm);
+        asm_file.line("\tbeq %s", eqLabel.c_str());
+        asm_file.line("\tbne %s", neLabel.c_str());
+    }
+
     void jumpNotEqual(const std::string& src1, const std::string& src2, const std::string& labelName) override {
         asm_file.line("\tcmp %s, %s", src1.c_str(), src2.c_str());
         asm_file.line("\tbne %s", labelName.c_str());

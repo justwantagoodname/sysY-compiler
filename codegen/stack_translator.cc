@@ -229,6 +229,8 @@ void StackTranslator::translateExpInner(ASTNode *exp) {
         adapter->loadImmediate(accumulatorReg, value);
     } else if (ASTNode_id_is(exp, "Fetch")) {
         translateFetch(exp);
+    } else if (logicOp.find(exp->id) != logicOp.end()) {
+        translateShortCircuitLogicOp(exp);
     } else if (relOp.find(exp->id) != relOp.end()) {
         // 逻辑运算
         translateRelOp(exp);
@@ -557,7 +559,11 @@ void StackTranslator::translateIf(ASTNode *ifstmt) {
     translateExp(cond);
 
     // 添加条件跳转作为单变量情况判断的 handle
-    adapter->jumpEqual(accumulatorReg, 0, false_label);
+    const char* cond_type;
+    bool hasType = ASTNode_get_attr_str(cond, "type", &cond_type);
+    assert(hasType);
+
+    if (strcmp(cond_type, "Int") == 0) adapter->jumpEqual(accumulatorReg, 0, false_label);
 
     adapter->emitLabel(true_label);
     auto true_branch = ASTNode_querySelectorOne(ifstmt, "Then/*");
@@ -629,4 +635,77 @@ void StackTranslator::translateRelOp(ASTNode *exp) {
     } else if (ASTNode_id_is(exp, "GreaterEq")) {
         adapter->cmpGreaterEqual(accumulatorReg, tempReg, accumulatorReg);
     }
+}
+
+void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
+    assert(ASTNode_id_is(logic, "Or") || ASTNode_id_is(logic, "And"));
+
+    // 在父节点中寻找真假分支的标签
+    const char *true_label, *false_label;
+    auto parent = ASTNode_querySelectorOne(logic, "ancestor::*[@trueLabel,@falseLabel]");
+    assert(parent);
+    ASTNode_get_attr_str(parent, "trueLabel", &true_label);
+    ASTNode_get_attr_str(parent, "falseLabel", &false_label);
+
+    auto rhs_label = generateLabel();
+
+    if (ASTNode_id_is(logic, "And")) {
+        // 短路与
+
+        // 如果 lhs 为假，可以确定整个表达式的值为假，那么直接跳转到父节点的 false_label
+        ASTNode_add_attr_str(logic, "falseLabel", false_label);
+
+        // 如果 lhs 为真，那么继续计算 rhs 的结果
+        ASTNode_add_attr_str(logic, "trueLabel", rhs_label.c_str());
+    } else if (ASTNode_id_is(logic, "Or")) {
+        // 短路或
+
+        // 如果 lhs 为真，可以确定整个表达式的值为真，那么直接跳转到父节点的 true_label
+        ASTNode_add_attr_str(logic, "trueLabel", true_label);
+
+        // 如果 lhs 为假，那么继续计算 rhs 的结果
+        ASTNode_add_attr_str(logic, "falseLabel", rhs_label.c_str());
+    } else {
+        assert(false);
+    }
+
+    // 逻辑表达式实际上没有实际计算值，但是为了方便起见设置为 Bool 和一般的 Int 作出区分
+    // 实际上因为 sysy 没有实际的 bool 类型，在文法上也不能把逻辑表达式的值赋值给变量所以没有关系
+    ASTNode_add_attr_str(logic, "type", "Bool");
+
+    auto lhs = ASTNode_querySelectorOne(logic, "*[0]"),
+        rhs = ASTNode_querySelectorOne(logic, "*[1]");
+
+    assert(lhs && rhs);
+
+    translateExpInner(lhs);
+
+    const char* lhs_type;
+    bool hasLhsType = ASTNode_get_attr_str(lhs, "type", &lhs_type);
+    assert(hasLhsType);
+
+    // TODO: 这里需要根据类型来判断是否需要转换类型 比如 float
+
+    if (ASTNode_id_is(logic, "And")) {
+        // 短路与
+        adapter->jumpEqual(accumulatorReg, 0, false_label);
+    } else if (ASTNode_id_is(logic, "Or")) {
+        // 短路或
+        adapter->jumpNotEqual(accumulatorReg, 0, true_label);
+    } else {
+        assert(false);
+    }
+
+    adapter->emitLabel(rhs_label);
+    translateExpInner(rhs);
+
+    const char* rhs_type;
+    bool hasRhsType = ASTNode_get_attr_str(rhs, "type", &rhs_type);
+    assert(hasRhsType);
+
+    // TODO: 同上
+    assert(strcmp(rhs_type, "Int") == 0);
+
+    // 计算到这里，说明左边无法得到整个表达式的值，根据右边的值进行转跳
+    adapter->jumpEqual(accumulatorReg, 0, false_label, true_label);
 }

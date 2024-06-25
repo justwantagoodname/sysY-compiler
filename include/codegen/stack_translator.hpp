@@ -57,6 +57,8 @@ public:
     }
 
     void translate();
+
+    void translateShortCircuitLogicOp(ASTNode *logic);
 };
 
 #endif
