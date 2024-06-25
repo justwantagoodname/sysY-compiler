@@ -144,7 +144,7 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
     } else if (ASTNode_id_is(stmt, "If")) {
         translateIf(stmt);
     } else if (ASTNode_id_is(stmt, "While")) {
-        // TODO
+        translateWhile(stmt);
     } else if (ASTNode_id_is(stmt, "Return")) {
         translateReturn(stmt);
     } else if (ASTNode_id_is(stmt, "Scope")) {
@@ -155,6 +155,10 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
         adapter->nop();
     } else if (ASTNode_id_is(stmt, "Var")) {
         translateVarDecl(stmt);
+    } else if (ASTNode_id_is(stmt, "Break")) {
+        translateBreak(stmt);
+    } else if (ASTNode_id_is(stmt, "Continue")) {
+        translateContinue(stmt);
     } else {
         assert(false);
     }
@@ -787,4 +791,64 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
 
     // 计算到这里，说明左边无法得到整个表达式的值，根据右边的值进行转跳
     adapter->jumpEqual(accumulatorReg, 0, false_label, true_label);
+}
+
+void StackTranslator::translateWhile(ASTNode *whilestmt) {
+    assert(ASTNode_id_is(whilestmt, "While"));
+
+    auto begin_label = generateLabel(),
+        true_label = generateLabel(),
+        end_label = generateLabel();
+
+    ASTNode_add_attr_str(whilestmt, "trueLabel", true_label.c_str());
+    ASTNode_add_attr_str(whilestmt, "falseLabel", end_label.c_str());
+    ASTNode_add_attr_str(whilestmt, "beginLabel", begin_label.c_str());
+
+    adapter->emitLabel(begin_label);
+
+    auto cond = ASTNode_querySelectorOne(whilestmt, "Cond/*");
+    assert(cond);
+    translateExp(cond);
+
+    const char* cond_type;
+    bool hasType = ASTNode_get_attr_str(cond, "type", &cond_type);
+    assert(hasType);
+
+    if (strcmp(cond_type, "Int") == 0) adapter->jumpEqual(accumulatorReg, 0, end_label);
+
+    adapter->emitLabel(true_label);
+
+    auto body = ASTNode_querySelectorOne(whilestmt, "Stmt/*");
+
+    translateStmt(body);
+
+    adapter->jump(begin_label);
+
+    adapter->emitLabel(end_label);
+}
+
+void StackTranslator::translateBreak(ASTNode *brk) {
+    assert(ASTNode_id_is(brk, "Break"));
+
+    auto parent = ASTNode_querySelectorOne(brk, "ancestor::While");
+    assert(parent);
+
+    const char* end_label;
+    bool hasEndLabel = ASTNode_get_attr_str(parent, "falseLabel", &end_label);
+    assert(hasEndLabel);
+
+    adapter->jump(end_label);
+}
+
+void StackTranslator::translateContinue(ASTNode *cont) {
+    assert(ASTNode_id_is(cont, "Continue"));
+
+    auto parent = ASTNode_querySelectorOne(cont, "ancestor::While");
+    assert(parent);
+
+    const char* begin_label;
+    bool hasBeginLabel = ASTNode_get_attr_str(parent, "beginLabel", &begin_label);
+    assert(hasBeginLabel);
+
+    adapter->jump(begin_label);
 }

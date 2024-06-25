@@ -38,6 +38,10 @@ private:
 
     void translateIf(ASTNode* ifstmt);
     void translateWhile(ASTNode* whilestmt);
+
+    void translateBreak(ASTNode* brk);
+    void translateContinue(ASTNode* cont);
+
     void translateReturn(ASTNode* ret);
 
     /**
