@@ -486,6 +486,9 @@ void StackTranslator::translateLVal(ASTNode *lval) {
                 idx++;
                 access_dim_size++;
             }
+        } else {
+            // 没有访问数组的索引，那么直接返回地址 相当于 base_addr + 0
+            adapter->loadImmediate(accumulatorReg, 0);
         }
         // 访问的维度必须小于等于数组的维度
         assert(access_dim_size <= dim_sizes.size());
