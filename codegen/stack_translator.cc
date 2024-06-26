@@ -518,13 +518,12 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         // TODO: 这里目前还有bug，如果是超级大的栈帧，那么这里的 offset 是不对的，不过应该交给loadRegister来处理
         if (is_array) {
             adapter->add(tempReg, adapter->getFramePointerName(), offset); // 先计算基址
-            adapter->add(accumulatorReg, tempReg, accumulatorReg); // 然后确定实际地址
-
             if (ASTNode_id_is(decl, "ParamDecl")) {
                 // 参数数组实际是作为数组二级指针传递的
                 // 那么先做一次加载
-                adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+                adapter->loadRegister(tempReg, tempReg, 0);
             }
+            adapter->add(accumulatorReg, tempReg, accumulatorReg); // 然后确定实际地址
         } else {
             adapter->add(accumulatorReg, adapter->getFramePointerName(), offset);
         }
