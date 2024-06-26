@@ -396,7 +396,7 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
 }
 
 /**
- * 翻译左值, 由于左值是一个地址, 计算完成的结果*地址*会放在 accumulatorReg 中
+ * 翻译左值, 由于左值是一个地址, 计算完成的结果*地址*会放在 accumulatorReg 中，对于参数中的数组类型会先做一次加载确保结果始终是数组的基址
  * @param lval
  */
 void StackTranslator::translateLVal(ASTNode *lval) {
@@ -519,6 +519,12 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         if (is_array) {
             adapter->add(tempReg, adapter->getFramePointerName(), offset); // 先计算基址
             adapter->add(accumulatorReg, tempReg, accumulatorReg); // 然后确定实际地址
+
+            if (ASTNode_id_is(decl, "ParamDecl")) {
+                // 参数数组实际是作为数组二级指针传递的
+                // 那么先做一次加载
+                adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+            }
         } else {
             adapter->add(accumulatorReg, adapter->getFramePointerName(), offset);
         }
