@@ -56,10 +56,11 @@ void StackTranslator::translateFunc(ASTNode *func) {
     adapter->emitComment("栈帧建立好了");
 #endif
 
-    // 查找所有的函数，为函数生成引用 label
+    // 查找所有的参数，为参数生成引用 label
     int paramSize = ASTNode_children_size(ASTNode_querySelectorOne(func, "/Params"));
     QueryResult *params = ASTNode_querySelector(func, "/Params/ParamDecl"), *cur = nullptr;
-    int funcParamIndex = 0;
+    // 这里从 1 开始，因为 0 是 old fp
+    int funcParamIndex = 1;
     DL_FOREACH(params, cur) {
         auto param = cur->node;
         const char *paramName;
@@ -75,7 +76,7 @@ void StackTranslator::translateFunc(ASTNode *func) {
         } else {
 #endif
             ASTNode_add_attr_str(param_in_decl, "pos", "stack");
-            ASTNode_add_attr_int(param_in_decl, "offset", adapter->getWordSize() * (paramSize - funcParamIndex));
+            ASTNode_add_attr_int(param_in_decl, "offset", adapter->getWordSize() * funcParamIndex);
 #if 0
         }
 #endif
