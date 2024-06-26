@@ -417,13 +417,8 @@ void StackTranslator::translateLVal(ASTNode *lval) {
     std::vector<int> dim_sizes; // 数组的声明顺序
 
     if (is_array) {
-        // 是数组，获取数组的索引
-        // 获取访问的顺序
-        int decl_dim_size = 0, access_dim_size = 0;
-
-        auto *locator = ASTNode_querySelectorOne(address, "/Locator");
-        assert(locator); // 访问数组必须有 locator 元素
-
+        // 在数组的情况下，先计算数组每一维度的大小
+        // TODO: 考虑缓存到 ASTNode 中，避免重复计算 
         QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize/Dimension/Exp/Number"), *cur = nullptr; // 必须确保所有数组大小被计算好了
 
         DL_FOREACH(dims, cur) {
@@ -431,8 +426,6 @@ void StackTranslator::translateLVal(ASTNode *lval) {
             ASTNode_get_attr_int(cur->node, "value", &size);
             // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
             dim_sizes.push_back(size);
-
-            decl_dim_size++;
         }
 
         // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
@@ -447,49 +440,56 @@ void StackTranslator::translateLVal(ASTNode *lval) {
             dim_sizes.erase(dim_sizes.begin());
         }
 
-        // 访问数组 依次计算索引，这里翻译为一个连加，因为我们可以控制过程，所以优化一下
-        QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*");
-        int idx = 0;
-        DL_FOREACH(locators, cur) {
-            if (ASTNode_id_is(cur->node, "Number")) {
-                // TODO: 判断Number的类型
-                // 当前索引是数组的常量索引，在编译期完成计算
-                int value;
-                ASTNode_get_attr_int(cur->node, "value", &value);
-                adapter->loadImmediate(accumulatorReg, value * dim_sizes[idx]);
-            } else {
-                // 计算索引
-                translateExpInner(cur->node);
+        // 获取访问的索引
+        int access_dim_size = 0;
 
-                // 索引类型校验
-                const char* locator_type;
-                bool hasLocatorType = ASTNode_get_attr_str(cur->node, "type", &locator_type);
-                assert(hasLocatorType);
-                assert(strcmp(locator_type, "Int") == 0);
+        auto *locator = ASTNode_querySelectorOne(address, "/Locator");
+        // 没有访问数组的索引，那么直接返回地址
+        if (locator) {
+            // 访问数组 依次计算索引，这里翻译为一个连加，因为我们可以控制过程，所以优化一下
+            QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*");
+            int idx = 0;
+            DL_FOREACH(locators, cur) {
+                if (ASTNode_id_is(cur->node, "Number")) {
+                    // TODO: 判断Number的类型
+                    // 当前索引是数组的常量索引，在编译期完成计算
+                    int value;
+                    ASTNode_get_attr_int(cur->node, "value", &value);
+                    adapter->loadImmediate(accumulatorReg, value * dim_sizes[idx]);
+                } else {
+                    // 计算索引
+                    translateExpInner(cur->node);
 
-                // 乘以维度大小
-                if (dim_sizes[idx] != 1) {
-                    adapter->loadImmediate(tempReg, dim_sizes[idx]);
-                    adapter->mul(accumulatorReg, accumulatorReg, tempReg);
+                    // 索引类型校验
+                    const char* locator_type;
+                    bool hasLocatorType = ASTNode_get_attr_str(cur->node, "type", &locator_type);
+                    assert(hasLocatorType);
+                    assert(strcmp(locator_type, "Int") == 0);
+
+                    // 乘以维度大小
+                    if (dim_sizes[idx] != 1) {
+                        adapter->loadImmediate(tempReg, dim_sizes[idx]);
+                        adapter->mul(accumulatorReg, accumulatorReg, tempReg);
+                    }
                 }
-            }
+                if (idx != 0) {
+                    // 如果不是第一个维度，先加上前面的维度大小
+                    adapter->popStack({tempReg});
+                    adapter->add(accumulatorReg, accumulatorReg, tempReg);
+                }
 
-            if (idx != 0) {
-                // 如果不是第一个维度，先加上前面的维度大小
-                adapter->popStack({tempReg});
-                adapter->add(accumulatorReg, accumulatorReg, tempReg);
-            }
+                if (idx != dim_sizes.size() - 1) {
+                    adapter->pushStack({accumulatorReg}); // 如果后面还有维度，先保存
+                }
 
-            if (idx != dim_sizes.size() - 1) {
-                adapter->pushStack({accumulatorReg}); // 如果后面还有维度，先保存
+                idx++;
+                access_dim_size++;
             }
-
-            idx++;
-            access_dim_size++;
         }
-        assert(access_dim_size <= decl_dim_size);
+        // 访问的维度必须小于等于数组的维度
+        assert(access_dim_size <= dim_sizes.size());
 
-        if (access_dim_size < decl_dim_size)  {
+        if (access_dim_size < dim_sizes.size())  {
             // 维度不足的情况下是指针类型
             ASTNode_add_attr_str(lval, "incomplete", "true");
         }
