@@ -12,6 +12,8 @@ public:
    Adapter() = default;
    virtual ~Adapter() = default;
 
+   virtual std::string platformName() const = 0;
+
    /**
     * 生成汇编代码后的准备工作
     */

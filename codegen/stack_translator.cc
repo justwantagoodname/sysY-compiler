@@ -288,9 +288,23 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
     } else if (ASTNode_id_is(exp, "Mult")) {
         adapter->mul(accumulatorReg, tempReg, accumulatorReg);
     } else if (ASTNode_id_is(exp, "Div")) {
-        adapter->div(accumulatorReg, tempReg, accumulatorReg);
+        // 对 ARM 平台特殊处理
+        if (adapter->platformName() == "ARM32" && accumulatorReg == adapter->getRegName(0)) {
+            adapter->mov(adapter->getRegName(1), accumulatorReg); // 除数
+            adapter->mov(adapter->getRegName(0), tempReg); // 被除数
+            adapter->div(accumulatorReg, adapter->getRegName(0), adapter->getRegName(1));
+        } else {
+            adapter->div(accumulatorReg, tempReg, accumulatorReg);
+        }
     } else if (ASTNode_id_is(exp, "Mod")) {
-        adapter->mod(accumulatorReg, tempReg, accumulatorReg);
+        // 对 ARM 平台特殊处理
+        if (adapter->platformName() == "ARM32" && accumulatorReg == adapter->getRegName(0)) {
+            adapter->mov(adapter->getRegName(1), accumulatorReg); // 除数
+            adapter->mov(adapter->getRegName(0), tempReg); // 被除数
+            adapter->mod(accumulatorReg, adapter->getRegName(0), adapter->getRegName(1));
+        } else {
+            adapter->mod(accumulatorReg, tempReg, accumulatorReg);
+        }
     }
 }
 

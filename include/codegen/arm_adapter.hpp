@@ -15,6 +15,10 @@ public:
 
     ~ARMAdapter() override = default;
 
+    std::string platformName() const override {
+        return "ARM32";
+    }
+
     void postGenerate() override {
         asm_file.line()
                 .line(".section	.note.GNU-stack,\"\",%%progbits")
@@ -167,12 +171,40 @@ public:
         uniOp("mul", dst, src1, src2);
     }
 
+    /*
+        @note 会覆盖 r0 和 r1 的值需要先保存或者直接使用 r0 和 r1
+    */
     void div(const std::string& dst, const std::string& src1, const std::string& src2) override {
-        assert(false); // TODO: 研究使用 fpu 或者软浮点实现
+        // TODO: 除2的幂次方可以用移位操作
+        
+        // 先移动 src1 到 r0
+
+        if (src1 != "r0") asm_file.line("\tmov r0, %s", src1.c_str());
+        // src2 移动到 r1
+        if (src2 != "r1") asm_file.line("\tmov r1, %s", src2.c_str());
+
+        // 调用函数
+        asm_file.line("\tbl __aeabi_idiv");
+
+        // 结果移动到 dst
+        if (dst != "r0") {
+            asm_file.line("\tmov %s, r0", dst.c_str());
+        }
     }
 
+    /*
+        @note 会覆盖 r0 和 r1 的值需要先保存或者直接使用 r0 和 r1
+    */
     void mod(const std::string& dst, const std::string& src1, const std::string& src2) override {
-        assert(false); // TODO: 研究使用 fpu 或者软浮点实现，可以想办法优化对特定数的And
+        // TODO: 对 2 的幂次方取模可以用位运算
+        // 先移动 src1 到 r0
+        if (src1 != "r0") asm_file.line("\tmov r0, %s", src1.c_str());
+        // src2 移动到 r1
+        if (src2 != "r1") asm_file.line("\tmov r1, %s", src2.c_str());
+        // 调用函数
+        asm_file.line("\tbl __aeabi_idivmod");
+        // 结果移动到 dst
+        if (dst != "r1") asm_file.line("\tmov %s, r1", dst.c_str());
     }
 
     void mov(const std::string& dst, const std::string& src) override {
