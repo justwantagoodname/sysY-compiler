@@ -34,4 +34,13 @@ extern "C" {
 }
 #endif
 
+// SysY 类型
+
+const auto Int = "Int";
+const auto Void = "Void";
+const auto Float = "Float";
+
+// 数组类型的以[开头表示一个数组
+// 左值类型的以L开头
+
 #endif

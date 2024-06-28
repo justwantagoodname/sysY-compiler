@@ -14,8 +14,16 @@ class StackTranslator {
 private:
     ASTNode* comp_unit;
     std::unique_ptr<Adapter> adapter;
+
+public:
     std::string tempReg;
     std::string accumulatorReg;
+
+    /* Typing 相关 */
+    // 计算静态类型
+
+    // 辅助函数直接传递子节点的类型到当前节点
+    void passType(ASTNode* cur, const ASTNode* child, const char* to_attr = "type", const char* from_attr = "type");
 
     void translateFunc(ASTNode* func);
     void translateBlock(ASTNode* block);
@@ -32,7 +40,6 @@ private:
     void translateAssign(ASTNode* assign);
     void translateFetch(ASTNode* fetch);
     void translateCall(ASTNode* call);
-    void translateExternCall(ASTNode* call);
     void translateRelOp(ASTNode* exp);
     void translateShortCircuitLogicOp(ASTNode *logic);
 
@@ -49,7 +56,6 @@ private:
      */
     void translateVarDecl(ASTNode* var_decl);
 
-public:
     StackTranslator(ASTNode* comp_unit, std::unique_ptr<Adapter> adapter) : comp_unit(comp_unit), adapter(std::move(adapter)) {
         assert(comp_unit != nullptr);
         assert(ASTNode_id_is(comp_unit, "CompUnit"));

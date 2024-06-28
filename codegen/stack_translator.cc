@@ -22,7 +22,7 @@ void StackTranslator::translate() {
 
 /**
  * 翻译函数申明，因为这里是堆栈模式，我们自己的调用约定如下：
- * 1. 函数的返回值保存在 r0 中
+ * 1. 函数的返回值保存在 r0 中，如果是浮点数，那么保存在 浮点寄存器 s0 中
  * 2. 函数的参数全部保存栈上，放在old fp之前
  * 3. 参数的入栈顺序是从右到左
  * 栈帧定义：
@@ -170,8 +170,9 @@ void StackTranslator::translateCall(ASTNode *call) {
     const char *funcName;
     bool hasFuncName = ASTNode_get_attr_str(call, "name", &funcName);
     assert(hasFuncName);
-    if (is_lib_function(funcName)) {
-        translateExternCall(call);
+
+    if (adapter->isExternalFunction(funcName)) {
+        adapter->emitExternFunction(funcName, call, this);
         return;
     }
 
@@ -179,7 +180,8 @@ void StackTranslator::translateCall(ASTNode *call) {
     auto func = ASTNode_querySelectorfOne(this->comp_unit, "/Scope/FunctionDef/Function[@name='%s']", funcName);
     assert(func);
 
-    passAttr(call, func, "type", "return");
+    // 传递函数调用的类型
+    passType(call, func, "type", "return");
 
     int paramSize = ASTNode_children_size(call);
 
@@ -218,7 +220,9 @@ void StackTranslator::translateExp(ASTNode *exp) {
     assert(ASTNode_id_is(exp, "Exp"));
     auto inner_node = ASTNode_querySelectorOne(exp, "*");
     translateExpInner(inner_node);
-    passAttr(exp, inner_node);
+
+    // 传递内部节点的类型到现在这个节点
+    passType(exp, inner_node);
 }
 
 void StackTranslator::translateExpInner(ASTNode *exp) {
@@ -331,66 +335,69 @@ const char* lib_function_get_return_type(const char* type) {
  * 调用外部函数
  * @param call
  */
+#if 0
 void StackTranslator::translateExternCall(ASTNode *call) {
-    assert(ASTNode_id_is(call, "Call"));
-
-    const char *funcName;
-    ASTNode_get_attr_str(call, "name", &funcName);
-
-    int paramSize = ASTNode_children_size(call);
-
-    assert(is_lib_function(funcName));
-    // TODO: 检查参数数量是否正确和参数类型是否正确
-
-    const char* ret_type = lib_function_get_return_type(funcName);
-    ASTNode_add_attr_str(call, "type", ret_type);
-
-    // 首先计算所有参数
-    if (strcmp(funcName, "starttime") == 0 || strcmp(funcName, "stoptime") == 0) {
-        // 这俩函数用到行号特殊处理一下
-        int lineno;
-        ASTNode_get_attr_int(call, "line", &lineno);
-
-        adapter->loadImmediate(adapter->getRegName(0), lineno); // TODO: 应该按照平台调用约定来放寄存器
-        adapter->call(std::string("_sysy_") + funcName);
-    } else {
-        // putf 和其他可变参数需要特殊处理，因为 GNU C 语法中可变参数在栈上是从右向左入栈的，和我们的约定相反
-        if (paramSize) {
-            // 计算所有参数
-            QueryResult *params = ASTNode_querySelector(call, "Param"), *cur = params->prev;
-            int idx = paramSize - 1;
-            do {
-                // 反向遍历参数
-                const char *type;
-                bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
-                if (hasType && strcmp(type, "StringConst") == 0) {
-                    // 字符串常量 特殊处理，因为没有字符串常量类型
-                    const char *label;
-                    ASTNode_get_attr_str(cur->node, "label", &label);
-                    adapter->loadLabelAddress(accumulatorReg, label);
-                } else {
-                    // 计算参数
-                    assert(ASTNode_id_is(cur->node, "Param"));
-                    ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
-                    translateExpInner(inner);
-                }
-                if (idx != 0) adapter->pushStack({accumulatorReg}); // 第一个参数不需要 push
-                cur = cur->prev;
-                idx--;
-            } while (cur != params->prev);
-            // TODO: 这里需要为putf修改float传递方式
-            int reg_param_size = std::min(4, paramSize);
-            if (reg_param_size - 1 > 0) {
-                std::vector<std::string> regs;
-                for (int i = 1; i < reg_param_size; i++) {
-                    regs.push_back(adapter->getRegName(i));
-                }
-                adapter->popStack(regs);
-            }
-        }
-        adapter->call(funcName);
-    }
+//
+//    assert(ASTNode_id_is(call, "Call"));
+//
+//    const char *funcName;
+//    ASTNode_get_attr_str(call, "name", &funcName);
+//
+//    int paramSize = ASTNode_children_size(call);
+//
+//    assert(is_lib_function(funcName));
+//    // TODO: 检查参数数量是否正确和参数类型是否正确
+//
+//    const char* ret_type = lib_function_get_return_type(funcName);
+//    ASTNode_add_attr_str(call, "type", ret_type);
+//
+//    // 首先计算所有参数
+//    if (strcmp(funcName, "starttime") == 0 || strcmp(funcName, "stoptime") == 0) {
+//        // 这俩函数用到行号特殊处理一下
+//        int lineno;
+//        ASTNode_get_attr_int(call, "line", &lineno);
+//
+//        adapter->loadImmediate(adapter->getRegName(0), lineno); // TODO: 应该按照平台调用约定来放寄存器
+//        adapter->call(std::string("_sysy_") + funcName);
+//    } else {
+//        // putf 和其他可变参数需要特殊处理，因为 GNU C 语法中可变参数在栈上是从右向左入栈的，和我们的约定相反
+//        if (paramSize) {
+//            // 计算所有参数
+//            QueryResult *params = ASTNode_querySelector(call, "Param"), *cur = params->prev;
+//            int idx = paramSize - 1;
+//            do {
+//                // 反向遍历参数
+//                const char *type;
+//                bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
+//                if (hasType && strcmp(type, "StringConst") == 0) {
+//                    // 字符串常量 特殊处理，因为没有字符串常量类型
+//                    const char *label;
+//                    ASTNode_get_attr_str(cur->node, "label", &label);
+//                    adapter->loadLabelAddress(accumulatorReg, label);
+//                } else {
+//                    // 计算参数
+//                    assert(ASTNode_id_is(cur->node, "Param"));
+//                    ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
+//                    translateExpInner(inner);
+//                }
+//                if (idx != 0) adapter->pushStack({accumulatorReg}); // 第一个参数不需要 push
+//                cur = cur->prev;
+//                idx--;
+//            } while (cur != params->prev);
+//            // TODO: 这里需要为putf修改float传递方式
+//            int reg_param_size = std::min(4, paramSize);
+//            if (reg_param_size - 1 > 0) {
+//                std::vector<std::string> regs;
+//                for (int i = 1; i < reg_param_size; i++) {
+//                    regs.push_back(adapter->getRegName(i));
+//                }
+//                adapter->popStack(regs);
+//            }
+//        }
+//        adapter->call(funcName);
+//    }
 }
+#endif
 
 void StackTranslator::translateFetch(ASTNode *fetch) {
     assert(ASTNode_id_is(fetch, "Fetch"));
@@ -399,14 +406,37 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
     assert(address);
     translateLVal(address);
 
-    passAttr(fetch, address);
+    const char* lval_type;
 
-    if (ASTNode_has_attr(address, "incomplete")) {
-        // 如果是不完整的数组，那么直接返回地址
-        return;
+    bool hasType = ASTNode_get_attr_str(address, "type", &lval_type);
+    assert(hasType);
+
+    // TODO: 计算类型
+    auto fetch_type = deref_lval(lval_type);
+
+    ASTNode_add_attr_str(fetch, "type", fetch_type.c_str());
+
+    if (is_array_type(fetch_type)) {
+        // 如果左值是地址，那么值是本身的地址
+    } else {
+        // 如果左值是值，那么值是地址指向的值
+        adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
     }
+}
 
-    adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+// 因为前期设计的问题，临时从数组声明中计算实际的类型吧
+std::string get_array_decl_type(const ASTNode* array_decl) {
+    assert(ASTNode_has_attr(array_decl, "array"));
+    int dim_size = ASTNode_children_size(ASTNode_querySelectorOne(array_decl, "/ArraySize"));
+    const char* base_type;
+    bool hasBaseType = ASTNode_get_attr_str(array_decl, "type", &base_type);
+    assert(hasBaseType);
+
+    std::string type = base_type;
+    for (int i = 0; i < dim_size; i++) {
+        type.insert(0, "[");
+    }
+    return type;
 }
 
 /**
@@ -425,11 +455,22 @@ void StackTranslator::translateLVal(ASTNode *lval) {
     auto decl = ASTNode_querySelectorfOne(address, "/ancestor::Scope/Decl/*[@name='%s']", name);
     assert(decl); // 使用的变量名必须声明过
 
-    const char* label, *type;
+    const char* label;
 
     bool is_array = ASTNode_has_attr(decl, "array");
 
     std::vector<int> dim_sizes; // 数组的声明顺序
+
+    std::string lval_type;
+
+    if (is_array) {
+        lval_type = get_array_decl_type(decl);
+    } else {
+        const char* decl_type;
+        bool hasType = ASTNode_get_attr_str(decl, "type", &decl_type);
+        assert(hasType);
+        lval_type = decl_type;
+    }
 
     if (is_array) {
         // 在数组的情况下，先计算数组每一维度的大小
@@ -465,6 +506,10 @@ void StackTranslator::translateLVal(ASTNode *lval) {
             QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*");
             int idx = 0;
             DL_FOREACH(locators, cur) {
+
+                // 每经过一个纬度，那么它的类型就会减少一个维度
+                lval_type = deref_array(lval_type);
+
                 if (ASTNode_id_is(cur->node, "Number")) {
                     // TODO: 判断Number的类型
                     // 当前索引是数组的常量索引，在编译期完成计算
@@ -507,13 +552,11 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         // 访问的维度必须小于等于数组的维度
         assert(access_dim_size <= dim_sizes.size());
 
-        if (access_dim_size < dim_sizes.size())  {
-            // 维度不足的情况下是指针类型
-            ASTNode_add_attr_str(lval, "incomplete", "true");
-        }
     }
 
-    passAttr(lval, decl);
+    lval_type = "L" + lval_type;
+
+    ASTNode_add_attr_str(lval, "type", lval_type.c_str());
 
     bool hasLabel = ASTNode_get_attr_str(decl, "label", &label);
     if (hasLabel) {
@@ -534,7 +577,7 @@ void StackTranslator::translateLVal(ASTNode *lval) {
             adapter->add(tempReg, adapter->getFramePointerName(), offset); // 先计算基址
             if (ASTNode_id_is(decl, "ParamDecl")) {
                 // 参数数组实际是作为数组二级指针传递的
-                // 那么先做一次加载
+                // 先做一次加载
                 adapter->loadRegister(tempReg, tempReg, 0);
             }
             adapter->add(accumulatorReg, tempReg, accumulatorReg); // 然后确定实际地址
@@ -558,19 +601,23 @@ void StackTranslator::translateAssign(ASTNode *assign) {
 
     translateLVal(lval);
 
-    // 这里必须是完整的数组访问
-    assert(!ASTNode_has_attr(lval, "incomplete"));
-
-    adapter->popStack({tempReg});
-
-    const char* lval_type, *exp_type;
-    bool hasLValType = ASTNode_get_attr_str(lval, "type", &lval_type);
-    bool hasExpType = ASTNode_get_attr_str(exp, "type", &exp_type);
+    const char* lval_type_str, *exp_type_str;
+    bool hasLValType = ASTNode_get_attr_str(lval, "type", &lval_type_str);
+    bool hasExpType = ASTNode_get_attr_str(exp, "type", &exp_type_str);
     assert(hasLValType && hasExpType);
 
-    assert(strcmp(lval_type, exp_type) == 0);
+    std::string lval_type = lval_type_str,
+                exp_type = exp_type_str;
+
+    // 这里必须是基本类型的左值
+    assert(is_primitive_type(deref_lval(lval_type)));
+    assert(is_primitive_type(exp_type));
+
+    assert(deref_lval(lval_type) == exp_type);
 
     // TODO: 这里需要根据类型来判断是否需要转换类型
+
+    adapter->popStack({tempReg});
 
     adapter->storeRegister(tempReg, accumulatorReg, 0);
 }
@@ -659,6 +706,8 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
         assert(init_exp);
 
         translateExp(init_exp);
+
+        // TODO: 这里需要根据类型来判断是否需要转换类型
 
         adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset);
     }
@@ -891,4 +940,13 @@ void StackTranslator::translateContinue(ASTNode *cont) {
     assert(hasBeginLabel);
 
     adapter->jump(begin_label);
+}
+
+void StackTranslator::passType(ASTNode *cur, const ASTNode *child, const char *to_attr, const char *from_attr) {
+    const char *type;
+    bool hasInner = ASTNode_get_attr_str(child, from_attr, &type);
+    assert(hasInner);
+    if (hasInner) {
+        ASTNode_add_attr_str(cur, to_attr, type);
+    }
 }

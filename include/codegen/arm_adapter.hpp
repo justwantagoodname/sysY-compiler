@@ -7,11 +7,159 @@
 #include "asm_helper.hpp"
 #include "codegen/adapter.hpp"
 
+struct ExternFunctionDeclare {
+    std::string name; // sysy 中的函数名
+    std::string asm_name; // 汇编中实际转跳地址
+    std::vector<std::pair<std::string, std::string> > args; // 参数列表 pair.first 是类型，第二个是参数名
+    std::string ret_type; // 返回类型
+    std::function<void(const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator)> call_handle; // 翻译调用函数
+
+    void call(ASTNode* callContext, StackTranslator* translator) const {
+        // 首先设置返回参数
+        ASTNode_add_attr_str(callContext, "type", ret_type.c_str());
+
+        call_handle(*this, callContext, translator);
+    }
+};
+
 class ARMAdapter : public Adapter {
 private:
     AssemblyBuilder &asm_file;
+    std::map<std::string, ExternFunctionDeclare> extern_functions;
+
 public:
-    explicit ARMAdapter(AssemblyBuilder &asm_file) : asm_file(asm_file) {}
+    explicit ARMAdapter(AssemblyBuilder &asm_file) : asm_file(asm_file) {
+        // "starttime","stoptime","getarray","getch","getfarray","getfloat","getint","putarray","putch","putf","putfarray","putfloat","putint"
+        auto arm_standard_call_handle = [this](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
+            // 这个其实只能用于我们的StackTranslator，因为这里先把参数 push 到栈上
+
+            // 开始计算参数
+            auto real_param_size = (int) ASTNode_children_size(callContext); // 在调用上下文中获取实参数个数
+            assert(real_param_size == declare.args.size());
+
+            if (real_param_size) {
+                // 有实参需要先计算
+                QueryResult *real_params = ASTNode_querySelector(callContext, "Param"),
+                            *cur = real_params->prev;
+                int idx = real_param_size - 1;
+                do {
+                    // 反向遍历参数
+                    const char *type;
+                    bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
+                    ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
+                    translator->translateExpInner(inner);
+
+                    if (idx != 0) pushStack({translator->accumulatorReg}); // 倒着入栈，所以第一个参数不需要 push
+                    cur = cur->prev;
+                    idx--;
+                } while (cur != real_params->prev);
+            }
+            int reg_param_size = std::min(4, real_param_size); // 这个 4 是 ARM32 函数调用时放在寄存器上的函数参数个数
+            if (reg_param_size > 1) { // 一个参数不需要 pop 因为最后一个参数没有 push
+                std::vector<std::string> regs;
+                for (int i = 1; i < reg_param_size; i++) {
+                    regs.push_back(getRegName(i));
+                }
+                popStack(regs);
+            }
+        };
+
+        auto lib_require_line = [this](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
+            int lineno;
+            ASTNode_get_attr_int(callContext, "line", &lineno);
+
+
+            loadImmediate(getRegName(0), lineno);
+            call(declare.asm_name);
+        };
+
+        auto arm_gnu_varargs_call_handle = [this](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
+            // 这个其实只能用于我们的StackTranslator，因为这里先把参数 push 到栈上
+
+            // 翻译 GNU 可变参数函数调用
+            // 主要是对 float 参数特殊处理
+        };
+        // 常规函数
+        extern_functions["getch"] = ExternFunctionDeclare {
+            .name = "getch",
+            .asm_name = "getch",
+            .args = {},
+            .ret_type = "Int",
+            .call_handle = arm_standard_call_handle
+        };
+        extern_functions["getint"] = ExternFunctionDeclare {
+            .name = "getint",
+            .asm_name = "getint",
+            .args = {},
+            .ret_type = "Int",
+            .call_handle = arm_standard_call_handle
+        };
+        extern_functions["getarray"] = ExternFunctionDeclare {
+            .name = "getarray",
+            .asm_name = "getarray",
+            .args = {{"Int*", "dest_base"}},
+            .ret_type = "Int",
+            .call_handle = arm_standard_call_handle
+        };
+        extern_functions["getfarray"] = ExternFunctionDeclare {
+            .name = "getfarray",
+            .asm_name = "getfarray",
+            .args = {{"Float*", "dest_base"}},
+            .ret_type = "Int",
+            .call_handle = arm_standard_call_handle
+        };
+        extern_functions["putint"] = ExternFunctionDeclare {
+            .name = "putint",
+            .asm_name = "putint",
+            .args = {{"Int", "x"}},
+            .ret_type = "Void",
+            .call_handle = arm_standard_call_handle
+        };
+        extern_functions["putch"] = ExternFunctionDeclare {
+            .name = "putch",
+            .asm_name = "putch",
+            .args = {{"Int", "x"}},
+            .ret_type = "Void",
+            .call_handle = arm_standard_call_handle
+        };
+        extern_functions["putarray"] = ExternFunctionDeclare {
+            .name = "putarray",
+            .asm_name = "putarray",
+            .args = {{"Int", "size"}, {"Int*", "src_base"}},
+            .ret_type = "Void",
+            .call_handle = arm_standard_call_handle
+        };
+        extern_functions["putfarray"] = ExternFunctionDeclare {
+            .name = "putfarray",
+            .asm_name = "putfarray",
+            .args = {{"Int", "size"}, {"Float*", "src_base"}},
+            .ret_type = "Void",
+            .call_handle = arm_standard_call_handle
+        };
+
+        // 计时函数
+        extern_functions["starttime"] = ExternFunctionDeclare {
+            .name = "starttime",
+            .asm_name = "_sysy_starttime",
+            .args = {},
+            .ret_type = "Void",
+            .call_handle = lib_require_line
+        };
+        extern_functions["stoptime"] = ExternFunctionDeclare {
+            .name = "stoptime",
+            .asm_name = "_sysy_stoptime",
+            .args = {},
+            .ret_type = "Void",
+            .call_handle = lib_require_line
+        };
+        extern_functions["putf"] = ExternFunctionDeclare {
+            .name = "putf",
+            .asm_name = "_sysy_putf",
+            .args = {},
+            .ret_type = "Void",
+            .call_handle = arm_gnu_varargs_call_handle
+        };
+    }
 
     ~ARMAdapter() override = default;
 
@@ -47,6 +195,19 @@ public:
 
     const std::string getPCName() override {
         return "pc";
+    }
+
+    bool isExternalFunction(const std::string& funcName) override {
+        return extern_functions.find(funcName) != extern_functions.end();
+    }
+
+    void emitExternFunction(const std::string& funcName, ASTNode* callContext, StackTranslator* translator) override {
+        assert(callContext != nullptr);
+        assert(ASTNode_id_is(callContext, "Call"));
+        assert(extern_functions.find(funcName) != extern_functions.end());
+
+        auto& declare = extern_functions[funcName];
+        declare.call(callContext, translator);
     }
 
     const void emitComment() override {

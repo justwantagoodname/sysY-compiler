@@ -6,6 +6,7 @@
 /*
  * 用于平台特定汇编生成的 Interface ，此类应为抽象类，不应该加入实际实现
  */
+class StackTranslator;
 class Adapter
 {
 public:
@@ -23,6 +24,11 @@ public:
     * 生成汇编代码后的准备工作
     */
    virtual void preGenerate() {}
+
+   virtual bool isExternalFunction(const std::string& funcName) = 0;
+
+   // 后面可以改成 Translator
+   virtual void emitExternFunction(const std::string& funcName, ASTNode* callContext, StackTranslator* translator) = 0;
 
    virtual const int getWordSize() = 0;
 
