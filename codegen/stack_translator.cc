@@ -1,13 +1,24 @@
 #include "codegen/stack_translator.hpp"
 #include "utils.h"
 
-void passAttr(ASTNode* cur, const ASTNode *inner, const char* to_attr = "type", const char* from_attr = "type") {
-    const char *type;
-    bool hasInner = ASTNode_get_attr_str(inner, from_attr, &type);
-    assert(hasInner);
-    if (hasInner) {
-        ASTNode_add_attr_str(cur, to_attr, type);
+// 因为前期设计的问题，临时从数组声明中计算实际的类型吧
+std::string get_array_decl_type(const ASTNode* array_decl) {
+    assert(ASTNode_has_attr(array_decl, "array"));
+    int dim_size = 0;
+    if (ASTNode_id_is(array_decl, "ParamDecl")) {
+        dim_size = ASTNode_children_size(array_decl);
+    } else {
+        dim_size = ASTNode_children_size(ASTNode_querySelectorOne(array_decl, "/ArraySize"));
     }
+    const char* base_type;
+    bool hasBaseType = ASTNode_get_attr_str(array_decl, "type", &base_type);
+    assert(hasBaseType);
+
+    std::string type = base_type;
+    for (int i = 0; i < dim_size; i++) {
+        type.insert(0, "[");
+    }
+    return type;
 }
 
 void StackTranslator::translate() {
@@ -185,9 +196,23 @@ void StackTranslator::translateCall(ASTNode *call) {
 
     int paramSize = ASTNode_children_size(call);
 
-    assert(paramSize == ASTNode_children_size(ASTNode_querySelectorOne(func, "/Params"))); // 参数数量必须一致
 
-    // TODO: 做类型检查
+
+    std::vector<std::string> function_params;
+
+    QueryResult *params = ASTNode_querySelector(func, "/Params/ParamDecl"), *cur;
+    DL_FOREACH(params, cur) {
+        auto param = cur->node;
+        const char *paramType;
+        if (ASTNode_has_attr(param, "array")) {
+            function_params.push_back(get_array_decl_type(param));
+        } else {
+            bool hasParamType = ASTNode_get_attr_str(param, "type", &paramType);
+            assert(hasParamType);
+            function_params.push_back(paramType);
+        }
+    }
+    assert(paramSize == function_params.size()); // 参数数量必须一致
 
     if (paramSize) {
         // 计算所有参数
@@ -198,15 +223,18 @@ void StackTranslator::translateCall(ASTNode *call) {
             const char *type;
             bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
             if (hasType && strcmp(type, "StringConst") == 0) {
-                // 字符串常量 特殊处理，因为没有字符串常量类型
-                const char *label;
-                ASTNode_get_attr_str(cur->node, "label", &label);
-                adapter->loadLabelAddress(accumulatorReg, label);
+                assert(false); // 直接报错，因为没有字符串常量类型
             } else {
                 // 计算参数
                 assert(ASTNode_id_is(cur->node, "Param"));
                 ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
                 translateExpInner(inner);
+                hasType = ASTNode_get_attr_str(inner, "type", &type);
+                assert(hasType);
+                // 参数类型校验
+                assert(strcmp(type, function_params[idx].c_str()) == 0);
+
+                // TODO: 类型不一致需要生成转化代码
             }
             adapter->pushStack({accumulatorReg}); // 第一个参数不需要 push
             cur = cur->prev;
@@ -403,26 +431,6 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
         // 如果左值是值，那么值是地址指向的值
         adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
     }
-}
-
-// 因为前期设计的问题，临时从数组声明中计算实际的类型吧
-std::string get_array_decl_type(const ASTNode* array_decl) {
-    assert(ASTNode_has_attr(array_decl, "array"));
-    int dim_size = 0;
-    if (ASTNode_id_is(array_decl, "ParamDecl")) {
-        dim_size = ASTNode_children_size(array_decl);
-    } else {
-        dim_size = ASTNode_children_size(ASTNode_querySelectorOne(array_decl, "/ArraySize"));
-    }
-    const char* base_type;
-    bool hasBaseType = ASTNode_get_attr_str(array_decl, "type", &base_type);
-    assert(hasBaseType);
-
-    std::string type = base_type;
-    for (int i = 0; i < dim_size; i++) {
-        type.insert(0, "[");
-    }
-    return type;
 }
 
 /**
