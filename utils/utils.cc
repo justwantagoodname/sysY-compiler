@@ -60,3 +60,26 @@ std::string generateLabel() {
     // TODO: Change before release
     return "SYS_Y_" + std::to_string(label_count++);
 }
+
+bool is_array_type(const std::string &x) {
+    return x[0] == '[';
+}
+
+bool is_primitive_type(const std::string &x) {
+    return x == SyInt || x == SyFloat;
+}
+
+// 数组类型解引用
+std::string deref_array(const std::string &x) {
+    assert(is_array_type(x));
+
+    if (is_array_type(x)) return x.substr(1);
+    else throw std::runtime_error("Not an array type");
+}
+
+std::string deref_lval(const std::string &x) {
+    assert(x[0] == 'L');
+
+    if (x[0] == 'L') return x.substr(1);
+    else throw std::runtime_error("Not an lval type");
+}

@@ -1,15 +1,15 @@
-/* int f(int a[]) { // a is [Int;
+int f(int a[]) { // a is [Int;
     return a[0];
 }
 
 int g(int a[][2]) { // a is [[Int;
     return f(a[0]);
 }
-*/
+
 
 int main() {
     int a[2][2]; // type of a is [[Int;
 
-    a[0][0] = 1;
+    g(a);
     return 0;
 }
