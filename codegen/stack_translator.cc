@@ -312,25 +312,6 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
     }
 }
 
-const char* lib_function_get_return_type(const char* type) {
-    static std::map<std::string, std::string> lib_func_return_type = {
-        {"starttime", "Void"},
-        {"stoptime", "Void"},
-        {"getarray", "Int"},
-        {"getch", "Int"},
-        {"getfarray", "Int"},
-        {"getfloat", "Float"},
-        {"getint", "Int"},
-        {"putarray", "Void"},
-        {"putch", "Void"},
-        {"putf", "Void"},
-        {"putfarray", "Void"},
-        {"putfloat", "Void"},
-        {"putint", "Void"},
-    };
-    return lib_func_return_type[type].c_str();
-}
-
 /**
  * 调用外部函数
  * @param call
