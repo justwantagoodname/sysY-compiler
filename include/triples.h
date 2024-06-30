@@ -1,6 +1,8 @@
 ﻿#ifndef TRIPLE_H
 #define TRIPLE_H
 #include "element.h"
+#include "tblock.h"
+
 #include <vector>
 
 class Triples {
@@ -55,7 +57,7 @@ public:
 			value,// 变量编号
 			func, // 函数编号
 			lamb,// 标签
-
+			str, // 格式化字符串常量
 		};
 	}TT = TRIPLEVALUE(); // Triple Value Type Enum
 
@@ -71,6 +73,7 @@ public:
 		TripleValue(int t) :value(t), type(TT.temp), added(nullptr) {}
 		TripleValue(int v, TripleType ty) :value(v), type(ty), added(nullptr) {}
 		TripleValue(int v, TripleType ty, const TripleValue& at);
+		TripleValue(const char* str);
 		TripleValue(const TripleValue& at);
 
 		~TripleValue();
@@ -99,8 +102,8 @@ private:
 
 	void add(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 
-	TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&) const;
-	TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, int) const;
+	//TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&) const;
+	//TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, int) const;
 	int find(const Element& e);
 	int pushf(const Element& e);
 	int findf(const Element& e);
@@ -112,6 +115,7 @@ public:
 
 	void pretreat();
 	void make();
+	TBlock cut(int, int) const;
 
 	Triple& operator[](int idx) {
 		return triples[idx];
