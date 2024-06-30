@@ -39,36 +39,36 @@ int Triples::findf(const char* name)
 	return -1;
 }
 
-Triples::TripleValue Triples::find(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, int len) const
-{
-	int end = 0;
-	if (len != -1)
-	{
-		end = triples.size() - 1 - len;
-		if (end < 0)end = 0;
-	}
-	for (int i = triples.size() - 1; i >= end; --i) {
-		const Triple& t = triples[i];
-		if (t.cmd == cmd && t.e1 == e1 && t.e2 == e2) {
-			return t.to;
-		}
-	}
-	return {};
-}
-
-Triples::TripleValue Triples::find(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2) const
-{
-	int end = 0;
-	for (int i = triples.size() - 1; i >= end; --i) {
-		const Triple& t = triples[i];
-		if (t.cmd == Cmd.tag)
-			break;
-		if (t.cmd == cmd && t.e1 == e1 && t.e2 == e2) {
-			return t.to;
-		}
-	}
-	return {};
-}
+//Triples::TripleValue Triples::find(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, int len) const
+//{
+//	int end = 0;
+//	if (len != -1)
+//	{
+//		end = triples.size() - 1 - len;
+//		if (end < 0)end = 0;
+//	}
+//	for (int i = triples.size() - 1; i >= end; --i) {
+//		const Triple& t = triples[i];
+//		if (t.cmd == cmd && t.e1 == e1 && t.e2 == e2) {
+//			return t.to;
+//		}
+//	}
+//	return {};
+//}
+//
+//Triples::TripleValue Triples::find(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2) const
+//{
+//	int end = 0;
+//	for (int i = triples.size() - 1; i >= end; --i) {
+//		const Triple& t = triples[i];
+//		if (t.cmd == Cmd.tag)
+//			break;
+//		if (t.cmd == cmd && t.e1 == e1 && t.e2 == e2) {
+//			return t.to;
+//		}
+//	}
+//	return {};
+//}
 
 Triples::Triples(const Element& e) : root(e) {}
 

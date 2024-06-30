@@ -1,6 +1,8 @@
 ﻿#ifndef TRIPLE_H
 #define TRIPLE_H
 #include "element.h"
+#include "tblock.h"
+
 #include <vector>
 
 class Triples {
@@ -100,8 +102,8 @@ private:
 
 	void add(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 
-	TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&) const;
-	TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, int) const;
+	//TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&) const;
+	//TripleValue find(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, int) const;
 	int find(const Element& e);
 	int pushf(const Element& e);
 	int findf(const Element& e);
@@ -113,6 +115,7 @@ public:
 
 	void pretreat();
 	void make();
+	TBlock cut(int, int) const;
 
 	Triple& operator[](int idx) {
 		return triples[idx];

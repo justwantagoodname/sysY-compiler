@@ -324,15 +324,9 @@ void Triples::make()
 		int t1 = element[1].get_attr_int("temp"); \
 		EopETypeTras(element, t0, t1, isfloat);\
 		CMD::CMD_ENUM cmdt = isfloat? fcmd : cmd;\
-		TripleValue lcmd = triples.find(cmdt, t0, t1); \
-		if(lcmd.type == TT.null){ \
 		triples.add(cmdt, {t0}, {t1}, {temp_count}); \
 			element.add_attr("temp", temp_count); \
 			++temp_count; \
-		}\
-		else { \
-			element.add_attr("temp", lcmd.value); \
-		} \
 		}while (0)
 		ife("Plus") {
 			EopE(Cmd.add, Cmd.fadd);
