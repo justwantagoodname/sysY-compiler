@@ -158,15 +158,18 @@ Triples::TripleValue::TripleValue(int v,
 		added = nullptr;
 }
 
-Triples::TripleValue::TripleValue(const char* str)
+Triples::TripleValue::TripleValue(const char* str, Triples* triple)
 	: type(TT.str)
 {
-	long long pr_num = (long long)str;
-	printf("pr_num is %lld\n", pr_num);
-	value = (int)pr_num;
-	added = new TripleValue();
-	added->type = TT.str;
-	added->value = pr_num >> (sizeof(int) * 8);
+	int i = 0;
+	for (; i < triple->string_pointer.size(); ++i) {
+		if (triple->string_pointer[i] == str) {
+			value = i;
+			return;
+		}
+	}
+	value = i;
+	triple->string_pointer.push_back(str);
 }
 
 Triples::TripleValue::TripleValue(const TripleValue& at)
@@ -215,7 +218,7 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		snprintf(s, 20, ".l%d", value);
 		break;
 	case TT.str:
-		snprintf(s, 50, "\"%s\"", (char*)((long long)value | (((long long)added->value) << (sizeof(int) * 8))));
+		snprintf(s, 50, "\"%s\"", triples.string_pointer[value].c_str());
 		break;
 	default:
 		snprintf(s, 20, "unknow:%d", value);
