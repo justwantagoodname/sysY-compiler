@@ -279,6 +279,27 @@ bool ASTNode_get_attr_float(const ASTNode *node, const char* key, float *value) 
     }
 }
 
+/**
+ *  以 double 形式获取数字，无视数字本来的类型，因为 double 范围更大，更适合用于常量计算
+ */
+bool ASTNode_get_attr_number(const ASTNode *node, const char* key, double *value) {
+    assert(node != NULL && key != NULL && value != NULL);
+
+    struct ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
+    if (attr != NULL) {
+        if (attr->type == ATTR_TYPE_INT) {
+            *value = attr->value.int_value;
+        } else if (attr->type == ATTR_TYPE_FLOAT) {
+            *value = attr->value.float_value;
+        } else {
+            return false;
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
 bool ASTNode_id_is(const ASTNode *node, const char* id) {
     assert(node != NULL && id != NULL);
 

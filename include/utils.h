@@ -17,6 +17,8 @@ size_t multi_dimensional_index_to_linear_index(const std::vector<int> &dim_sizes
 
 #endif
 
+bool is_integer(double x);
+
 void print_version();
 
 void print_help(const char* program_name);

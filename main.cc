@@ -7,18 +7,13 @@
 #include "codegen/ashelper.hpp"
 #include "codegen/const_inflater.hpp"
 
-#define TRIPLE_DEBUG
-#define UNION_OPTIMIZTION
-
 int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
 	Flag::getFlag().init(argc, argv);
   
 	Element root = Element::CreateByFile(Flag::getFlag().getFlagFor("input").c_str());
 
-	root.print();
-
-#ifdef UNION_OPTIMIZTION
+#ifdef UNI_OPTIMIZTION
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
   	root.print();

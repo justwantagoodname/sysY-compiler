@@ -49,3 +49,7 @@ void print_help(const char* program_name) {
     printf("  -O: Optimization level\n");
     exit(0);
 }
+
+bool is_integer(double x) {
+    return std::floor(x) == x;
+}

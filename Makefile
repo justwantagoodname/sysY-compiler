@@ -3,7 +3,7 @@ LEX = flex
 YACC = bison
 ZIP = zip
 
-DEFINES = -DXML_PP -DDEBUG -DTRIPLE_DEBUG
+DEFINES = -DXML_PP -DDEBUG -DUNI_OPTIMIZTION -DASM_GEN
 CXXFLAGS = -std=c++17 
 LDFLAGS = -lm
 JOBS := 4
@@ -129,7 +129,7 @@ endif
 
 dev:
 	echo $(L_FILES) $(Y_FILES) $(C_FILES) $(CC_FILES) $(H_FILES) $(HPP_FILES) $(TEST_DIR)/testfile.sysy Makefile \
-		 | tr '[:blank:]' '\n' | $(WATCHER) -cs 'make -j$(JOBS) test-compiler; make run-arm'
+		 | tr '[:blank:]' '\n' | $(WATCHER) -cs 'make -j$(JOBS) test-compiler'
 
 all: release-compiler
 
