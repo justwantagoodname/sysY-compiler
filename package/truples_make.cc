@@ -362,7 +362,8 @@ void Triples::make()
 					else {
 						const char* str;
 						ASTNode_get_attr_str(iter, "value", &str);
-						triples.add(Cmd.pus, { str }, {}, {});
+						triples.add(Cmd.pus, { str, this }, {}, {});
+						iter = iter->prev;
 					}
 				} while (iter != head->prev);
 			}
@@ -375,7 +376,7 @@ void Triples::make()
 				triples.add(Cmd.call, { fid, TT.func }, {}, { temp_count });
 			}
 			else {
-				triples.add(Cmd.call, { element.get_attr_str("name") }, {}, { temp_count });
+				triples.add(Cmd.call, { element.get_attr_str("name"), this }, {}, { temp_count });
 			}
 			++temp_count;
 		}

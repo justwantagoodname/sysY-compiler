@@ -1,7 +1,6 @@
 ﻿#ifndef TRIPLE_H
 #define TRIPLE_H
 #include "element.h"
-#include "tblock.h"
 
 #include <vector>
 
@@ -73,7 +72,7 @@ public:
 		TripleValue(int t) :value(t), type(TT.temp), added(nullptr) {}
 		TripleValue(int v, TripleType ty) :value(v), type(ty), added(nullptr) {}
 		TripleValue(int v, TripleType ty, const TripleValue& at);
-		TripleValue(const char* str);
+		TripleValue(const char* str, Triples* triple);
 		TripleValue(const TripleValue& at);
 
 		~TripleValue();
@@ -97,6 +96,7 @@ private:
 	std::vector<Triple> triples;
 	std::vector<Element> value_pointer;
 	std::vector<Element> function_pointer;
+	std::vector<std::string> string_pointer;
 	//std::vector<Element> value_table;
 	//std::vector<int> page_stack;
 
@@ -115,7 +115,6 @@ public:
 
 	void pretreat();
 	void make();
-	TBlock cut(int, int) const;
 
 	Triple& operator[](int idx) {
 		return triples[idx];

@@ -6,6 +6,8 @@
 #include "flag.h"
 #include "codegen/ashelper.hpp"
 #include "codegen/const_inflater.hpp"
+#define UNI_OPTIMIZTION
+#define TRIPLE_DEBUG
 
 int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
