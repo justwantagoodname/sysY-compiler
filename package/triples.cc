@@ -119,6 +119,8 @@ void Triples::print() const
 			"d2f",
 			"f2d",
 			"mset",
+			"load",
+			"store",
 		};
 		if (i.cmd == Cmd.tag) {
 			i.e1.toString(ts1, *this);

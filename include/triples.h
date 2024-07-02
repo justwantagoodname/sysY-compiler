@@ -44,6 +44,8 @@ public:
 			d2f,
 			f2d,
 			mset,
+			load,
+			store,
 		};
 	}Cmd = CMD();
 
