@@ -91,10 +91,12 @@ parser-files: $(FLEX_C_FILES) $(BISON_C_FILES) $(BISON_H_FILES)
 %.lex.cc: %.l
 	$(LEX) -o $*.lex.cc $<
 
+INPUT_FILE ?= "testfile.sysy"
+
 test-compiler: dev-compiler # 测试的时候使用开发模式，快速编译
 	@clear
 	@date
-	$(DEV_BUILD_DIR)/compiler $(TEST_DIR)/testfile.sysy -S -o $(TEST_DIR)/output.s
+	$(DEV_BUILD_DIR)/compiler $(TEST_DIR)/$(INPUT_FILE) -S -o $(TEST_DIR)/output.s
 
 run-arm: $(TEST_DIR)/output.s $(TEST_DIR)/libsysy.a
 	arm-linux-gnueabihf-gcc $< $(TEST_DIR)/libsysy.a -static -o $(TEST_DIR)/$(basename $(notdir $<)).arm

@@ -1,5 +1,10 @@
 #include "codegen/generator.h"
 
-void Generator::genRISCV(Triples triples) {
+void RiscVGenerator::generate(Triples& triples, bool optimize_flag) {
+    if (optimize_flag) {
+        assert(0 == 1);
+    }
+
+
     return;
 }
