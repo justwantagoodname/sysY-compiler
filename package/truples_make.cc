@@ -135,7 +135,7 @@ void Triples::make()
 			TripleValue d = {};
 			if (element[0].get_attr("array"))
 				d = element[0].get_attr_int("temp");
-			triples.add(Cmd.mov, { a, TT.value, d }, {}, { temp_count });
+			triples.add(Cmd.load, { a, TT.value, d }, {}, { temp_count });
 			element.add_attr("temp", temp_count);
 			++temp_count;
 			element.add_attr("type", element[0].get_attr_str("type"));
@@ -163,7 +163,7 @@ void Triples::make()
 			const char* tt = element[1].get_attr_str("type");
 			TypeTras(at, tt, t);
 
-			triples.add(Cmd.mov, { t }, {}, { a, TT.value, d });
+			triples.add(Cmd.store, { t }, {}, { a, TT.value, d });
 		}
 
 #define EopETypeTras(node, t0, t1, isfloat) do{		   \
