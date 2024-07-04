@@ -21,7 +21,7 @@ public:
    virtual void postGenerate() {}
 
    /**
-    * 生成汇编代码后的准备工作
+    * 生成汇编代码前的准备工作
     */
    virtual void preGenerate() {}
 
@@ -44,7 +44,7 @@ public:
    virtual void emitFunctionLabel(const std::string& funcName) = 0;
    virtual void emitLabel(const std::string& reg) = 0;
    virtual void loadImmediate(const std::string& reg, int x) = 0;
-   virtual void loadImmediate(const std::string& reg, float x) = 0;
+
    virtual void loadLabelAddress(const std::string& reg, const std::string& labelName) = 0;
    virtual void loadRegister(const std::string& dst, const std::string& src, int offset) = 0;
    virtual void storeRegister(const std::string& src, const std::string& dst, int offset) = 0;
@@ -90,6 +90,34 @@ public:
    virtual void cmpLessEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
    virtual void cmpGreater(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
    virtual void cmpGreaterEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
+   // 浮点操作相关 考虑到一般都用 fpu 所以按照抽象 fpu 操作实现
+
+   // 在浮点和通用寄存器间传递数据
+   virtual void fmov(const std::string& dst, const std::string& src) = 0;
+
+   virtual void i2f(const std::string& dst, const std::string& src) = 0;
+
+   virtual void f2i(const std::string& dst, const std::string& src) = 0;
+
+   virtual void f2d(const std::string& dst, const std::string& src) = 0;
+
+   virtual void d2f(const std::string& dst, const std::string& src) = 0;
+
+   // 加法
+   virtual void fadd(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
+//   // 减法
+//   virtual void fsub(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+//
+//   // 乘法
+//   virtual void fmul(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+//
+//   // 除法
+//   virtual void fdiv(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+//
+//   // 取模
+//   virtual void fmod(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
 };
 
 #endif

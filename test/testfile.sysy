@@ -1,15 +1,4 @@
-int f(int a[]) { // a is [Int;
-    return a[0];
-}
-
-int g(int a[][2]) { // a is [[Int;
-    return f(a[0]);
-}
-
-
 int main() {
-    int a[2][2]; // type of a is [[Int;
-
-    g(a);
+    putf("Hello, world! %f %f\n", 0.5, 0.6);
     return 0;
 }

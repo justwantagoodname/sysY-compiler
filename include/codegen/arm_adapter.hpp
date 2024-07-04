@@ -30,7 +30,7 @@ private:
 public:
     explicit ARMAdapter(AssemblyBuilder &asm_file) : asm_file(asm_file) {
         // "starttime","stoptime","getarray","getch","getfarray","getfloat","getint","putarray","putch","putf","putfarray","putfloat","putint"
-        auto arm_standard_call_handle = [this](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
+        auto arm_std_call_hf_handle = [this](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
             // 这个其实只能用于我们的StackTranslator，因为这里先把参数 push 到栈上
 
             // 开始计算参数
@@ -73,11 +73,76 @@ public:
             call(declare.asm_name);
         };
 
-        auto arm_gnu_varargs_call_handle = [this](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
+        auto arm_gnu_varargs_call_handle = [this, &asm_file](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
             // 这个其实只能用于我们的StackTranslator，因为这里先把参数 push 到栈上
 
             // 翻译 GNU 可变参数函数调用
             // 主要是对 float 参数特殊处理
+            // 这个其实只能用于我们的StackTranslator，因为这里先把参数 push 到栈上
+
+            // 开始计算参数
+            auto real_param_size = (int) ASTNode_children_size(callContext); // 在调用上下文中获取实参数个数
+            assert(real_param_size >= 1); // 可变参数至少大于1
+
+            std::vector<std::string> arg_type;
+            if (real_param_size) {
+                // 有实参需要先计算
+                QueryResult *real_params = ASTNode_querySelector(callContext, "Param"),
+                        *cur = real_params->prev;
+                int idx = real_param_size - 1;
+                do {
+                    const char *type;
+                    bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
+                    if (hasType && strcmp(type, "StringConst") == 0){
+                        arg_type.push_back("StringConst");
+                        const char* label;
+                        bool hasLabel = ASTNode_get_attr_str(cur->node, "label", &label);
+                        assert(hasLabel);
+                        loadLabelAddress(getRegName(0), label); // string 肯定是第一个直接加载到 r0
+                    } else {
+                        // 反向遍历参数
+                        ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
+                        translator->translateExpInner(inner);
+                        translator->passType(cur->node, inner);
+
+                        hasType = ASTNode_get_attr_str(inner, "type", &type);
+
+                        if (hasType && strcmp(type, "Float") == 0) {
+                            arg_type.push_back(SyFloat);
+                            // 如果是 float 参数，需要先放到浮点寄存器然后转 double
+                            fmov("s0", translator->accumulatorReg);
+                            f2d("d0", "s0");
+                            add("sp", "sp", -8); // double 是双字节
+                            asm_file.line("\tvstr d0, [sp]");
+                        } else {
+                            assert(hasType && strcmp(type, SyInt) == 0); // 只有 Int 和 Float 两种类型
+                            arg_type.push_back(SyInt);
+                            if (idx != 0) pushStack({translator->accumulatorReg}); // 倒着入栈，所以第一个参数不需要 push
+                        }
+                    }
+
+                    cur = cur->prev;
+                    idx--;
+                } while (cur != real_params->prev);
+            }
+            int reg_param_size = std::min(4, real_param_size); // 这个 4 是 ARM32 函数调用时放在寄存器上的函数参数个数
+            std::reverse(arg_type.begin(), arg_type.end());
+            if (reg_param_size > 1) { // 一个参数不需要 pop 因为最后一个参数没有 push
+                std::vector<std::string> regs;
+                for (int i = 1; i < reg_param_size; i++) {
+                    if (arg_type[i] == SyInt) regs.push_back(getRegName(i));
+
+                    if (arg_type[i] == SyFloat && i != 3) {
+                        // 以double储存为两个字节
+                        // TODO: 这里非常奇怪，浮点参数被固定放到 r2 r3 中
+                        regs.push_back(getRegName(2));
+                        regs.push_back(getRegName(3));
+                        break; // 碰到浮点参数就结束，后面到一律压入栈
+                    }
+                }
+                popStack(regs);
+            }
+            call(declare.asm_name);
         };
         // 常规函数
         extern_functions["getch"] = ExternFunctionDeclare {
@@ -85,56 +150,56 @@ public:
             .asm_name = "getch",
             .args = {},
             .ret_type = "Int",
-            .call_handle = arm_standard_call_handle
+            .call_handle = arm_std_call_hf_handle
         };
         extern_functions["getint"] = ExternFunctionDeclare {
             .name = "getint",
             .asm_name = "getint",
             .args = {},
             .ret_type = "Int",
-            .call_handle = arm_standard_call_handle
+            .call_handle = arm_std_call_hf_handle
         };
         extern_functions["getarray"] = ExternFunctionDeclare {
             .name = "getarray",
             .asm_name = "getarray",
             .args = {{"Int*", "dest_base"}},
             .ret_type = "Int",
-            .call_handle = arm_standard_call_handle
+            .call_handle = arm_std_call_hf_handle
         };
         extern_functions["getfarray"] = ExternFunctionDeclare {
             .name = "getfarray",
             .asm_name = "getfarray",
             .args = {{"Float*", "dest_base"}},
             .ret_type = "Int",
-            .call_handle = arm_standard_call_handle
+            .call_handle = arm_std_call_hf_handle
         };
         extern_functions["putint"] = ExternFunctionDeclare {
             .name = "putint",
             .asm_name = "putint",
             .args = {{"Int", "x"}},
             .ret_type = "Void",
-            .call_handle = arm_standard_call_handle
+            .call_handle = arm_std_call_hf_handle
         };
         extern_functions["putch"] = ExternFunctionDeclare {
             .name = "putch",
             .asm_name = "putch",
             .args = {{"Int", "x"}},
             .ret_type = "Void",
-            .call_handle = arm_standard_call_handle
+            .call_handle = arm_std_call_hf_handle
         };
         extern_functions["putarray"] = ExternFunctionDeclare {
             .name = "putarray",
             .asm_name = "putarray",
             .args = {{"Int", "size"}, {"Int*", "src_base"}},
             .ret_type = "Void",
-            .call_handle = arm_standard_call_handle
+            .call_handle = arm_std_call_hf_handle
         };
         extern_functions["putfarray"] = ExternFunctionDeclare {
             .name = "putfarray",
             .asm_name = "putfarray",
             .args = {{"Int", "size"}, {"Float*", "src_base"}},
             .ret_type = "Void",
-            .call_handle = arm_standard_call_handle
+            .call_handle = arm_std_call_hf_handle
         };
 
         // 计时函数
@@ -152,9 +217,11 @@ public:
             .ret_type = "Void",
             .call_handle = lib_require_line
         };
+
+        // 可变参数函数
         extern_functions["putf"] = ExternFunctionDeclare {
             .name = "putf",
-            .asm_name = "_sysy_putf",
+            .asm_name = "putf",
             .args = {},
             .ret_type = "Void",
             .call_handle = arm_gnu_varargs_call_handle
@@ -167,9 +234,26 @@ public:
         return "ARM32";
     }
 
+    void preGenerate() override {
+        asm_file.line("\t.syntax unified")
+            .line("\t.arch armv7-a")
+            .line("\t.fpu vfp")
+            .line("\t.eabi_attribute 27, 3")
+            .line("\t.eabi_attribute 28, 1")
+            .line("\t.eabi_attribute 23, 1")
+            .line("\t.eabi_attribute 24, 1")
+            .line("\t.eabi_attribute 25, 1")
+            .line("\t.eabi_attribute 26, 2")
+            .line("\t.eabi_attribute 30, 6")
+            .line("\t.eabi_attribute 34, 0")
+            .line("\t.eabi_attribute 18, 4")
+            .line();
+    }
+
     void postGenerate() override {
         asm_file.line()
                 .line(".section	.note.GNU-stack,\"\",%%progbits")
+                .line(".ident	\"SysY-Compiler\"")
                 .line();
     }
 
@@ -276,10 +360,6 @@ public:
             asm_file.line("\tmovw %s, #%d", reg.c_str(), lo);
             asm_file.line("\tmovt %s, #%d", reg.c_str(), hi);
         }
-    }
-
-    void loadImmediate(const std::string& reg, float x) override {
-        // TODO: implement this
     }
 
     void loadLabelAddress(const std::string& reg, const std::string& labelName) override {
@@ -459,6 +539,30 @@ public:
         cmpGeneral(src1, src2);
         asm_file.line("\tmovge %s, #1", dst.c_str());
         asm_file.line("\tmovlt %s, #0", dst.c_str());
+    }
+
+    void fmov(const std::string& dst, const std::string& src) override {
+        asm_file.line("\tvmov %s, %s", dst.c_str(), src.c_str());
+    }
+
+    void i2f(const std::string& dst, const std::string& src) override {
+        asm_file.line("\tvcvt.f32.s32 %s, %s", dst.c_str(), src.c_str());
+    }
+
+    void f2i(const std::string& dst, const std::string& src) override {
+        asm_file.line("\tvcvt.s32.f32 %s, %s", dst.c_str(), src.c_str());
+    }
+
+    void f2d(const std::string& dst, const std::string& src) override {
+        asm_file.line("\tvcvt.f64.f32 %s, %s", dst.c_str(), src.c_str());
+    }
+
+    void d2f(const std::string& dst, const std::string& src) override {
+        asm_file.line("\tvcvt.f32.f64 %s, %s", dst.c_str(), src.c_str());
+    }
+
+    void fadd(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        asm_file.line("\tvadd.f32 %s, %s, %s", dst.c_str(), src1.c_str(), src2.c_str());
     }
 };
 
