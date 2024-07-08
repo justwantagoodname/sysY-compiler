@@ -39,7 +39,7 @@ RVInstr::RVInstr() : tag(NOP) {
 RVInstr::RVInstr(RVInstrTag op) : tag(op) {
     return;
 }
-RVRInstr::RVRInstr(RVROp opt, RVOperand opr1, RVOperand opr2, RVOperand dst)
+RVRInstr::RVRInstr(RVROp opt, const RVOperand& opr1, const RVOperand& opr2, const RVOperand& dst)
     : RVInstr(RInstr), opt(opt), opr1(opr1), opr2(opr2), dst(dst) {
     return;
 }
@@ -70,6 +70,9 @@ std::string RVRInstr::toASM() {
         {SRL, "srl"},
         {SRA, "sra"},
 
+        {SLT, "slt"},
+        {SLTU, "sltu"},
+
         {LW, "lw"},
         {SW, "sw"}
 
@@ -78,4 +81,13 @@ std::string RVRInstr::toASM() {
     result += dst.toASM() + ", " + opr1.toASM();
     if (opr2.tag != UNDEF) result += ", " + opr2.toASM();
     return result;
+}
+
+
+RVIInstr::RVIInstr(RVIOp opt, const RVOperand& opr, const RVOperand& dst) 
+    : RVInstr(IInstr), opt(opt), opr(opr), dst(dst) {
+    return;
+}
+std::string RVIInstr::toASM() {
+    return "";
 }

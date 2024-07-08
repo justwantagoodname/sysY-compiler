@@ -37,6 +37,7 @@ RVOperand make_simm(float value);
 enum RVInstrTag {
     NOP,
     RInstr,
+    IInstr
 };
 
 class RVInstr {
@@ -87,28 +88,46 @@ enum RVROp {
     SRL,
     SRA,
 
+    // Compare
+    // set <
+    SLT,
+    SLTU,
+
     // Load
     LW,
     // Store
-    SW,
+    SW
     
 };
 class RVRInstr : public RVInstr {
 public:
     RVROp opt;
     RVOperand opr1, opr2, dst;
-    RVRInstr(RVROp opt, RVOperand opr1, RVOperand opr2, RVOperand dst);
+    RVRInstr(RVROp opt, const RVOperand& opr1, const RVOperand& opr2, const RVOperand& dst);
     virtual std::string toASM() override;
 };
 
 
 enum RVIOp {
+    // Arithmetic
+    ADDI,
 
+    // Logical
+    XORI,
+    ORI,
+    ANDI,
+
+    // Compare
+    // set < immediate
+    SLTI,
+    SLTIU
 };
 class RVIInstr : public RVInstr {
 public:
     RVIOp opt;
     RVOperand dst, opr;
+    RVIInstr(RVIOp opt, const RVOperand& opr, const RVOperand& dst);
+    virtual std::string toASM() override;
 };
 
 #endif
