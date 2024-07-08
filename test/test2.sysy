@@ -1,7 +1,7 @@
 int main() {
-    int a = 1, b = 2, c = 3;
+    int a = 1, b = 2, c = 3, d = 5;
 
-    a = a + b + c;
+    a = a + b + c + 4 + d * 4;
 
     c = a + b;
 

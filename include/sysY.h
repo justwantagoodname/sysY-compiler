@@ -5,6 +5,8 @@
 
 #ifdef __cplusplus
 
+#include <cstdint>
+
 #include <iostream>
 #include <sstream>
 #include <string>
