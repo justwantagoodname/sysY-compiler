@@ -13,8 +13,8 @@ public:
 	public:
 		enum CMD_ENUM {
 			mov,
-			jmp,
 			call,
+			jmp,
 			jeq,
 			jne,
 			jgt,
@@ -87,6 +87,7 @@ public:
 	};
 
 private:
+	int temp_count = -1;
 
 	struct Triple {
 		int cmd;
@@ -117,6 +118,8 @@ public:
 
 	void pretreat();
 	void make();
+
+	void MinTempVar();
 
 	Triple& operator[](int idx) {
 		return triples[idx];

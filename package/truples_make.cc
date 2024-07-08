@@ -464,5 +464,6 @@ void Triples::make()
 				}
 			}
 		}
+		this->temp_count = temp_count;
 	}
 }
