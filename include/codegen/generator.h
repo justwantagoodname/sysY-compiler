@@ -16,7 +16,7 @@ public:
 
 class RiscVGenerator : Generator {
 private:
-    std::vector<RiscVInstr> instrs;
+    std::vector<RVInstr> instrs;
 public:
     void generate(Triples& triples, bool optimize_flag);
 };

@@ -30,28 +30,50 @@ RVOperand make_sreg(int sreg);
 RVOperand make_imm(int value);
 RVOperand make_simm(float value);
 
-enum RVOp {
+enum RVInstrTag {
     NOP,
-    BINARY,
+    RInstr,
 };
 
 class RVInstr {
 public:
-    RVOp op;
+    RVInstrTag tag;
     RVInstr();
-    RVInstr(RVOp op);
+    RVInstr(RVInstrTag tag);
     virtual std::string toASM() = 0;
 };
 
-enum RVBinary {
+enum RVBinaryOp {
+    // Arithmetic
     ADD,
-    SUB
+    SUB,
+    MUL,
+    DIV,
+    MOD,
+    // Float arithmetic
+    FADD,
+    FSUB,
+    FMUL,
+    FDIV,
+    FMOD,
+
+    // Logical
+    XOR,
+    OR,
+    AND,
+
+    // Shifts
+    SLL,
+    SRL,
+    SRA
+
+    
 };
 class RVBinaryInstr : public RVInstr {
 public:
-    RVBinary opt;
-    RVOperand opr1, opr2, result;
-    RVBinaryInstr(RVOperand opr1, RVOperand opr2, RVOperand result);
+    RVBinaryOp opt;
+    RVOperand opr1, opr2, des;
+    RVBinaryInstr(RVBinaryOp opt, RVOperand opr1, RVOperand opr2, RVOperand des);
     virtual std::string toASM() override;
 };
 
