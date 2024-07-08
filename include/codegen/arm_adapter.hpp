@@ -72,7 +72,8 @@ public:
                             floadRegister(getFRegisterName(float_reg++), getStackPointerName(), 0);
                             add(getStackPointerName(), getStackPointerName(), 4);
                         } else {
-                            fmov(getFRegisterName(float_reg++), getRegName(0));
+                            // fmov(getFRegisterName(float_reg++), getRegName(0));
+                            // 注意所有的浮点数返回被放在 s0 
                         }
                     } else {
                         assert(false);
@@ -128,12 +129,9 @@ public:
             auto real_param_size = (int) ASTNode_children_size(callContext); // 在调用上下文中获取实参数个数
             assert(real_param_size >= 1); // 可变参数至少大于1
 
-            int param_stack_size = real_param_size * getWordSize(); // 参数在栈上的大小
+            int param_stack_size = 0; // 参数在栈上的大小
 
-            if (param_stack_size % 8 != 0) {
-                sub(getStackPointerName(), getStackPointerName(), 4); // 保证栈对齐到 8 字节
-                param_stack_size += 4;
-            }
+            asm_file.mark(); // 插入对齐的位置
 
             std::vector<std::string> arg_type;
             if (real_param_size) {
@@ -158,17 +156,19 @@ public:
 
                         hasType = ASTNode_get_attr_str(inner, "type", &type);
 
-                        if (hasType && strcmp(type, "Float") == 0) {
+                        if (hasType && strcmp(type, SyFloat) == 0) {
                             arg_type.push_back(SyFloat);
                             // 如果是 float 参数，需要先放到浮点寄存器然后转 double
                             fmov("s0", translator->accumulatorReg);
                             f2d("d0", "s0");
-                            add("sp", "sp", -8); // double 是双字节
+                            add("sp", "sp", -8); // double 是双字
                             asm_file.line("\tvstr d0, [sp]");
+                            param_stack_size += 8;
                         } else {
                             assert(hasType && strcmp(type, SyInt) == 0); // 只有 Int 和 Float 两种类型
                             arg_type.push_back(SyInt);
                             if (idx != 0) pushStack({translator->accumulatorReg}); // 倒着入栈，所以第一个参数不需要 push
+                            param_stack_size += getWordSize();
                         }
                     }
 
@@ -178,7 +178,6 @@ public:
             }
             int reg_param_size = std::min(4, real_param_size); // 这个 4 是 ARM32 函数调用时放在寄存器上的函数参数个数
             std::reverse(arg_type.begin(), arg_type.end());
-            param_stack_size -= 4; // 第一个的地址没有在栈上
             if (reg_param_size > 1) { // 一个参数不需要 pop 因为最后一个参数没有 push
                 std::vector<std::string> regs;
                 for (int i = 1; i < reg_param_size; i++) {
@@ -190,7 +189,7 @@ public:
                     if (arg_type[i] == SyFloat && i != 3) {
                         param_stack_size -= 8;
                         // 以double储存为两个字节
-                        // TODO: 这里非常奇怪，浮点参数被固定放到 r2 r3 中
+                        // 这里非常奇怪，浮点参数被固定放到 r2 r3 中
                         regs.push_back(getRegName(2));
                         regs.push_back(getRegName(3));
                         break; // 碰到浮点参数就结束，后面到一律压入栈
@@ -199,12 +198,15 @@ public:
                 popStack(regs);
             }
             if (param_stack_size % 8 != 0) {
-                // 这个没有办法补救一下吧
                 param_stack_size += 4;
+                // 插入到之前的位置
+                asm_file.beginBack();
                 sub(getStackPointerName(), getStackPointerName(), 4);
+                asm_file.endBack();
             }
             call(declare.asm_name);
-            add(getStackPointerName(), getStackPointerName(), param_stack_size); // 还原栈
+            if (param_stack_size > 0) 
+                add(getStackPointerName(), getStackPointerName(), param_stack_size); // 还原栈
         };
         // 常规函数
         extern_functions["getch"] = ExternFunctionDeclare {
@@ -224,14 +226,14 @@ public:
         extern_functions["getarray"] = ExternFunctionDeclare {
             .name = "getarray",
             .asm_name = "getarray",
-            .args = {{"Int*", "dest_base"}},
+            .args = {{"[Int", "dest_base"}},
             .ret_type = "Int",
             .call_handle = arm_std_call_hf_handle
         };
         extern_functions["getfarray"] = ExternFunctionDeclare {
             .name = "getfarray",
             .asm_name = "getfarray",
-            .args = {{"Float*", "dest_base"}},
+            .args = {{"[Float", "dest_base"}},
             .ret_type = "Int",
             .call_handle = arm_std_call_hf_handle
         };
@@ -252,14 +254,14 @@ public:
         extern_functions["putarray"] = ExternFunctionDeclare {
             .name = "putarray",
             .asm_name = "putarray",
-            .args = {{"Int", "size"}, {"Int*", "src_base"}},
+            .args = {{"Int", "size"}, {"[Int", "src_base"}},
             .ret_type = "Void",
             .call_handle = arm_std_call_hf_handle
         };
         extern_functions["putfarray"] = ExternFunctionDeclare {
             .name = "putfarray",
             .asm_name = "putfarray",
-            .args = {{"Int", "size"}, {"Float*", "src_base"}},
+            .args = {{"Int", "size"}, {"[Float", "src_base"}},
             .ret_type = "Void",
             .call_handle = arm_std_call_hf_handle
         };
