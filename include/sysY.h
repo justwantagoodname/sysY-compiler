@@ -14,7 +14,7 @@
 #include <map>
 #include <variant>
 #include <memory>
-
+#include <functional>
 #endif
 
 #ifdef __cplusplus
