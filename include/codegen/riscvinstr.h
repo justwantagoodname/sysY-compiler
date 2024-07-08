@@ -1,3 +1,5 @@
+// RV64GC - RV64IMAFDC
+
 #pragma once
 
 #ifndef RISCVINSTR_H_
@@ -22,7 +24,9 @@ public:
     int32_t value;
     RVOperand();
     RVOperand(RVOperandTag tag, int value);
-    std::string toASM();
+    bool isreg() const;
+    bool isimm() const;
+    std::string toASM() const;
 };
 
 RVOperand make_reg(int reg);
@@ -43,7 +47,7 @@ public:
     virtual std::string toASM() = 0;
 };
 
-enum RVBinaryOp {
+enum RVROp {
     // Arithmetic
     ADD,
     SUB,
@@ -57,6 +61,22 @@ enum RVBinaryOp {
     FDIV,
     FMOD,
 
+    // Float move
+    // from integer
+    FMVF,
+    // to integer
+    FMVT,
+
+    // Float Convert
+    // from integer
+    FCVTF,
+    // from integer unsigned
+    FCVTFU,
+    // to integer
+    FCVTT,
+    // to integer unsigned
+    FCVTTU,
+
     // Logical
     XOR,
     OR,
@@ -65,16 +85,30 @@ enum RVBinaryOp {
     // Shifts
     SLL,
     SRL,
-    SRA
+    SRA,
 
+    // Load
+    LW,
+    // Store
+    SW,
     
 };
-class RVBinaryInstr : public RVInstr {
+class RVRInstr : public RVInstr {
 public:
-    RVBinaryOp opt;
-    RVOperand opr1, opr2, des;
-    RVBinaryInstr(RVBinaryOp opt, RVOperand opr1, RVOperand opr2, RVOperand des);
+    RVROp opt;
+    RVOperand opr1, opr2, dst;
+    RVRInstr(RVROp opt, RVOperand opr1, RVOperand opr2, RVOperand dst);
     virtual std::string toASM() override;
+};
+
+
+enum RVIOp {
+
+};
+class RVIInstr : public RVInstr {
+public:
+    RVIOp opt;
+    RVOperand dst, opr;
 };
 
 #endif
