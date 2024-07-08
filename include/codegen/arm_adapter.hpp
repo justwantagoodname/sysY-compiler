@@ -59,24 +59,26 @@ public:
                     idx--;
                 } while (cur != real_params->prev);
             }
+            std::reverse(arg_type.begin(), arg_type.end());
             int integer_reg = 0, float_reg = 0;
 
             // 注意这里没有判断什么时候停止（参数全部放到寄存器上），考虑库函数没有多余4个的情况，所以没有问题
             for (int i = 0;i < arg_type.size(); i++) {
                 if (arg_type[i] == declare.args[i].first) {
                     // 如果类型相同，直接放到寄存器上
-                    if (arg_type[i] == SyInt) {
-                        if (i != 0) popStack({getRegName(integer_reg)});
-                    } else if (arg_type[i] == SyFloat) {
+                    if (arg_type[i] == SyFloat) {
                         if (i != 0) {
                             floadRegister(getFRegisterName(float_reg++), getStackPointerName(), 0);
                             add(getStackPointerName(), getStackPointerName(), 4);
                         } else {
                             // fmov(getFRegisterName(float_reg++), getRegName(0));
-                            // 注意所有的浮点数返回被放在 s0 
+                            // 注意所有的浮点数返回被放在 s0
+                            float_reg++;
                         }
                     } else {
-                        assert(false);
+                        // 其他所有情况都直接放到整数寄存器上
+                        if (i != 0) popStack({getRegName(integer_reg++)});
+                        else integer_reg++; // 第一个参数不需要 pop
                     }
                 } else {
                     // 如果类型不同，需要转换
