@@ -114,8 +114,12 @@ void StackTranslator::translateFunc(ASTNode *func) {
     }
 
     // 实际移动栈顶指针
-    if (localVarSize > 0)
+    if (localVarSize > 0) {
+        if (localVarSize % 8 != 0) {
+            localVarSize += 4; // 对齐到 8 字节方便来调用 putf
+        }
         adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize);
+    }
 
 #ifdef DEBUG
     adapter->emitComment("局部变量空间分配好了");

@@ -93,8 +93,12 @@ public:
 
    // 浮点操作相关 考虑到一般都用 fpu 所以按照抽象 fpu 操作实现
 
+   virtual std::string getFRegisterName(int reg) = 0;
+
    // 在浮点和通用寄存器间传递数据
    virtual void fmov(const std::string& dst, const std::string& src) = 0;
+
+   virtual void floadRegister(const std::string& dst, const std::string& src, int offset) = 0;
 
    virtual void i2f(const std::string& dst, const std::string& src) = 0;
 

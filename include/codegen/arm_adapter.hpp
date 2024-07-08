@@ -37,6 +37,7 @@ public:
             auto real_param_size = (int) ASTNode_children_size(callContext); // 在调用上下文中获取实参数个数
             assert(real_param_size == declare.args.size());
 
+            std::vector<std::string> arg_type;
             if (real_param_size) {
                 // 有实参需要先计算
                 QueryResult *real_params = ASTNode_querySelector(callContext, "Param"),
@@ -45,25 +46,68 @@ public:
                 do {
                     // 反向遍历参数
                     const char *type;
-                    bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
                     ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
                     translator->translateExpInner(inner);
+
+                    bool hasType = ASTNode_get_attr_str(inner, "type", &type);
+                    assert(hasType);
+
+                    arg_type.push_back(type);
 
                     if (idx != 0) pushStack({translator->accumulatorReg}); // 倒着入栈，所以第一个参数不需要 push
                     cur = cur->prev;
                     idx--;
                 } while (cur != real_params->prev);
             }
-            int reg_param_size = std::min(4, real_param_size); // 这个 4 是 ARM32 函数调用时放在寄存器上的函数参数个数
-            if (reg_param_size > 1) { // 一个参数不需要 pop 因为最后一个参数没有 push
-                std::vector<std::string> regs;
-                for (int i = 1; i < reg_param_size; i++) {
-                    regs.push_back(getRegName(i));
+            int integer_reg = 0, float_reg = 0;
+
+            // 注意这里没有判断什么时候停止（参数全部放到寄存器上），考虑库函数没有多余4个的情况，所以没有问题
+            for (int i = 0;i < arg_type.size(); i++) {
+                if (arg_type[i] == declare.args[i].first) {
+                    // 如果类型相同，直接放到寄存器上
+                    if (arg_type[i] == SyInt) {
+                        if (i != 0) popStack({getRegName(integer_reg)});
+                    } else if (arg_type[i] == SyFloat) {
+                        if (i != 0) {
+                            floadRegister(getFRegisterName(float_reg++), getStackPointerName(), 0);
+                            add(getStackPointerName(), getStackPointerName(), 4);
+                        } else {
+                            fmov(getFRegisterName(float_reg++), getRegName(0));
+                        }
+                    } else {
+                        assert(false);
+                    }
+                } else {
+                    // 如果类型不同，需要转换
+                    if (arg_type[i] == SyInt && declare.args[i].first == SyFloat) {
+                        if (i != 0) {
+                            floadRegister(getFRegisterName(float_reg), getStackPointerName(), 0);
+                            add(getStackPointerName(), getStackPointerName(), 4);
+                        } else {
+                            fmov(getFRegisterName(float_reg), getRegName(0));
+                        }
+                        i2f(getFRegisterName(float_reg), getFRegisterName(float_reg));
+                        float_reg++;
+                    } else if (arg_type[i] == SyFloat && declare.args[i].first == SyInt) {
+                        if (i != 0) {
+                            floadRegister(getFRegisterName(float_reg), getStackPointerName(), 0);
+                            add(getStackPointerName(), getStackPointerName(), 4);
+                        } else {
+                            fmov(getFRegisterName(float_reg), getRegName(0));
+                        }
+                        f2i(getFRegisterName(float_reg), getFRegisterName(float_reg));
+                        fmov(getRegName(integer_reg), getFRegisterName(float_reg));
+                        integer_reg++;
+                    } else {
+                        assert(false);
+                    }
                 }
-                popStack(regs);
             }
+
+            call(declare.asm_name);
         };
 
+        // 需要行号的函数
         auto lib_require_line = [this](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
             int lineno;
             ASTNode_get_attr_int(callContext, "line", &lineno);
@@ -83,6 +127,13 @@ public:
             // 开始计算参数
             auto real_param_size = (int) ASTNode_children_size(callContext); // 在调用上下文中获取实参数个数
             assert(real_param_size >= 1); // 可变参数至少大于1
+
+            int param_stack_size = real_param_size * getWordSize(); // 参数在栈上的大小
+
+            if (param_stack_size % 8 != 0) {
+                sub(getStackPointerName(), getStackPointerName(), 4); // 保证栈对齐到 8 字节
+                param_stack_size += 4;
+            }
 
             std::vector<std::string> arg_type;
             if (real_param_size) {
@@ -127,12 +178,17 @@ public:
             }
             int reg_param_size = std::min(4, real_param_size); // 这个 4 是 ARM32 函数调用时放在寄存器上的函数参数个数
             std::reverse(arg_type.begin(), arg_type.end());
+            param_stack_size -= 4; // 第一个的地址没有在栈上
             if (reg_param_size > 1) { // 一个参数不需要 pop 因为最后一个参数没有 push
                 std::vector<std::string> regs;
                 for (int i = 1; i < reg_param_size; i++) {
-                    if (arg_type[i] == SyInt) regs.push_back(getRegName(i));
+                    if (arg_type[i] == SyInt) {
+                        param_stack_size -= getWordSize();
+                        regs.push_back(getRegName(i));
+                    }
 
                     if (arg_type[i] == SyFloat && i != 3) {
+                        param_stack_size -= 8;
                         // 以double储存为两个字节
                         // TODO: 这里非常奇怪，浮点参数被固定放到 r2 r3 中
                         regs.push_back(getRegName(2));
@@ -142,7 +198,13 @@ public:
                 }
                 popStack(regs);
             }
+            if (param_stack_size % 8 != 0) {
+                // 这个没有办法补救一下吧
+                param_stack_size += 4;
+                sub(getStackPointerName(), getStackPointerName(), 4);
+            }
             call(declare.asm_name);
+            add(getStackPointerName(), getStackPointerName(), param_stack_size); // 还原栈
         };
         // 常规函数
         extern_functions["getch"] = ExternFunctionDeclare {
@@ -199,6 +261,22 @@ public:
             .asm_name = "putfarray",
             .args = {{"Int", "size"}, {"Float*", "src_base"}},
             .ret_type = "Void",
+            .call_handle = arm_std_call_hf_handle
+        };
+
+        extern_functions["putfloat"] = ExternFunctionDeclare {
+            .name = "putfloat",
+            .asm_name = "putfloat",
+            .args = {{"Float", "x"}},
+            .ret_type = "Void",
+            .call_handle = arm_std_call_hf_handle
+        };
+
+        extern_functions["getfloat"] = ExternFunctionDeclare {
+            .name = "getfloat",
+            .asm_name = "getfloat",
+            .args = {},
+            .ret_type = "Float",
             .call_handle = arm_std_call_hf_handle
         };
 
@@ -541,8 +619,17 @@ public:
         asm_file.line("\tmovlt %s, #0", dst.c_str());
     }
 
+    std::string getFRegisterName(int reg) override {
+        return "s" + std::to_string(reg);
+    }
+
     void fmov(const std::string& dst, const std::string& src) override {
         asm_file.line("\tvmov %s, %s", dst.c_str(), src.c_str());
+    }
+
+    void floadRegister(const std::string& dst, const std::string& src, int offset) override {
+        if (offset == 0) asm_file.line("\tvldr.32 %s, [%s]", dst.c_str(), src.c_str());
+        else asm_file.line("\tvldr.32 %s, [%s, #%d]", dst.c_str(), src.c_str(), offset);
     }
 
     void i2f(const std::string& dst, const std::string& src) override {
