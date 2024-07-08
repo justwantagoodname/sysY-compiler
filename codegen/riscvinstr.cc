@@ -75,6 +75,7 @@ std::string RVRInstr::toASM() {
 
     };
     std::string result = "    " + asm_op_tag.find(opt)->second;
-    result += dst.toASM() + ", " + opr1.toASM() + ", " + opr2.toASM();
+    result += dst.toASM() + ", " + opr1.toASM();
+    if (opr2.tag != UNDEF) result += ", " + opr2.toASM();
     return result;
 }
