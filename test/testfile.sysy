@@ -42,5 +42,13 @@ int main() {
     putf("size = %d\n", size);
     putarray(size, a);
 
+    putf("lib call args type converter test: \n");
+    
+    putint(123.5);
+    putf("\n");
+    putfloat(123);
+
+    putf("\n");
+    
     return 0;
 }
