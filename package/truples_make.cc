@@ -73,15 +73,10 @@ void Triples::make()
 				const char* t = element[0].get_attr_str("type");
 				element.add_attr("type", t);
 			}
-			if (element[0].get_attr("value")) {
-				const char* t = element[0].get_attr_str("value");
-				element.add_attr("value", t);
-			}
 		}
 		ife("Number") {
 			int val = element.get_attr_int("value");
 
-			element.add_attr("value", val);
 			element.add_attr("temp", temp_count);
 			triples.add(Cmd.mov, { val ,TT.imd }, {}, { temp_count });
 			++temp_count;
