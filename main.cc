@@ -18,7 +18,7 @@ int main(int argc, const char** argv) {
 #ifdef UNI_OPTIMIZTION
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
-  	//root.print();
+  	root.print();
 #endif
 
 #ifdef ASM_GEN
@@ -47,13 +47,13 @@ int main(int argc, const char** argv) {
 #ifdef TRIPLE_DEBUG
 	Triples triples(root);
 	triples.pretreat();
-	//printf("===After pretreat===\n");
+	printf("===After pretreat===\n");
 
-	//root.print();
+	root.print();
 
 	triples.make();
 	printf("===After make===\n");
-	//root.print();
+	root.print();
 	triples.print();
 
 	triples.EliUnnecVar();
