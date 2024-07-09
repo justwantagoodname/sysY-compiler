@@ -1,4 +1,4 @@
-#include "triples.h"
+ï»¿#include "triples.h"
 
 
 void Triples::MinTempVar()
@@ -15,12 +15,12 @@ void Triples::MinTempVar()
 
 	std::vector<int> block_begin;
 
-	// ÖÃ-1
+	// ç½®-1
 	memset(var_begin, -1, sizeof(int) * temp_count);
 	memset(var_end, -1, sizeof(int) * temp_count);
 
 	for (int i = 0, j = triples.size() - 1; i < triples.size(); ++i, --j) {
-		// Ë«ÏòÉ¨ÃèÈ·¶¨Ã¿¸öÁÙÊ±±äÁ¿µÄÊ¼Ä©Î»ÖÃ
+		// åŒå‘æ‰«æç¡®å®šæ¯ä¸ªä¸´æ—¶å˜é‡çš„å§‹æœ«ä½ç½®
 #define iftin(idx, p, lst) if(triples[idx].p.type == TT.temp && lst[triples[idx].p.value] == -1) \
 		lst[triples[idx].p.value] = idx
 
@@ -33,7 +33,7 @@ void Triples::MinTempVar()
 		iftin(j, to, var_end);
 #undef iftin
 
-		// ÕÒµ½Ã¿Ò»¸öÁ¬ĞøÔËĞĞÇø¼äÊ¼µã
+		// æ‰¾åˆ°æ¯ä¸€ä¸ªè¿ç»­è¿è¡ŒåŒºé—´å§‹ç‚¹
 		if (triples[i].cmd == Cmd.tag ||
 			(triples[i].cmd >= Cmd.jmp && triples[i].cmd <= Cmd.jnef))
 		{
@@ -42,26 +42,26 @@ void Triples::MinTempVar()
 	}
 	block_begin.emplace_back(triples.size());
 
-	// ±éÀúÃ¿Ò»¸öÇø¼ä£¬µü´úºÏ²¢ÎŞÖØµşÁÙÊ±±äÁ¿Ö±µ½²»´æÔÚÎŞºÏ²¢±äÁ¿
+	// éå†æ¯ä¸€ä¸ªåŒºé—´ï¼Œè¿­ä»£åˆå¹¶æ— é‡å ä¸´æ—¶å˜é‡ç›´åˆ°ä¸å­˜åœ¨æ— åˆå¹¶å˜é‡
 	for (int _i = 0; _i < block_begin.size() - 1; ++_i) {
 		int b = block_begin[_i];
 		int e = block_begin[_i + 1];
 
 		std::vector<int> block_temp;
 
-		// ÕÒµ½Çø¼äÄÚÁÙÊ±±äÁ¿
+		// æ‰¾åˆ°åŒºé—´å†…ä¸´æ—¶å˜é‡
 		for (int i = 0; i < temp_count; ++i) {
 			if (var_begin[i] >= b && var_end[i] < e) {
 				block_temp.emplace_back(i);
 			}
 		}
 
-		// ²ÉÓÃÌ°ĞÄÇó½âÃ¿¸ö±äÁ¿µÄ×î´óºÏ²¢Õ¼ÓÃ
+		// é‡‡ç”¨è´ªå¿ƒæ±‚è§£æ¯ä¸ªå˜é‡çš„æœ€å¤§åˆå¹¶å ç”¨
 
-		// ºÏ²¢±ê¼Ç
+		// åˆå¹¶æ ‡è®°
 		std::vector<bool> meraged(block_temp.size(), false);
 
-		// ÁÙÊ±º¯Êı£º²éÕÒÎ´±»ºÏ²¢¹ıµÄÀëÄ³¸öÆğµã×î½üÆğÊ¼µÄ±äÁ¿
+		// ä¸´æ—¶å‡½æ•°ï¼šæŸ¥æ‰¾æœªè¢«åˆå¹¶è¿‡çš„ç¦»æŸä¸ªèµ·ç‚¹æœ€è¿‘èµ·å§‹çš„å˜é‡
 		auto found_nearlest = [&var_begin, &block_temp, &meraged](int begin) {
 			int min = -1;
 			int min_temp = -1;
@@ -89,7 +89,7 @@ void Triples::MinTempVar()
 			meraged[b] = true;
 			};
 
-		// ºÏ²¢
+		// åˆå¹¶
 		while (!meraged_finish()) {
 
 			int bottom = b;
@@ -107,7 +107,7 @@ void Triples::MinTempVar()
 		}
 	}
 
-	// Ğ´»ØºÏ²¢½á¹û
+	// å†™å›åˆå¹¶ç»“æœ
 	for (int i = 0; i < triples.size(); ++i) {
 #define sett(p) if(triples[i].p.type ==	TT.temp) triples[i].p.value = var_merage[triples[i].p.value]
 		sett(e1);
@@ -123,7 +123,7 @@ void Triples::MinTempVar()
 
 void Triples::EliUnnecVar()
 {
-	// Ïû³ıµ½Á¢¼´ÊıµÄÎŞÓÃÖĞ¼ä±äÁ¿
+	// æ¶ˆé™¤åˆ°ç«‹å³æ•°çš„æ— ç”¨ä¸­é—´å˜é‡
 
 	int* imd_temp = new int[temp_count + 5];
 	memset(imd_temp, -1, sizeof(int) * temp_count);
@@ -133,21 +133,24 @@ triples[i].p.value = imd_temp[triples[i].p.value];\
 triples[i].p.type = TT.imd;\
 } while (0)
 
-#define gett if(triples[i].cmd == Cmd.mov && triples[i].e1.type == TT.imd && triples[i].to.type == TT.temp)\
-do{\
-imd_temp[triples[i].to.value] = triples[i].e1.value;\
-triples.erase(triples.begin() + i);\
---i;\
-}while(0)
-
 	for (int i = 0; i < triples.size(); ++i) {
 		sett(e1);
 		sett(e2);
-		gett;
+
+		// è·å–æŸä¸ªç«‹å³æ•°å¹¶ç»‘å®šåˆ°ä¸´æ—¶å˜é‡
+		if (triples[i].cmd == Cmd.mov && triples[i].e1.type == TT.imd && triples[i].to.type == TT.temp) {
+			imd_temp[triples[i].to.value] = triples[i].e1.value;
+			triples.erase(triples.begin() + i);
+			--i;
+		}
+
+		// å½“æŸä¸ªä¸´æ—¶å˜é‡è¢«é‡æ–°èµ‹å€¼æ—¶å–æ¶ˆç»‘å®š (å°½ç®¡å¯èƒ½ä¸å­˜åœ¨è¿™æ ·çš„æƒ…å†µï¼‰
+		else if (triples[i].to.type == TT.temp) {
+			imd_temp[triples[i].to.value] = -1;
+		}
 	}
 
 #undef sett
-#undef gett
 
 	delete[] imd_temp;
 }

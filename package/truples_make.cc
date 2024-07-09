@@ -403,14 +403,6 @@ void Triples::make()
 				triples.add(Cmd.rev, {}, {}, {});
 			}
 		}
-		//ifb("Main") {
-		//	int fid = triples.pushf(element);
-		//	element.add_attr("place", triples.size());
-		//	element.add_attr("name", "main");
-		//	element.add_attr("fid", fid);
-
-		//	triples.add(Cmd.tag, { fid, TT.func }, {}, {});
-		//}
 		ife("ParamDecl") {
 			const char* s = element.get_attr_str("name");
 			Element value = element.qo("ancestor::Function/Scope/Decl").table(s);
