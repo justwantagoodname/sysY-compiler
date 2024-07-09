@@ -56,10 +56,12 @@ int main(int argc, const char** argv) {
 	//root.print();
 	triples.print();
 
+	triples.EliUnnecVar();
+	printf("===After EliUnnecVar===\n");
+	triples.print();
+
 	triples.MinTempVar();
 	printf("===After MinTemp===\n");
-	//root.print();
-
 	triples.print();
 #endif
 

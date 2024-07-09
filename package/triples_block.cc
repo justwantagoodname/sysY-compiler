@@ -119,7 +119,35 @@ void Triples::MinTempVar()
 	delete[] var_begin;
 	delete[] var_end;
 	delete[] var_merage;
+}
 
+void Triples::EliUnnecVar()
+{
+	// 消除到立即数的无用中间变量
 
+	int* imd_temp = new int[temp_count + 5];
+	memset(imd_temp, -1, sizeof(int) * temp_count);
 
+#define sett(p) if(triples[i].p.type ==	TT.temp && imd_temp[triples[i].p.value] != -1) do {\
+triples[i].p.value = imd_temp[triples[i].p.value];\
+triples[i].p.type = TT.imd;\
+} while (0)
+
+#define gett if(triples[i].cmd == Cmd.mov && triples[i].e1.type == TT.imd && triples[i].to.type == TT.temp)\
+do{\
+imd_temp[triples[i].to.value] = triples[i].e1.value;\
+triples.erase(triples.begin() + i);\
+--i;\
+}while(0)
+
+	for (int i = 0; i < triples.size(); ++i) {
+		sett(e1);
+		sett(e2);
+		gett;
+	}
+
+#undef sett
+#undef gett
+
+	delete[] imd_temp;
 }
