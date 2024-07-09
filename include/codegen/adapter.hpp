@@ -98,6 +98,11 @@ public:
    // 在浮点和通用寄存器间传递数据
    virtual void fmov(const std::string& dst, const std::string& src) = 0;
 
+   virtual void fpushStack(std::initializer_list<std::string> regs) = 0;
+   virtual void fpushStack(const std::vector<std::string>& regs) = 0;
+   virtual void fpopStack(std::initializer_list<std::string> regs) = 0;
+   virtual void fpopStack(const std::vector<std::string>& regs) = 0;
+
    virtual void floadRegister(const std::string& dst, const std::string& src, int offset) = 0;
 
    virtual void i2f(const std::string& dst, const std::string& src) = 0;

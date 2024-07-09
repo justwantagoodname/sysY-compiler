@@ -18,6 +18,7 @@ private:
 public:
     std::string tempReg;
     std::string accumulatorReg;
+    std::string floatAccumulatorReg;
 
     /* Typing 相关 */
     // 计算静态类型
@@ -25,6 +26,8 @@ public:
     // 辅助函数直接传递子节点的类型到当前节点
     void passType(ASTNode* cur, const ASTNode* child, const char* to_attr = "type", const char* from_attr = "type");
 
+    void translateTypeConversion(ASTNode* exp, const char* to_type);
+    
     void translateFunc(ASTNode* func);
     void translateBlock(ASTNode* block);
     void translateStmt(ASTNode* stmt);
@@ -68,6 +71,7 @@ public:
         // TODO: 考虑到不同平台的调用约定，这里可能需要改为由 Adapter 提供
         this->tempReg = "r4";
         this->accumulatorReg = "r0";
+        this->floatAccumulatorReg = "s0";
     }
 
     void translate();

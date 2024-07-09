@@ -163,8 +163,7 @@ public:
                             // 如果是 float 参数，需要先放到浮点寄存器然后转 double
                             fmov("s0", translator->accumulatorReg);
                             f2d("d0", "s0");
-                            add("sp", "sp", -8); // double 是双字
-                            asm_file.line("\tvstr d0, [sp]");
+                            fpushStack({"d0"});
                             param_stack_size += 8;
                         } else {
                             assert(hasType && strcmp(type, SyInt) == 0); // 只有 Int 和 Float 两种类型
@@ -634,6 +633,22 @@ public:
     void floadRegister(const std::string& dst, const std::string& src, int offset) override {
         if (offset == 0) asm_file.line("\tvldr.32 %s, [%s]", dst.c_str(), src.c_str());
         else asm_file.line("\tvldr.32 %s, [%s, #%d]", dst.c_str(), src.c_str(), offset);
+    }
+
+    void fpushStack(std::initializer_list<std::string> regs) override {
+        asm_file.line("\tvpush %s", createRegList(regs).c_str());
+    }
+
+    void fpushStack(const std::vector<std::string> &regs) override {
+        asm_file.line("\tvpush %s", createRegList(regs).c_str());
+    }
+
+    void fpopStack(std::initializer_list<std::string> regs) override {
+        asm_file.line("\tvpop %s", createRegList(regs).c_str());
+    }
+
+    void fpopStack(const std::vector<std::string> &regs) override {
+        asm_file.line("\tvpop %s", createRegList(regs).c_str());
     }
 
     void i2f(const std::string& dst, const std::string& src) override {
