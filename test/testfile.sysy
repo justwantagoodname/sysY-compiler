@@ -1,6 +1,8 @@
 int main() {
 int a;
 int b;
-a = a + b;
+int c;
+int d;
+a = a + b +c + d + 4;
 printf("Hello, world", 1, 2, 3);
 }
