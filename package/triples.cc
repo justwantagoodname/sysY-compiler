@@ -74,6 +74,11 @@ Triples::Triples(const Element& e) : root(e) {}
 
 Triples::Triple::Triple(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, const TripleValue& to) : cmd(cmd), e1(e1), e2(e2), to(to) {}
 
+Triples::~Triples()
+{
+	root.free();
+}
+
 size_t Triples::size()
 {
 	return triples.size();
@@ -88,8 +93,8 @@ void Triples::print() const
 	for (auto i : triples) {
 		const char cmd_text[][10] = {
 			"mov",
-			"jmp",
 			"call",
+			"jmp",
 			"jeq",
 			"jne",
 			"jgt",

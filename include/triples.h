@@ -115,11 +115,27 @@ private:
 public:
 	Triples(const Element&);
 	Triples(const Triples&) = delete;
+	~Triples();
 
+	/// <summary>
+	/// 构建前预处理
+	/// </summary>
 	void pretreat();
+
+	/// <summary>
+	/// 构建
+	/// </summary>
 	void make();
 
+	/// <summary>
+	/// 极小化临时变量占用
+	/// </summary>
 	void MinTempVar();
+
+	/// <summary>
+	/// 去除无用中间变量
+	/// </summary>
+	void EliUnnecVar();
 
 	Triple& operator[](int idx) {
 		return triples[idx];
