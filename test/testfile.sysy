@@ -1,3 +1,12 @@
+int f(int a, int b, int c) {
+    putint(a);
+    putf("\n%f\n", 1.0);
+    // putf("%f %d %d %d\n", 1.0, a, b, c);
+    return a + b + c;
+}
+
 int main() {
-    
+    int ret = f(1, 2, 3);
+    putf("%d\n", ret);
+    return 0;
 }

@@ -199,9 +199,7 @@ void StackTranslator::translateCall(ASTNode *call) {
     passType(call, func, "type", "return");
 
     int paramSize = ASTNode_children_size(call);
-
-
-
+    int shimSize = 0; // 对齐到 8 字节的填充
     std::vector<std::string> function_params;
 
     QueryResult *params = ASTNode_querySelector(func, "/Params/ParamDecl"), *cur;
@@ -217,6 +215,12 @@ void StackTranslator::translateCall(ASTNode *call) {
         }
     }
     assert(paramSize == function_params.size()); // 参数数量必须一致
+
+    // 调用前，将栈对齐到 8 字节
+    if ((paramSize * adapter->getWordSize()) % 8 != 0) {
+        shimSize = (paramSize * adapter->getWordSize()) % 8;
+        adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), shimSize);
+    }
 
     if (paramSize) {
         // 计算所有参数
@@ -246,6 +250,8 @@ void StackTranslator::translateCall(ASTNode *call) {
         } while (cur != params->prev);
     }
     adapter->call(funcName);
+    adapter->add(adapter->getStackPointerName(), adapter->getStackPointerName(),
+                 paramSize * adapter->getWordSize() + shimSize);
 }
 
 void StackTranslator::translateExp(ASTNode *exp) {
@@ -343,74 +349,6 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
         }
     }
 }
-
-/**
- * 调用外部函数
- * @param call
- */
-#if 0
-void StackTranslator::translateExternCall(ASTNode *call) {
-//
-//    assert(ASTNode_id_is(call, "Call"));
-//
-//    const char *funcName;
-//    ASTNode_get_attr_str(call, "name", &funcName);
-//
-//    int paramSize = ASTNode_children_size(call);
-//
-//    assert(is_lib_function(funcName));
-//    // TODO: 检查参数数量是否正确和参数类型是否正确
-//
-//    const char* ret_type = lib_function_get_return_type(funcName);
-//    ASTNode_add_attr_str(call, "type", ret_type);
-//
-//    // 首先计算所有参数
-//    if (strcmp(funcName, "starttime") == 0 || strcmp(funcName, "stoptime") == 0) {
-//        // 这俩函数用到行号特殊处理一下
-//        int lineno;
-//        ASTNode_get_attr_int(call, "line", &lineno);
-//
-//        adapter->loadImmediate(adapter->getRegName(0), lineno); // TODO: 应该按照平台调用约定来放寄存器
-//        adapter->call(std::string("_sysy_") + funcName);
-//    } else {
-//        // putf 和其他可变参数需要特殊处理，因为 GNU C 语法中可变参数在栈上是从右向左入栈的，和我们的约定相反
-//        if (paramSize) {
-//            // 计算所有参数
-//            QueryResult *params = ASTNode_querySelector(call, "Param"), *cur = params->prev;
-//            int idx = paramSize - 1;
-//            do {
-//                // 反向遍历参数
-//                const char *type;
-//                bool hasType = ASTNode_get_attr_str(cur->node, "type", &type);
-//                if (hasType && strcmp(type, "StringConst") == 0) {
-//                    // 字符串常量 特殊处理，因为没有字符串常量类型
-//                    const char *label;
-//                    ASTNode_get_attr_str(cur->node, "label", &label);
-//                    adapter->loadLabelAddress(accumulatorReg, label);
-//                } else {
-//                    // 计算参数
-//                    assert(ASTNode_id_is(cur->node, "Param"));
-//                    ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
-//                    translateExpInner(inner);
-//                }
-//                if (idx != 0) adapter->pushStack({accumulatorReg}); // 第一个参数不需要 push
-//                cur = cur->prev;
-//                idx--;
-//            } while (cur != params->prev);
-//            // TODO: 这里需要为putf修改float传递方式
-//            int reg_param_size = std::min(4, paramSize);
-//            if (reg_param_size - 1 > 0) {
-//                std::vector<std::string> regs;
-//                for (int i = 1; i < reg_param_size; i++) {
-//                    regs.push_back(adapter->getRegName(i));
-//                }
-//                adapter->popStack(regs);
-//            }
-//        }
-//        adapter->call(funcName);
-//    }
-}
-#endif
 
 void StackTranslator::translateFetch(ASTNode *fetch) {
     assert(ASTNode_id_is(fetch, "Fetch"));
