@@ -345,38 +345,76 @@ void Triples::make()
 			assert(strcat("Int", element.get_attr_str("type")) == 0);
 		}
 		ife("Call") {
-			int count = 0;
+			TripleValue parms = { 0, TT.parms };
+
+			// 这是倒序pus的代码， 它们会倒序将每一个参数通过pus指令放入栈
+			// 请保留这些代码，以防某一天要进行回退
+			//int count = 0;
+			//{
+			//	ASTNode* head = element.unwrap()->children;
+			//	ASTNode* iter = head->prev;
+			//	do {
+			//		const char* type;
+			//		ASTNode_get_attr_str(iter, "type", &type);
+			//		if (strcmp(type, "StringConst") != 0) {
+			//			int t;
+			//			ASTNode_get_attr_int(iter, "temp", &t);
+			//			triples.add(Cmd.pus, { t }, {}, {});
+			//			++count;
+			//			iter = iter->prev;
+			//		}
+			//		else {
+			//			const char* str;
+			//			ASTNode_get_attr_str(iter, "value", &str);
+			//			triples.add(Cmd.pus, { str, this }, {}, {});
+			//			iter = iter->prev;
+			//		}
+			//	} while (iter != head->prev);
+			//}
+			// 到这（ > w < )
+
+			// 这些是将parm打包为一个triple value的代码
 			{
+				int count = 0;
 				ASTNode* head = element.unwrap()->children;
-				ASTNode* iter = head->prev;
-				do {
+				ASTNode* iter = NULL;
+				TripleValue* last_triple = &parms;
+				DL_FOREACH(head, iter) {
 					const char* type;
 					ASTNode_get_attr_str(iter, "type", &type);
-					if (strcmp(type, "StringConst") != 0) {
-						int t;
-						ASTNode_get_attr_int(iter, "temp", &t);
-						triples.add(Cmd.pus, { t }, {}, {});
-						++count;
-						iter = iter->prev;
-					}
-					else {
+					if (strcmp(type, "StringConst") == 0) {
 						const char* str;
 						ASTNode_get_attr_str(iter, "value", &str);
-						triples.add(Cmd.pus, { str, this }, {}, {});
-						iter = iter->prev;
+						last_triple->added = new TripleValue{ str, this };
+						last_triple = last_triple->added;
+						last_triple->added = nullptr;
+						//printf("parms %d input str by %p, type: %s\n", count, iter, type);
+						//ASTNode_print(iter);
 					}
-				} while (iter != head->prev);
+					else {
+						int t;
+						ASTNode_get_attr_int(iter, "temp", &t);
+						last_triple->added = new TripleValue{ t };
+						last_triple = last_triple->added;
+						last_triple->added = nullptr;
+						//printf("parms %d input temp\n", count);
+
+					}
+					count++;
+				}
+				parms.value = count;
 			}
+			// 到这（ > w < )
 
 			const char* name = element.get_attr_str("name");
 			element.add_attr("temp", temp_count);
 
 			if (!element.get_attr("ex_fun")) {
 				int fid = triples.findf(name);
-				triples.add(Cmd.call, { fid, TT.func }, {}, { temp_count });
+				triples.add(Cmd.call, { fid, TT.func }, parms, { temp_count });
 			}
 			else {
-				triples.add(Cmd.call, { element.get_attr_str("name"), this }, {}, { temp_count });
+				triples.add(Cmd.call, { element.get_attr_str("name"), this }, parms, { temp_count });
 			}
 			++temp_count;
 		}
@@ -384,6 +422,9 @@ void Triples::make()
 			if (strcmp(element.get_attr_str("type"), "StringConst") != 0) {
 				int t = element[0].get_attr_int("temp");
 				element.add_attr("temp", t);
+			}
+			if (element.size() > 0) {
+				element.add_attr("type", element[0].get_attr_str("type"));
 			}
 		}
 		ifb("Function") {

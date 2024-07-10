@@ -19,23 +19,35 @@ void Triples::MinTempVar()
 	memset(var_begin, -1, sizeof(int) * temp_count);
 	memset(var_end, -1, sizeof(int) * temp_count);
 
+	auto iftin = [](int i, TripleValue* e, int* lst) {
+
+		do {
+			if (e->type == TT.temp && lst[e->value] == -1) {
+				lst[e->value] = i;
+				break;
+			}
+			e = e->added;
+		} while (e);
+		};
+
 	for (int i = 0, j = triples.size() - 1; i < triples.size(); ++i, --j) {
 		// 双向扫描确定每个临时变量的始末位置
-#define iftin(idx, p, lst) if(triples[idx].p.type == TT.temp && lst[triples[idx].p.value] == -1) \
-		lst[triples[idx].p.value] = idx
+//#define iftin(idx, p, lst) if(triples[idx]->p.type == TT.temp && lst[triples[idx]->p.value] == -1) \
+//		lst[triples[idx]->p.value] = idx
+//#undef iftin
 
-		iftin(i, e1, var_begin);
-		iftin(i, e2, var_begin);
-		iftin(i, to, var_begin);
 
-		iftin(j, e1, var_end);
-		iftin(j, e2, var_end);
-		iftin(j, to, var_end);
-#undef iftin
+		iftin(i, &triples[i]->e1, var_begin);
+		iftin(i, &triples[i]->e2, var_begin);
+		iftin(i, &triples[i]->to, var_begin);
+
+		iftin(j, &triples[j]->e1, var_end);
+		iftin(j, &triples[j]->e2, var_end);
+		iftin(j, &triples[j]->to, var_end);
 
 		// 找到每一个连续运行区间始点
-		if (triples[i].cmd == Cmd.tag ||
-			(triples[i].cmd >= Cmd.jmp && triples[i].cmd <= Cmd.jnef))
+		if (triples[i]->cmd == Cmd.tag ||
+			(triples[i]->cmd >= Cmd.jmp && triples[i]->cmd <= Cmd.jnef))
 		{
 			block_begin.emplace_back(i);
 		}
@@ -107,13 +119,23 @@ void Triples::MinTempVar()
 		}
 	}
 
+	auto sett = [var_merage](TripleValue* e) {
+		do {
+			if (e->type == TT.temp) {
+				e->value = var_merage[e->value];
+			}
+			e = e->added;
+		} while (e);
+		};
+
 	// 写回合并结果
 	for (int i = 0; i < triples.size(); ++i) {
-#define sett(p) if(triples[i].p.type ==	TT.temp) triples[i].p.value = var_merage[triples[i].p.value]
-		sett(e1);
-		sett(e2);
-		sett(to);
-#undef sett
+//#define sett(p) if(triples[i]->p.type == TT.temp) triples[i]->p.value = var_merage[triples[i]->p.value]
+//#undef sett
+
+		sett(&triples[i]->e1);
+		sett(&triples[i]->e2);
+		sett(&triples[i]->to);
 	}
 
 	delete[] var_begin;
@@ -124,33 +146,34 @@ void Triples::MinTempVar()
 void Triples::EliUnnecVar()
 {
 	// 消除到立即数的无用中间变量
-
 	int* imd_temp = new int[temp_count + 5];
 	memset(imd_temp, -1, sizeof(int) * temp_count);
 
-#define sett(p) if(triples[i].p.type ==	TT.temp && imd_temp[triples[i].p.value] != -1) do {\
-triples[i].p.value = imd_temp[triples[i].p.value];\
-triples[i].p.type = TT.imd;\
-} while (0)
+	auto sett = [f = [imd_temp](auto&& self, TripleValue* e) -> void {
+		if (e->type == TT.temp && imd_temp[e->value] != -1) {
+			e->value = imd_temp[e->value];
+			e->type = TT.imd;
+		}
+		if (e->added != nullptr) {
+			self(self, e->added);
+		}
+		}](TripleValue* e) { f(f, e); };
 
-	for (int i = 0; i < triples.size(); ++i) {
-		sett(e1);
-		sett(e2);
+		for (auto it = triples.begin(); it != triples.end(); ++it) {
+			sett(&(*it)->e1);
+			sett(&(*it)->e2);
 
-		// 获取某个立即数并绑定到临时变量
-		if (triples[i].cmd == Cmd.mov && triples[i].e1.type == TT.imd && triples[i].to.type == TT.temp) {
-			imd_temp[triples[i].to.value] = triples[i].e1.value;
-			triples.erase(triples.begin() + i);
-			--i;
+			// 获取某个立即数并绑定到临时变量
+			if ((*it)->cmd == Cmd.mov && (*it)->e1.type == TT.imd && (*it)->to.type == TT.temp) {
+				imd_temp[(*it)->to.value] = (*it)->e1.value;
+				it = triples.erase(it);
+				--it;
+			}
+			// 当某个临时变量被重新赋值时取消绑定 (尽管可能不存在这样的情况）
+			else if ((*it)->to.type == TT.temp) {
+				imd_temp[(*it)->to.value] = -1;
+			}
 		}
 
-		// 当某个临时变量被重新赋值时取消绑定 (尽管可能不存在这样的情况）
-		else if (triples[i].to.type == TT.temp) {
-			imd_temp[triples[i].to.value] = -1;
-		}
-	}
-
-#undef sett
-
-	delete[] imd_temp;
+		delete[] imd_temp;
 }

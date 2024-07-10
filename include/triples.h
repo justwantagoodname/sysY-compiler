@@ -3,6 +3,7 @@
 #include "element.h"
 
 #include <vector>
+#include <memory>
 
 class Triples {
 private:
@@ -59,6 +60,7 @@ public:
 			func, // 函数编号
 			lamb,// 标签
 			str, // 格式化字符串常量
+			parms, // 参数组
 		};
 	}TT = TRIPLEVALUE(); // Triple Value Type Enum
 
@@ -81,6 +83,7 @@ public:
 
 		bool operator==(const TripleValue& t) const;
 		bool operator!=(const TripleValue& t) const;
+		TripleValue& operator=(const TripleValue& t);
 		//inline operator int() { return value; }
 
 		void toString(char[], const Triples& triples);
@@ -96,7 +99,7 @@ private:
 		Triple(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 	};
 
-	std::vector<Triple> triples;
+	std::vector<std::shared_ptr<Triple>> triples;
 	std::vector<Element> value_pointer;
 	std::vector<Element> function_pointer;
 	std::vector<std::string> string_pointer;
@@ -138,12 +141,12 @@ public:
 	void EliUnnecVar();
 
 	Triple& operator[](int idx) {
-		return triples[idx];
+		return *triples[idx];
 	};
 	size_t size();
 
-	std::vector<Triple>::iterator begin() { return triples.begin(); }
-	std::vector<Triple>::iterator end() { return triples.end(); }
+	std::vector<std::shared_ptr<Triple>>::iterator begin() { return triples.begin(); }
+	std::vector<std::shared_ptr<Triple>>::iterator end() { return triples.end(); }
 
 	void print() const;
 

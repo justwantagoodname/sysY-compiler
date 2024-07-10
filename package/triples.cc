@@ -4,7 +4,7 @@ using std::vector;
 
 void Triples::add(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, const TripleValue& to)
 {
-	triples.push_back(Triple(cmd, e1, e2, to));
+	triples.push_back(std::shared_ptr<Triple>(new Triple(cmd, e1, e2, to)));
 }
 
 int Triples::find(const Element& e)
@@ -87,7 +87,7 @@ size_t Triples::size()
 void Triples::print() const
 {
 
-	char ts1[55], ts2[55], ts3[55];
+	char ts1[550], ts2[550], ts3[550];
 	int idx = 0;
 	printf("\n");
 	for (auto i : triples) {
@@ -127,15 +127,15 @@ void Triples::print() const
 			"load",
 			"store",
 		};
-		if (i.cmd == Cmd.tag) {
-			i.e1.toString(ts1, *this);
+		if (i->cmd == Cmd.tag) {
+			i->e1.toString(ts1, *this);
 			printf("%d- %s :\n", idx, ts1);
 		}
 		else {
-			i.e1.toString(ts1, *this);
-			i.e2.toString(ts2, *this);
-			i.to.toString(ts3, *this);
-			printf("%d> \t%s, %s, %s, %s\n", idx, cmd_text[i.cmd], ts1, ts2, ts3);
+			i->e1.toString(ts1, *this);
+			i->e2.toString(ts2, *this);
+			i->to.toString(ts3, *this);
+			printf("%d> \t%s, %s, %s, %s\n", idx, cmd_text[i->cmd], ts1, ts2, ts3);
 		}
 		++idx;
 	}
@@ -166,7 +166,7 @@ Triples::TripleValue::TripleValue(int v,
 }
 
 Triples::TripleValue::TripleValue(const char* str, Triples* triple)
-	: type(TT.str)
+	: type(TT.str), added(nullptr)
 {
 	int i = 0;
 	for (; i < triple->string_pointer.size(); ++i) {
@@ -180,10 +180,21 @@ Triples::TripleValue::TripleValue(const char* str, Triples* triple)
 }
 
 Triples::TripleValue::TripleValue(const TripleValue& at)
-	: value(at.value), type(at.type), added(nullptr)
+	: value(at.value), type(at.type)
 {
 	if (at.added != nullptr)
-		added = new TripleValue(*at.added);
+		added = new TripleValue(*(at.added));
+	else
+		added = nullptr;
+}
+
+Triples::TripleValue& Triples::TripleValue::operator=(const Triples::TripleValue& at) {
+	value = at.value;
+	type = at.type;
+	if (at.added != nullptr)
+		added = new TripleValue(*(at.added));
+	else
+		added = nullptr;
 }
 
 Triples::TripleValue::~TripleValue()
@@ -194,7 +205,7 @@ Triples::TripleValue::~TripleValue()
 
 void Triples::TripleValue::toString(char s[], const Triples& triples)
 {
-	char ts[55];
+	char ts[500], ts2[50];
 	switch (type)
 	{
 	case TT.null:
@@ -225,7 +236,17 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		snprintf(s, 20, ".l%d", value);
 		break;
 	case TT.str:
-		snprintf(s, 50, "\"%s\"", triples.string_pointer[value].c_str());
+		snprintf(s, 100, "\"%s\"", triples.string_pointer[value].c_str());
+		break;
+	case TT.parms:
+		ts[0] = '\0';
+		for (auto t = added; t; t = t->added) {
+			t->toString(ts2, triples);
+			if (t != added)
+				strcat(ts, ", ");
+			strcat(ts, ts2);
+		}
+		snprintf(s, 500, "{%s}", ts);
 		break;
 	default:
 		snprintf(s, 20, "unknow:%d", value);
