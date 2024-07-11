@@ -241,8 +241,6 @@ void StackTranslator::translateCall(ASTNode *call) {
                 // 参数类型校验
                 if (strcmp(type, function_params[idx].c_str()) != 0) {
                     translateTypeConversion(inner, function_params[idx]);
-                    ASTNode_set_attr_str(inner, "type", function_params[idx].c_str());
-                    ASTNode_add_attr_str(inner, "converted", "true");
                 }
                 passType(cur->node, inner);
             }
@@ -921,6 +919,8 @@ void StackTranslator::translateTypeConversion(ASTNode* exp, std::string target_t
     } else {
         assert(false);
     }
+    ASTNode_set_attr_str(exp, "type", target_type.c_str());
+    ASTNode_add_attr_str(exp, "converted", "true");
 }
 
 void StackTranslator::translateTypePush(ASTNode* exp) {
