@@ -372,7 +372,6 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
     bool hasType = ASTNode_get_attr_str(address, "type", &lval_type);
     assert(hasType);
 
-    // TODO: 计算类型
     auto fetch_type = deref_lval(lval_type);
 
     ASTNode_add_attr_str(fetch, "type", fetch_type.c_str());
@@ -543,7 +542,7 @@ void StackTranslator::translateAssign(ASTNode *assign) {
 
     translateExp(exp);
 
-    adapter->pushStack({accumulatorReg});
+    translateTypePush(exp);
 
     translateLVal(lval);
 
@@ -559,13 +558,22 @@ void StackTranslator::translateAssign(ASTNode *assign) {
     assert(is_primitive_type(deref_lval(lval_type)));
     assert(is_primitive_type(exp_type));
 
-    assert(deref_lval(lval_type) == exp_type);
+    adapter->mov(tempReg, accumulatorReg);
 
-    // TODO: 这里需要根据类型来判断是否需要转换类型
+    // 地址：tempReg, 值：accumulatorReg || floatAccumulatorReg
+    translateTypePop(exp);
+    
+    if (deref_lval(lval_type) != exp_type) {
+        translateTypeConversion(exp, deref_lval(lval_type));
+    }
 
-    adapter->popStack({tempReg});
-
-    adapter->storeRegister(tempReg, accumulatorReg, 0);
+    if (deref_lval(lval_type) == SyInt) {
+        adapter->storeRegister(accumulatorReg, tempReg, 0);
+    } else if (deref_lval(lval_type) == SyFloat) {
+        adapter->fstoreRegister(floatAccumulatorReg, tempReg, 0);
+    } else {
+        assert(0);
+    }
 }
 
 void StackTranslator::translateReturn(ASTNode *ret) {
@@ -938,6 +946,26 @@ void StackTranslator::translateTypePush(ASTNode* exp) {
         adapter->pushStack({accumulatorReg});
     } else if (cur_type == SyFloat) {
         adapter->fpushStack({floatAccumulatorReg});
+    } else {
+        assert(false);
+    }
+}
+
+void StackTranslator::translateTypePop(ASTNode* exp) {
+    assert(exp);
+    
+    const char* type;
+    bool hasType = ASTNode_get_attr_str(exp, "type", &type);
+    assert(hasType);
+
+    std::string cur_type = type;
+
+    assert(cur_type != SyVoid);
+
+    if (cur_type == SyInt) {
+        adapter->popStack({accumulatorReg});
+    } else if (cur_type == SyFloat) {
+        adapter->fpopStack({floatAccumulatorReg});
     } else {
         assert(false);
     }

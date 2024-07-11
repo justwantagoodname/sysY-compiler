@@ -28,6 +28,7 @@ public:
 
     void translateTypeConversion(ASTNode* exp, std::string target_type);
     void translateTypePush(ASTNode* exp);
+    void translateTypePop(ASTNode* exp);
      
     void translateFunc(ASTNode* func);
     void translateBlock(ASTNode* block);

@@ -105,7 +105,8 @@ public:
    virtual void fpopStack(const std::vector<std::string>& regs) = 0;
 
    virtual void floadRegister(const std::string& dst, const std::string& src, int offset) = 0;
-
+   virtual void fstoreRegister(const std::string& src, const std::string& dst, int offset) = 0;
+   
    virtual void i2f(const std::string& dst, const std::string& src) = 0;
 
    virtual void f2i(const std::string& dst, const std::string& src) = 0;

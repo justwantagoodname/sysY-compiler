@@ -640,6 +640,11 @@ public:
         else asm_file.line("\tvldr.32 %s, [%s, #%d]", dst.c_str(), src.c_str(), offset);
     }
 
+    void fstoreRegister(const std::string& src, const std::string& dst, int offset) override {
+        if (offset == 0) asm_file.line("\tvstr.32 %s, [%s]", src.c_str(), dst.c_str());
+        else asm_file.line("\tvstr.32 %s, [%s, #%d]", src.c_str(), dst.c_str(), offset);
+    }
+
     void fpushStack(std::initializer_list<std::string> regs) override {
         asm_file.line("\tvpush %s", createRegList(regs).c_str());
     }
