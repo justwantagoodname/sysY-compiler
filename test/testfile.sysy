@@ -1,12 +1,19 @@
-int f(int a, int b, int c) {
-    putint(a);
-    putf("\n%f\n", 1.0);
-    // putf("%f %d %d %d\n", 1.0, a, b, c);
-    return a + b + c;
+void f(float a) {
+    putf("%f\n", a);
+    return;
+}
+
+
+void g(int a) {
+    putf("%d\n", a);
+    return;
 }
 
 int main() {
-    int ret = f(1, 2, 3);
-    putf("%d\n", ret);
+    f(1.0);
+    g(2);
+    
+    f(3);
+    g(4.5);
     return 0;
 }

@@ -26,8 +26,9 @@ public:
     // 辅助函数直接传递子节点的类型到当前节点
     void passType(ASTNode* cur, const ASTNode* child, const char* to_attr = "type", const char* from_attr = "type");
 
-    void translateTypeConversion(ASTNode* exp, const char* to_type);
-    
+    void translateTypeConversion(ASTNode* exp, std::string target_type);
+    void translateTypePush(ASTNode* exp);
+     
     void translateFunc(ASTNode* func);
     void translateBlock(ASTNode* block);
     void translateStmt(ASTNode* stmt);

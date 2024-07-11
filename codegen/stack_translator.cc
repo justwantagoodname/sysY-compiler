@@ -234,17 +234,19 @@ void StackTranslator::translateCall(ASTNode *call) {
                 assert(false); // 直接报错，因为没有字符串常量类型
             } else {
                 // 计算参数
-                assert(ASTNode_id_is(cur->node, "Param"));
                 ASTNode *inner = ASTNode_querySelectorOne(cur->node, "*");
                 translateExpInner(inner);
                 hasType = ASTNode_get_attr_str(inner, "type", &type);
                 assert(hasType);
                 // 参数类型校验
-                assert(strcmp(type, function_params[idx].c_str()) == 0);
-
-                // TODO: 类型不一致需要生成转化代码
+                if (strcmp(type, function_params[idx].c_str()) != 0) {
+                    translateTypeConversion(inner, function_params[idx]);
+                    ASTNode_set_attr_str(inner, "type", function_params[idx].c_str());
+                    ASTNode_add_attr_str(inner, "converted", "true");
+                }
+                passType(cur->node, inner);
             }
-            adapter->pushStack({accumulatorReg}); // 第一个参数不需要 push
+            translateTypePush(cur->node);
             cur = cur->prev;
             idx--;
         } while (cur != params->prev);
@@ -271,10 +273,20 @@ void StackTranslator::translateExpInner(ASTNode *exp) {
     if (ASTNode_id_is(exp, "Call")) {
         translateCall(exp);
     } else if (ASTNode_id_is(exp, "Number")) {
-        int value;
-        int hasValue = ASTNode_get_attr_int(exp, "value", &value);
-        assert(hasValue);
-        adapter->loadImmediate(accumulatorReg, value);
+        const char *type;
+        bool hasType = ASTNode_get_attr_str(exp, "type", &type);
+        assert(hasType);
+        if (strcmp(type, SyFloat) == 0) {
+            float value;
+            int hasValue = ASTNode_get_attr_float(exp, "value", &value);
+            assert(hasValue);
+            adapter->loadImmediate(floatAccumulatorReg, value);
+        } else {
+            int value;
+            int hasValue = ASTNode_get_attr_int(exp, "value", &value);
+            assert(hasValue);
+            adapter->loadImmediate(accumulatorReg, value);
+        }
     } else if (ASTNode_id_is(exp, "Fetch")) {
         translateFetch(exp);
     } else if (logicOp.find(exp->id) != logicOp.end()) {
@@ -884,5 +896,49 @@ void StackTranslator::passType(ASTNode *cur, const ASTNode *child, const char *t
     assert(hasInner);
     if (hasInner) {
         ASTNode_add_attr_str(cur, to_attr, type);
+    }
+}
+
+void StackTranslator::translateTypeConversion(ASTNode* exp, std::string target_type) {
+    assert(exp);
+    
+    const char* type;
+    bool hasType = ASTNode_get_attr_str(exp, "type", &type);
+    assert(hasType);
+
+    std::string cur_type = type;
+
+    if (cur_type == target_type) return;
+
+    if (cur_type == SyInt && target_type == SyFloat) {
+        // 整数转浮点数
+        adapter->fmov(floatAccumulatorReg, accumulatorReg);
+        adapter->i2f(floatAccumulatorReg, floatAccumulatorReg);
+    } else if (cur_type == SyFloat && target_type == SyInt) {
+        // 浮点数转整数
+        adapter->f2i(floatAccumulatorReg, floatAccumulatorReg);
+        adapter->fmov(accumulatorReg, floatAccumulatorReg);
+    } else {
+        assert(false);
+    }
+}
+
+void StackTranslator::translateTypePush(ASTNode* exp) {
+    assert(exp);
+    
+    const char* type;
+    bool hasType = ASTNode_get_attr_str(exp, "type", &type);
+    assert(hasType);
+
+    std::string cur_type = type;
+
+    assert(cur_type != SyVoid);
+
+    if (cur_type == SyInt) {
+        adapter->pushStack({accumulatorReg});
+    } else if (cur_type == SyFloat) {
+        adapter->fpushStack({floatAccumulatorReg});
+    } else {
+        assert(false);
     }
 }

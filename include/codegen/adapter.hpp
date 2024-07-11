@@ -44,6 +44,7 @@ public:
    virtual void emitFunctionLabel(const std::string& funcName) = 0;
    virtual void emitLabel(const std::string& reg) = 0;
    virtual void loadImmediate(const std::string& reg, int x) = 0;
+   virtual void loadImmediate(const std::string& reg, float x) = 0;
 
    virtual void loadLabelAddress(const std::string& reg, const std::string& labelName) = 0;
    virtual void loadRegister(const std::string& dst, const std::string& src, int offset) = 0;

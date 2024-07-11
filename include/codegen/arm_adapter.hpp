@@ -318,7 +318,7 @@ public:
     void preGenerate() override {
         asm_file.line("\t.syntax unified")
             .line("\t.arch armv7-a")
-            .line("\t.fpu vfp")
+            .line("\t.fpu vfpv4")
             .line("\t.eabi_attribute 27, 3")
             .line("\t.eabi_attribute 28, 1")
             .line("\t.eabi_attribute 23, 1")
@@ -441,6 +441,11 @@ public:
             asm_file.line("\tmovw %s, #%d", reg.c_str(), lo);
             asm_file.line("\tmovt %s, #%d", reg.c_str(), hi);
         }
+    }
+
+    void loadImmediate(const std::string& reg, float x) override {
+        unsigned int ux = reinterpret_cast<unsigned int&>(x);
+        asm_file.line("\tvmov.f32 %s, #%u", reg.c_str(), ux);
     }
 
     void loadLabelAddress(const std::string& reg, const std::string& labelName) override {
