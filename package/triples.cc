@@ -101,12 +101,12 @@ void Triples::print() const
 			"jlt",
 			"jge",
 			"jle",
-			"jeqf",
-			"jnef",
-			"jgtf",
-			"jltf",
-			"jgef",
-			"jlef",
+			//"jeqf",
+			//"jnef",
+			//"jgtf",
+			//"jltf",
+			//"jgef",
+			//"jlef",
 			"ret",
 			"rev",
 			"pus",
@@ -116,20 +116,27 @@ void Triples::print() const
 			"mul",
 			"div",
 			"mod",
-			"fadd",
-			"fsub",
-			"fmul",
-			"fdiv",
+			//"fadd",
+			//"fsub",
+			//"fmul",
+			//"fdiv",
 			"tag",
-			"d2f",
-			"f2d",
+			//"d2f",
+			//"f2d",
 			"mset",
 			"load",
 			"store",
+			"{",
+			"}",
+			"var"
 		};
 		if (i->cmd == Cmd.tag) {
 			i->e1.toString(ts1, *this);
 			printf("%d- %s :\n", idx, ts1);
+		}
+		else if (i->cmd == Cmd.blkb || i->cmd == Cmd.blke) {
+			i->e1.toString(ts1, *this);
+			printf("%d>\t%s(%s)\n", idx, cmd_text[i->cmd], ts1);
 		}
 		else {
 			i->e1.toString(ts1, *this);
@@ -247,6 +254,12 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 			strcat(ts, ts2);
 		}
 		snprintf(s, 500, "{%s}", ts);
+		break;
+	case TT.typetag:
+		snprintf(s, 20, value ? "Float" : "Int");
+		break;
+	case TT.blockno:
+		snprintf(s, 20, "b%d", value);
 		break;
 	default:
 		snprintf(s, 20, "unknow:%d", value);

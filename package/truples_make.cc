@@ -30,8 +30,18 @@ void Triples::pretreat()
 			}
 			ife("ArraySize") {
 				element.add_attr("size", element.size());
+				ASTNode* chilen = element.children();
+				ASTNode* cur = NULL;
+				int size = 1;
+				DL_FOREACH(chilen, cur) {
+					int i;
+					ASTNode_get_attr_int(cur, "value", &i);
+					size *= i;
+				}
+				element.add_attr("value", size);
 			}
 		}
+		adecl.add_attr("value", adecl[0].get_attr_int("value"));
 	}
 
 	Query ex_functions = root("//Call[@name='printf'|@name='getint'|@name='getfloat']");
@@ -48,6 +58,7 @@ void Triples::make()
 	Triples& triples = *this;
 	int temp_count = 0; // 临时变量计数器 
 	int tag_count = 0; // 临时标签计数器
+	int block_count = 0; // block计数器
 
 	//for (auto element : root) {
 	DFS_Element(root) {
@@ -168,7 +179,7 @@ void Triples::make()
 
 			const char* at = element[0].get_attr_str("type");
 			const char* tt = element[1].get_attr_str("type");
-			TypeTras(at, tt, t);
+			//TypeTras(at, tt, t);
 
 			triples.add(Cmd.store, { t }, {}, { a, TT.value, d });
 		}
@@ -194,6 +205,7 @@ void Triples::make()
 		}\
 		}while(0)
 
+		/*
 #define makeCond(cmd, fcmd) do{\
 		bool isfloat = false;\
 		int t0 = element[0].get_attr_int("temp");\
@@ -225,6 +237,38 @@ void Triples::make()
 		}
 		ife("GreaterEq") {
 			makeCond(Cmd.jge, Cmd.jgef);
+		}
+*/
+#define makeCond(cmd) do{\
+		bool isfloat = false;\
+		int t0 = element[0].get_attr_int("temp");\
+		int t1 = element[1].get_attr_int("temp");\
+		int idx = triples.size();\
+		CMD::CMD_ENUM tcmd = (cmd);\
+		triples.add(tcmd, {t0}, {t1}, {});\
+		triples.add(Cmd.jmp, {}, {}, {});\
+		triples.add(Cmd.tag, { tag_count++, TT.lamb}, {}, {});\
+		element.add_attr("true", idx);\
+		element.add_attr("false", idx + 1);\
+		} while(0)
+
+		ife("Equal") {
+			makeCond(Cmd.jeq);
+		}
+		ife("NotEq") {
+			makeCond(Cmd.jne);
+		}
+		ife("Less") {
+			makeCond(Cmd.jlt);
+		}
+		ife("LessEq") {
+			makeCond(Cmd.jle);
+		}
+		ife("Greater") {
+			makeCond(Cmd.jgt);
+		}
+		ife("GreaterEq") {
+			makeCond(Cmd.jge);
 		}
 		ife("And") {
 			int t1 = element[0].get_attr_int("true"),
@@ -325,30 +369,57 @@ void Triples::make()
 				++temp_count;
 			}
 		}
-#define EopE(cmd, fcmd) do{\
+		/*
+		#define EopE(cmd, fcmd) do{\
+				bool isfloat = false;\
+				int t0 = element[0].get_attr_int("temp"); \
+				int t1 = element[1].get_attr_int("temp"); \
+				EopETypeTras(element, t0, t1, isfloat);\
+				CMD::CMD_ENUM cmdt = isfloat? fcmd : cmd;\
+				triples.add(cmdt, {t0}, {t1}, {temp_count}); \
+					element.add_attr("temp", temp_count); \
+					++temp_count; \
+				}while (0)
+				ife("Plus") {
+					EopE(Cmd.add, Cmd.fadd);
+				}
+				ife("Minus") {
+					EopE(Cmd.sub, Cmd.fsub);
+				}
+				ife("Mult") {
+					EopE(Cmd.mul, Cmd.fmul);
+				}
+				ife("Div") {
+					EopE(Cmd.div, Cmd.fdiv);
+				}
+				ife("Mod") {
+					EopE(Cmd.mod, Cmd.mod);
+					assert(strcat("Int", element.get_attr_str("type")) == 0);
+				}
+		*/
+#define EopE(cmd) do{\
 		bool isfloat = false;\
 		int t0 = element[0].get_attr_int("temp"); \
 		int t1 = element[1].get_attr_int("temp"); \
-		EopETypeTras(element, t0, t1, isfloat);\
-		CMD::CMD_ENUM cmdt = isfloat? fcmd : cmd;\
+		CMD::CMD_ENUM cmdt = (cmd);\
 		triples.add(cmdt, {t0}, {t1}, {temp_count}); \
 			element.add_attr("temp", temp_count); \
 			++temp_count; \
 		}while (0)
 		ife("Plus") {
-			EopE(Cmd.add, Cmd.fadd);
+			EopE(Cmd.add);
 		}
 		ife("Minus") {
-			EopE(Cmd.sub, Cmd.fsub);
+			EopE(Cmd.sub);
 		}
 		ife("Mult") {
-			EopE(Cmd.mul, Cmd.fmul);
+			EopE(Cmd.mul);
 		}
 		ife("Div") {
-			EopE(Cmd.div, Cmd.fdiv);
+			EopE(Cmd.div);
 		}
 		ife("Mod") {
-			EopE(Cmd.mod, Cmd.mod);
+			EopE(Cmd.mod);
 			assert(strcat("Int", element.get_attr_str("type")) == 0);
 		}
 		ife("Call") {
@@ -459,6 +530,22 @@ void Triples::make()
 				init.add_attr("type", element.get_attr_str("type"));
 			}
 		}
+		ife("Var") {
+			int size = 1;
+
+			const char* s = element.get_attr_str("name");
+			Element value = element.table(s);
+			if (value.get_attr("value"))
+				size = value.get_attr_int("value");
+
+			int a = triples.find(value);
+
+			int type = 0;
+			if (strcmp("Float", value.get_attr_str("type")) == 0)
+				type = 1;
+
+			triples.add(Cmd.var, { a , TT.value }, { size , TT.imd }, { type, TT.typetag });
+		}
 		ife("InitValue") {
 			const char* et = element.get_attr_str("type");
 
@@ -468,7 +555,7 @@ void Triples::make()
 				Element value = element.table(s);
 				int a = triples.find(value);
 				int t = element[0].get_attr_int("temp");
-				TypeTras(et, vt, t);
+				//TypeTras(et, vt, t);
 				triples.add(Cmd.mov, { t }, {}, { a, TT.value });
 			}
 			else {
@@ -496,7 +583,7 @@ void Triples::make()
 					}
 					if (t.value != 0 || t.type != TT.imd) {
 						for (int i = 0; i < len; ++i) {
-							TypeTras(et, vt, t);
+							//TypeTras(et, vt, t);
 							triples.add(Cmd.mov, t, {},
 								{ value_idx, TT.value, {base + i, TT.imd} });
 						}
@@ -504,6 +591,14 @@ void Triples::make()
 				}
 			}
 		}
-		this->temp_count = temp_count;
+		ifb("Block") {
+			triples.add(Cmd.blkb, { block_count, TT.blockno }, {}, {});
+			element.add_attr("block", block_count++);
+		}
+		ife("Block") {
+			triples.add(Cmd.blke, { element.get_attr_int("block"), TT.blockno }, {}, {});
+		}
 	}
+	this->temp_count = temp_count;
+
 }

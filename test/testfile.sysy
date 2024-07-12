@@ -1,5 +1,5 @@
 int main() {
-int a;
+float a;
 int b;
 int c;
 int d;
@@ -7,7 +7,8 @@ int e[5][3];
 a = getint();
 a = a + b +c + d + 4;
 a = a + 6 + c + 4;
-a = e[1][1];
+if(e[0][0] > 0)
+	a = e[1][1];
 e[2][2] = 0;
 printf("Hello, world", 1, 2, 3, a);
 }
