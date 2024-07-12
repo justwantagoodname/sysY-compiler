@@ -118,17 +118,17 @@ public:
    // 加法
    virtual void fadd(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
 
-//   // 减法
-//   virtual void fsub(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
-//
-//   // 乘法
-//   virtual void fmul(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
-//
-//   // 除法
-//   virtual void fdiv(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
-//
-//   // 取模
-//   virtual void fmod(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   // 减法
+   virtual void fsub(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
+   // 乘法
+   virtual void fmul(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
+   // 除法
+   virtual void fdiv(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
+   // 取模
+   virtual void fmod(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
 };
 
 #endif

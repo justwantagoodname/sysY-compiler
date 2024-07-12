@@ -18,6 +18,7 @@ private:
 public:
     std::string tempReg;
     std::string accumulatorReg;
+    std::string floatTempReg;
     std::string floatAccumulatorReg;
 
     /* Typing 相关 */
@@ -74,6 +75,7 @@ public:
         this->tempReg = "r4";
         this->accumulatorReg = "r0";
         this->floatAccumulatorReg = "s0";
+        this->floatTempReg = "s1";
     }
 
     void translate();

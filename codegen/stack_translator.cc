@@ -313,49 +313,83 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
 
     assert(lhs != nullptr && rhs != nullptr);
 
-    translateExpInner(lhs);
-    adapter->pushStack({accumulatorReg});
-    translateExpInner(rhs);
-    adapter->popStack({tempReg});
-
     const char *rhs_type, *lhs_type;
-    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", &rhs_type);
+
+    translateExpInner(lhs);
+    translateTypePush(lhs);
     bool lhs_has_type = ASTNode_get_attr_str(lhs, "type", &lhs_type);
+
+    translateExpInner(rhs);
+    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", &rhs_type);
+
+
     
     assert(rhs_has_type && lhs_has_type);
-    assert(strcmp(lhs_type, "Void") != 0 && strcmp(rhs_type, "Void") != 0);
+    assert(strcmp(lhs_type, SyVoid) != 0 && strcmp(rhs_type, SyVoid) != 0);
 
-    if (strcmp(lhs_type, "Float") == 0 || strcmp(rhs_type, "Float") == 0) {
-        // 浮点数运算类型变为浮点
-        ASTNode_add_attr_str(exp, "type", "Float");
-    } else {
+    if (strcmp(lhs_type, SyFloat) == 0 ^ strcmp(rhs_type, SyFloat) == 0) {
+        // 仅有一边为浮点的情况需要转换
+        if (strcmp(lhs_type, SyFloat) == 0) {
+            // 转换右边为浮点数
+            translateTypeConversion(rhs, SyFloat); // s0 <- r0
+            adapter->fpopStack({floatTempReg}); // s1 <- lhs
+        }
+
+        if (strcmp(rhs_type, SyFloat) == 0) {
+            // 转换左边为浮点数
+            adapter->fpopStack({floatTempReg});
+            adapter->i2f(floatTempReg, floatTempReg);
+        }
+    } else if (strcmp(lhs_type, SyFloat) == 0 && strcmp(rhs_type, SyFloat) == 0) {
         // 整数运算类型变为整数
-        ASTNode_add_attr_str(exp, "type", "Int");
+        adapter->fpopStack({floatTempReg});
+    } else {
+        adapter->popStack({tempReg});
     }
 
+    // 确定当前节点的类型
+    std::string cur_type;
+    if (strcmp(lhs_type, SyFloat) == 0 || strcmp(rhs_type, SyFloat) == 0) {
+        cur_type = SyFloat;
+    } else {
+        cur_type = SyInt;
+    }
+    ASTNode_add_attr_str(exp, "type", cur_type.c_str());
+
     if (ASTNode_id_is(exp, "Plus")) {
-        adapter->add(accumulatorReg, tempReg, accumulatorReg);
+        if (cur_type == SyInt) adapter->add(accumulatorReg, tempReg, accumulatorReg);
+        else adapter->fadd(floatAccumulatorReg, floatTempReg, floatAccumulatorReg);
     } else if (ASTNode_id_is(exp, "Minus")) {
-        adapter->sub(accumulatorReg, tempReg, accumulatorReg);
+        if (cur_type == SyInt) adapter->sub(accumulatorReg, tempReg, accumulatorReg);
+        else adapter->fsub(floatAccumulatorReg, floatTempReg, floatAccumulatorReg);
     } else if (ASTNode_id_is(exp, "Mult")) {
-        adapter->mul(accumulatorReg, tempReg, accumulatorReg);
+        if (cur_type == SyInt) adapter->mul(accumulatorReg, tempReg, accumulatorReg);
+        else adapter->fmul(floatAccumulatorReg, floatTempReg, floatAccumulatorReg);
     } else if (ASTNode_id_is(exp, "Div")) {
         // 对 ARM 平台特殊处理
-        if (adapter->platformName() == "ARM32" && accumulatorReg == adapter->getRegName(0)) {
-            adapter->mov(adapter->getRegName(1), accumulatorReg); // 除数
-            adapter->mov(adapter->getRegName(0), tempReg); // 被除数
-            adapter->div(accumulatorReg, adapter->getRegName(0), adapter->getRegName(1));
+        if (cur_type == SyInt) {
+            if (adapter->platformName() == "ARM32" && accumulatorReg == adapter->getRegName(0)) {
+                adapter->mov(adapter->getRegName(1), accumulatorReg); // 除数
+                adapter->mov(adapter->getRegName(0), tempReg); // 被除数
+                adapter->div(accumulatorReg, adapter->getRegName(0), adapter->getRegName(1));
+            } else {
+                adapter->div(accumulatorReg, tempReg, accumulatorReg);
+            }
         } else {
-            adapter->div(accumulatorReg, tempReg, accumulatorReg);
+            adapter->fdiv(floatAccumulatorReg, floatTempReg, floatAccumulatorReg);
         }
     } else if (ASTNode_id_is(exp, "Mod")) {
         // 对 ARM 平台特殊处理
-        if (adapter->platformName() == "ARM32" && accumulatorReg == adapter->getRegName(0)) {
-            adapter->mov(adapter->getRegName(1), accumulatorReg); // 除数
-            adapter->mov(adapter->getRegName(0), tempReg); // 被除数
-            adapter->mod(accumulatorReg, adapter->getRegName(0), adapter->getRegName(1));
+        if (cur_type == SyInt) {
+            if (adapter->platformName() == "ARM32" && accumulatorReg == adapter->getRegName(0)) {
+                adapter->mov(adapter->getRegName(1), accumulatorReg); // 除数
+                adapter->mov(adapter->getRegName(0), tempReg); // 被除数
+                adapter->mod(accumulatorReg, adapter->getRegName(0), adapter->getRegName(1));
+            } else {
+                adapter->mod(accumulatorReg, tempReg, accumulatorReg);
+            }
         } else {
-            adapter->mod(accumulatorReg, tempReg, accumulatorReg);
+            adapter->fmod(floatAccumulatorReg, floatTempReg, floatAccumulatorReg);
         }
     }
 }

@@ -679,6 +679,23 @@ public:
     void fadd(const std::string& dst, const std::string& src1, const std::string& src2) override {
         asm_file.line("\tvadd.f32 %s, %s, %s", dst.c_str(), src1.c_str(), src2.c_str());
     }
+
+    void fsub(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        asm_file.line("\tvsub.f32 %s, %s, %s", dst.c_str(), src1.c_str(), src2.c_str());
+    }
+
+    void fmul(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        asm_file.line("\tvmul.f32 %s, %s, %s", dst.c_str(), src1.c_str(), src2.c_str());
+    }
+
+    void fdiv(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        asm_file.line("\tvdiv.f32 %s, %s, %s", dst.c_str(), src1.c_str(), src2.c_str());
+    }
+
+    void fmod(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        assert(false);
+        // TODO: 没有相应的硬件指令
+    }
 };
 
 #endif
