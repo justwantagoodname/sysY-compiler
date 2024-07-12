@@ -47,7 +47,7 @@ void Triples::minTempVar()
 
 		// 找到每一个连续运行区间始点
 		if (triples[i]->cmd == Cmd.tag ||
-			(triples[i]->cmd >= Cmd.jmp && triples[i]->cmd <= Cmd.jnef))
+			(triples[i]->cmd >= Cmd.jmp && triples[i]->cmd <= Cmd.jle))
 		{
 			block_begin.emplace_back(i);
 		}

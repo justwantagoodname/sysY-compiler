@@ -22,12 +22,12 @@ public:
 			jlt,
 			jge,
 			jle,
-			jeqf,
-			jnef,
-			jgtf,
-			jltf,
-			jgef,
-			jlef,
+			//jeqf,
+			//jnef,
+			//jgtf,
+			//jltf,
+			//jgef,
+			//jlef,
 			ret,
 			rev,
 			pus,
@@ -37,16 +37,19 @@ public:
 			mul,
 			div,
 			mod,
-			fadd,
-			fsub,
-			fmul,
-			fdiv,
+			//fadd,
+			//fsub,
+			//fmul,
+			//fdiv,
 			tag,
-			d2f,
-			f2d,
+			//d2f,
+			//f2d,
 			mset,
 			load,
 			store,
+			blkb,
+			blke,
+			var,
 		};
 	}Cmd = CMD();
 
@@ -61,6 +64,8 @@ public:
 			lamb,// 标签
 			str, // 格式化字符串常量
 			parms, // 参数组
+			blockno, // 块编号
+			typetag, // 类型标记，0为int， 1为float
 		};
 	}TT = TRIPLEVALUE(); // Triple Value Type Enum
 
