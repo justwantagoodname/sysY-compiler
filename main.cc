@@ -51,17 +51,21 @@ int main(int argc, const char** argv) {
 
 	root.print();
 
-	triples.make();
 	printf("===After make===\n");
+	triples.make();
 	root.print();
 	triples.print();
 
-	triples.EliUnnecVar();
-	printf("===After EliUnnecVar===\n");
+	printf("===After eliUnnecVar===\n");
+	triples.eliUnnecVar();
 	triples.print();
 
-	triples.MinTempVar();
 	printf("===After MinTemp===\n");
+	triples.minTempVar();
+	triples.print();
+
+	printf("===After ResortTemp===\n");
+	triples.resortTemp();
 	triples.print();
 #endif
 
