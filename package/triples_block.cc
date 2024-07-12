@@ -1,7 +1,7 @@
 ﻿#include "triples.h"
 
 
-void Triples::MinTempVar()
+void Triples::minTempVar()
 {
 	if (temp_count == -1) {
 		throw " need make() before. ";
@@ -111,6 +111,10 @@ void Triples::MinTempVar()
 				break;
 			}
 			while (nextt != -1) {
+				if (triples[var_begin[nextt]]->cmd == Cmd.load) {
+					meraged[begint] = true;
+					begint = nextt;
+				}
 				merage_temp_var(begint, nextt);
 				bottom = var_end[nextt];
 				nextt = found_nearlest(bottom);
@@ -130,8 +134,8 @@ void Triples::MinTempVar()
 
 	// 写回合并结果
 	for (int i = 0; i < triples.size(); ++i) {
-//#define sett(p) if(triples[i]->p.type == TT.temp) triples[i]->p.value = var_merage[triples[i]->p.value]
-//#undef sett
+		//#define sett(p) if(triples[i]->p.type == TT.temp) triples[i]->p.value = var_merage[triples[i]->p.value]
+		//#undef sett
 
 		sett(&triples[i]->e1);
 		sett(&triples[i]->e2);
@@ -143,7 +147,7 @@ void Triples::MinTempVar()
 	delete[] var_merage;
 }
 
-void Triples::EliUnnecVar()
+void Triples::eliUnnecVar()
 {
 	// 消除到立即数的无用中间变量
 	int* imd_temp = new int[temp_count + 5];
@@ -157,23 +161,52 @@ void Triples::EliUnnecVar()
 		if (e->added != nullptr) {
 			self(self, e->added);
 		}
-		}](TripleValue* e) { f(f, e); };
+		}]
+		(TripleValue* e) { f(f, e); };
 
-		for (auto it = triples.begin(); it != triples.end(); ++it) {
-			sett(&(*it)->e1);
-			sett(&(*it)->e2);
+	for (auto it = triples.begin(); it != triples.end(); ++it) {
+		sett(&(*it)->e1);
+		sett(&(*it)->e2);
 
-			// 获取某个立即数并绑定到临时变量
-			if ((*it)->cmd == Cmd.mov && (*it)->e1.type == TT.imd && (*it)->to.type == TT.temp) {
-				imd_temp[(*it)->to.value] = (*it)->e1.value;
-				it = triples.erase(it);
-				--it;
-			}
-			// 当某个临时变量被重新赋值时取消绑定 (尽管可能不存在这样的情况）
-			else if ((*it)->to.type == TT.temp) {
-				imd_temp[(*it)->to.value] = -1;
-			}
+		// 获取某个立即数并绑定到临时变量
+		if ((*it)->cmd == Cmd.mov && (*it)->e1.type == TT.imd && (*it)->to.type == TT.temp) {
+			imd_temp[(*it)->to.value] = (*it)->e1.value;
+			it = triples.erase(it);
+			--it;
 		}
+		// 当某个临时变量被重新赋值时取消绑定 (尽管可能不存在这样的情况）
+		else if ((*it)->to.type == TT.temp) {
+			imd_temp[(*it)->to.value] = -1;
+		}
+	}
 
-		delete[] imd_temp;
+	delete[] imd_temp;
+}
+
+void Triples::resortTemp()
+{
+	int* temp_stack = new int[temp_count + 5];
+	memset(temp_stack, -1, sizeof(int) * temp_count);
+	int stack_top = 0;
+
+	auto sett = [f = [temp_stack](auto&& self, TripleValue* e) -> void {
+		if (e->type == TT.temp) {
+			e->value = temp_stack[e->value];
+		}
+		if (e->added != nullptr) {
+			self(self, e->added);
+		}
+		}]
+		(TripleValue* e) { f(f, e); };
+
+	for (auto it = triples.begin(); it != triples.end(); ++it) {
+		if ((*it)->to.type == TT.temp && temp_stack[(*it)->to.value] == -1)
+		{
+			temp_stack[(*it)->to.value] = stack_top;
+			++stack_top;
+		}
+		sett(&(*it)->e1);
+		sett(&(*it)->e2);
+		sett(&(*it)->to);
+	}
 }

@@ -133,12 +133,17 @@ public:
 	/// <summary>
 	/// 极小化临时变量占用
 	/// </summary>
-	void MinTempVar();
+	void minTempVar();
 
 	/// <summary>
 	/// 去除无用中间变量
 	/// </summary>
-	void EliUnnecVar();
+	void eliUnnecVar();
+
+	/// <summary>
+	/// 重新排序临时变量
+	/// </summary>
+	void resortTemp();
 
 	Triple& operator[](int idx) {
 		return *triples[idx];

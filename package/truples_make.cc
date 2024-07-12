@@ -109,6 +109,7 @@ void Triples::make()
 			int count = 0;
 			ASTNode* cur = NULL;
 			int cr = 1;
+			triples.add(Cmd.mov, { 0, TT.imd }, {} , { temp });
 			DL_FOREACH(element.unwrap()->children, cur) {
 				int t;
 				ASTNode_get_attr_int(cur, "temp", &t);
@@ -129,6 +130,9 @@ void Triples::make()
 			int a = element[0].get_attr_int("addr");
 			element.add_attr("addr", a);
 			element.add_attr("type", element[0].get_attr_str("type"));
+
+			if (element[0].get_attr("array"))
+				element.add_attr("array", 1);
 		}
 		ife("Fetch") {
 			int a = element[0].get_attr_int("addr");
@@ -157,7 +161,7 @@ void Triples::make()
 			int t = element[1].get_attr_int("temp");
 			TripleValue d = {};
 			if (element[0].get_attr("array"))
-				d = element[0].get_attr_int("temp");
+				d = { element[0].get_attr_int("temp") };
 
 			const char* at = element[0].get_attr_str("type");
 			const char* tt = element[1].get_attr_str("type");

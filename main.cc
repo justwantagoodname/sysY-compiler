@@ -56,12 +56,16 @@ int main(int argc, const char** argv) {
 	root.print();
 	triples.print();
 
-	printf("===After EliUnnecVar===\n");
-	triples.EliUnnecVar();
+	printf("===After eliUnnecVar===\n");
+	triples.eliUnnecVar();
 	triples.print();
 
 	printf("===After MinTemp===\n");
-	triples.MinTempVar();
+	triples.minTempVar();
+	triples.print();
+
+	printf("===After ResortTemp===\n");
+	triples.resortTemp();
 	triples.print();
 #endif
 
