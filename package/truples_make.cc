@@ -109,7 +109,7 @@ void Triples::make()
 			int count = 0;
 			ASTNode* cur = NULL;
 			int cr = 1;
-			triples.add(Cmd.mov, { 0, TT.imd }, {} , { temp });
+			triples.add(Cmd.mov, { 0, TT.imd }, {}, { temp });
 			DL_FOREACH(element.unwrap()->children, cur) {
 				int t;
 				ASTNode_get_attr_int(cur, "temp", &t);
@@ -132,7 +132,10 @@ void Triples::make()
 			element.add_attr("type", element[0].get_attr_str("type"));
 
 			if (element[0].get_attr("array"))
+			{
 				element.add_attr("array", 1);
+				element.add_attr("temp", element[0].get_attr_int("temp"));
+			}
 		}
 		ife("Fetch") {
 			int a = element[0].get_attr_int("addr");
