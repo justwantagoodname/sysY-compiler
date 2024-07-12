@@ -380,8 +380,15 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
         // 如果左值是地址，那么值是本身的地址
     } else {
         // 如果左值是值，那么值是地址指向的值
-        adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+        if (fetch_type == SyInt) {
+            adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+        } else if (fetch_type == SyFloat) {
+            adapter->floadRegister(floatAccumulatorReg, accumulatorReg, 0);
+        } else {
+            assert(0);
+        }
     }
+    adapter->emitComment("Fetch 结束");
 }
 
 /**
@@ -591,7 +598,7 @@ void StackTranslator::translateReturn(ASTNode *ret) {
 
     // 直接返回不做转跳了，应该没有什么问题
     adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
-    // 这里直接弹出到 pc，寄存器中实现转跳
+    // 这里直接弹出到 pc 寄存器中实现转跳
     adapter->popStack({adapter->getFramePointerName(), adapter->getPCName()});
 
 }

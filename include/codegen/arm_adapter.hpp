@@ -160,8 +160,7 @@ public:
 
                         if (hasType && strcmp(type, SyFloat) == 0) {
                             arg_type.push_back(SyFloat);
-                            // 如果是 float 参数，需要先放到浮点寄存器然后转 double
-                            fmov("s0", translator->accumulatorReg);
+                            // 如果是 float 参数，需要转成 double
                             f2d("d0", "s0");
                             fpushStack({"d0"});
                             param_stack_size += 8;

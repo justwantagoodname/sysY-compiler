@@ -1,10 +1,15 @@
 int main() {
-   int a;
-   float b;
+    int a, b;
+    float fa, fb;
+/*
+    a = 1;
+    b = a;
 
-   a = 1.5;
-   b = 2;
-
-   putf("a = %d, b = %f\n", a, b);
-   return 0;
+    fa = 1.5;
+    fb = fa;
+*/
+    fa = 1.5;
+    putf("%f\n", fa);
+    // putf("b = %d, fb = %f\n", b, fb);
+    return 0;
 }
