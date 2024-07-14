@@ -115,6 +115,9 @@ public:
 
    virtual void d2f(const std::string& dst, const std::string& src) = 0;
 
+   virtual void fneg(const std::string& dst, const std::string& src) = 0;
+
+   virtual void fnotReg(const std::string& dst, const std::string& src) = 0;
    // 加法
    virtual void fadd(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
 
@@ -129,6 +132,15 @@ public:
 
    // 取模
    virtual void fmod(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
+   virtual void fcmpEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void fcmpNotEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void fcmpLess(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void fcmpLessEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void fcmpGreater(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+   virtual void fcmpGreaterEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
+
+   virtual void fjumpEqual(const std::string& src1, const float imm, const std::string& labelName) = 0;
 };
 
 #endif

@@ -590,6 +590,11 @@ public:
         asm_file.line("\tcmp %s, %s", src1.c_str(), src2.c_str());
     }
 
+    void floatCmpGeneral(const std::string& src1, const std::string& src2) {
+        asm_file.line("\tvcmp.f32 %s, %s", src1.c_str(), src2.c_str());
+        asm_file.line("\tvmrs APSR_nzcv, FPSCR");
+    }
+
     void cmpEqual(const std::string& dst, const std::string& src1, const std::string& src2) override {
         cmpGeneral(src1, src2);
         asm_file.line("\tmoveq %s, #1", dst.c_str());
@@ -676,6 +681,17 @@ public:
         asm_file.line("\tvcvt.f32.f64 %s, %s", dst.c_str(), src.c_str());
     }
 
+    void fneg(const std::string& dst, const std::string& src) override {
+        asm_file.line("\tvneg.f32 %s, %s", dst.c_str(), src.c_str());
+    }
+
+    void fnotReg(const std::string& dst, const std::string& src) override {
+        asm_file.line("\tvcmp.f32 s15, #0", dst.c_str(), src.c_str())
+                .line("\tvmrs APSR_nzcv, FPSCR")
+                .line("\tmoveq %s, #1", dst.c_str())
+                .line("\tmovne r0, #0", dst.c_str());
+    }
+
     void fadd(const std::string& dst, const std::string& src1, const std::string& src2) override {
         asm_file.line("\tvadd.f32 %s, %s, %s", dst.c_str(), src1.c_str(), src2.c_str());
     }
@@ -696,6 +712,48 @@ public:
         assert(false);
         // TODO: 没有相应的硬件指令
     }
+
+    void fcmpEqual(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        floatCmpGeneral(src1, src2);
+        asm_file.line("\tmoveq %s, #1", dst.c_str());
+        asm_file.line("\tmovne %s, #0", dst.c_str());
+    }
+
+    void fcmpNotEqual(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        floatCmpGeneral(src1, src2);
+        asm_file.line("\tmovne %s, #1", dst.c_str());
+        asm_file.line("\tmoveq %s, #0", dst.c_str());
+    }
+
+    void fcmpLess(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        floatCmpGeneral(src1, src2);
+        asm_file.line("\tmovlt %s, #1", dst.c_str());
+        asm_file.line("\tmovge %s, #0", dst.c_str());
+    }
+
+    void fcmpLessEqual(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        floatCmpGeneral(src1, src2);
+        asm_file.line("\tmovle %s, #1", dst.c_str());
+        asm_file.line("\tmovgt %s, #0", dst.c_str());
+    }
+
+    void fcmpGreater(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        floatCmpGeneral(src1, src2);
+        asm_file.line("\tmovgt %s, #1", dst.c_str());
+        asm_file.line("\tmovle %s, #0", dst.c_str());
+    }
+
+    void fcmpGreaterEqual(const std::string& dst, const std::string& src1, const std::string& src2) override {
+        floatCmpGeneral(src1, src2);
+        asm_file.line("\tmovge %s, #1", dst.c_str());
+        asm_file.line("\tmovlt %s, #0", dst.c_str());
+    }
+
+    void fjumpEqual(const std::string& src1, const float imm, const std::string& labelName) override {
+        asm_file.line("\tvcmp.f32 %s, #%f", imm);
+        asm_file.line("\tbeq %s", labelName.c_str());
+    }
+
 };
 
 #endif

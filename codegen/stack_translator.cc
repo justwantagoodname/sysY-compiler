@@ -726,11 +726,15 @@ void StackTranslator::translateIf(ASTNode *ifstmt) {
     translateExp(cond);
 
     // 添加条件跳转作为单变量情况判断的 handle
-    const char* cond_type;
-    bool hasType = ASTNode_get_attr_str(cond, "type", &cond_type);
+    const char* cond_type_str;
+    std::string cond_type;
+    bool hasType = ASTNode_get_attr_str(cond, "type", &cond_type_str);
     assert(hasType);
+    cond_type = cond_type_str;
 
-    if (strcmp(cond_type, "Int") == 0) adapter->jumpEqual(accumulatorReg, 0, false_label);
+    assert(cond_type != SyVoid);
+    if (cond_type == SyInt) adapter->jumpEqual(accumulatorReg, 0, false_label);
+    if (cond_type == SyFloat) adapter->fjumpEqual(floatAccumulatorReg, 0.0f, false_label);
 
     adapter->emitLabel(true_label);
     auto true_branch = ASTNode_querySelectorOne(ifstmt, "Then/*");
@@ -753,12 +757,42 @@ void StackTranslator::translateUnaryOp(ASTNode *exp) {
     if (ASTNode_id_is(exp, "UnPlus")) {
         auto inner = ASTNode_querySelectorOne(exp, "*");
         translateExpInner(inner);
+        passType(exp, inner);
     } else if (ASTNode_id_is(exp, "UnMinus")) {
         auto inner = ASTNode_querySelectorOne(exp, "*");
         translateExpInner(inner);
-        adapter->neg(accumulatorReg, accumulatorReg);
+
+        const char* inner_type_str;
+        std::string inner_type;
+        bool hasType = ASTNode_get_attr_str(inner, "type", &inner_type_str);
+        assert(hasType);
+
+        if (inner_type_str == SyInt) {
+            adapter->neg(accumulatorReg, accumulatorReg);
+        } else if (inner_type_str == SyFloat) {
+            adapter->fneg(floatAccumulatorReg, floatAccumulatorReg);
+        } else {
+            assert(0);
+        }
+        passType(exp, inner);
     } else if (ASTNode_id_is(exp, "Not")) {
-        adapter->notReg(accumulatorReg, accumulatorReg);
+        auto inner = ASTNode_querySelectorOne(exp, "*");
+        translateExpInner(inner);
+
+        const char* inner_type_str;
+        std::string inner_type;
+        bool hasType = ASTNode_get_attr_str(inner, "type", &inner_type_str);
+        assert(hasType);
+
+        if (inner_type_str == SyInt) {
+            adapter->notReg(accumulatorReg, accumulatorReg);
+        } else if (inner_type_str == SyFloat) {
+            adapter->fnotReg(accumulatorReg, floatAccumulatorReg);
+        } else {
+            assert(0);
+        }
+        // Sysy 只规定了非0为真，因此无论是浮点还是整数，取反后都是整数
+        ASTNode_add_attr_str(exp, "type", SyInt);
     } else {
         assert(0);
     }
@@ -772,35 +806,62 @@ void StackTranslator::translateRelOp(ASTNode *exp) {
 
     assert(lhs != nullptr && rhs != nullptr);
 
-    translateExpInner(lhs);
-    adapter->pushStack({accumulatorReg});
-    translateExpInner(rhs);
-    adapter->popStack({tempReg});
-
     const char *rhs_type, *lhs_type;
-    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", &rhs_type);
+    std::string cmp_type;
+
+    translateExpInner(lhs);
+    translateTypePush(lhs);
     bool lhs_has_type = ASTNode_get_attr_str(lhs, "type", &lhs_type);
-    assert(lhs_has_type && rhs_has_type);
 
-    assert(strcmp(lhs_type, "Void") != 0 && strcmp(rhs_type, "Void") != 0);
+    translateExpInner(rhs);
+    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", &rhs_type);
 
-    // TODO: 根据浮点数和整数的类型来判断
-    assert(strcmp(lhs_type, rhs_type) == 0);
 
-    ASTNode_add_attr_str(exp, "type", "Int");
+    assert(rhs_has_type && lhs_has_type);
+    assert(strcmp(lhs_type, SyVoid) != 0 && strcmp(rhs_type, SyVoid) != 0);
+
+    if (strcmp(lhs_type, SyFloat) == 0 ^ strcmp(rhs_type, SyFloat) == 0) {
+        cmp_type = SyFloat;
+        // 仅有一边为浮点的情况需要转换
+        if (strcmp(lhs_type, SyFloat) == 0) {
+            // 转换右边为浮点数
+            translateTypeConversion(rhs, SyFloat); // s0 <- r0
+            adapter->fpopStack({floatTempReg}); // s1 <- lhs
+        }
+
+        if (strcmp(rhs_type, SyFloat) == 0) {
+            // 转换左边为浮点数
+            adapter->fpopStack({floatTempReg});
+            adapter->i2f(floatTempReg, floatTempReg);
+        }
+    } else if (strcmp(lhs_type, SyFloat) == 0 && strcmp(rhs_type, SyFloat) == 0) {
+        cmp_type = SyFloat;
+        adapter->fpopStack({floatTempReg});
+    } else {
+        cmp_type = SyInt;
+        adapter->popStack({tempReg});
+    }
+
+    ASTNode_add_attr_str(exp, "type", SyInt); // 做完比较后的结果是整数
 
     if (ASTNode_id_is(exp, "Equal")) {
-        adapter->cmpEqual(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyInt) adapter->cmpEqual(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyFloat) adapter->fcmpEqual(accumulatorReg, floatTempReg, floatAccumulatorReg);
     } else if (ASTNode_id_is(exp, "NotEq")) {
-        adapter->cmpNotEqual(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyInt) adapter->cmpNotEqual(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyFloat) adapter->fcmpNotEqual(accumulatorReg, floatTempReg, floatAccumulatorReg);
     } else if (ASTNode_id_is(exp, "Less")) {
-        adapter->cmpLess(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyInt) adapter->cmpLess(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyFloat) adapter->fcmpLess(accumulatorReg, floatTempReg, floatAccumulatorReg);
     } else if (ASTNode_id_is(exp, "LessEq")) {
-        adapter->cmpLessEqual(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyInt) adapter->cmpLessEqual(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyFloat) adapter->fcmpLessEqual(accumulatorReg, floatTempReg, floatAccumulatorReg);
     } else if (ASTNode_id_is(exp, "Greater")) {
-        adapter->cmpGreater(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyInt) adapter->cmpGreater(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyFloat) adapter->fcmpGreater(accumulatorReg, floatTempReg, floatAccumulatorReg);
     } else if (ASTNode_id_is(exp, "GreaterEq")) {
-        adapter->cmpGreaterEqual(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyInt) adapter->cmpGreaterEqual(accumulatorReg, tempReg, accumulatorReg);
+        if (cmp_type == SyFloat) adapter->fcmpGreaterEqual(accumulatorReg, floatTempReg, floatAccumulatorReg);
     }
 }
 
