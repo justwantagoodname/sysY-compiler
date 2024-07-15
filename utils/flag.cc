@@ -21,7 +21,7 @@ void Flag::init(int argc, const char** argv) {
 
     auto& flags = Flag::getFlagInstance().flags;
 
-    if (argc == 1) {
+    if (argc == 2) {
         print_help(argv[0]);
     }
 
