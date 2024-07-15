@@ -442,9 +442,30 @@ public:
         }
     }
 
+    bool is_float_immediate(double x) {
+        if (x <= 0) {
+            return false;
+        }
+
+        int exponent;
+        double mantissa = frexp(x, &exponent);
+
+        // Adjust mantissa and exponent to match the desired form
+        double n = mantissa * 128; // since frexp gives mantissa in range [0.5, 1), we shift by 7 to get in range [64, 128)
+        exponent -= 7; // compensate the shift done above
+
+        // Now check if n and adjusted exponent fit the required range
+        return (n >= 16 && n <= 31 && exponent >= 0 && exponent <= 7);
+    }
+
     void loadImmediate(const std::string& reg, float x) override {
-        unsigned int ux = reinterpret_cast<unsigned int&>(x);
-        asm_file.line("\tvmov.f32 %s, #%u", reg.c_str(), ux);
+        unsigned int ux = reinterpret_cast<unsigned int &>(x);
+        if (is_float_immediate(x)) {
+            asm_file.line("\tvmov.f32 %s, #%u", reg.c_str(), ux);
+        } else {
+            loadImmediate("r3", (int) ux);
+            fmov("s0", "r3");
+        }
     }
 
     void loadLabelAddress(const std::string& reg, const std::string& labelName) override {

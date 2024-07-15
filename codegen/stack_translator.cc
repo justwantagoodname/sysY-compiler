@@ -647,6 +647,11 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
     auto decl_entity = ASTNode_querySelectorfOne(var_decl, "ancestor::Scope/Decl/Var[@name='%s']", name);
     assert(decl_entity);
 
+    const char* var_type_str;
+    bool hasVarType = ASTNode_get_attr_str(decl_entity, "type", &var_type_str);
+    assert(hasVarType);
+    std::string var_type = var_type_str;
+
     int offset;
     bool hasOffset = ASTNode_get_attr_int(decl_entity, "offset", &offset);
     assert(hasOffset);
@@ -671,21 +676,45 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
         DL_FOREACH(inits, cur) {
             auto init = cur->node;
             int value, repeat;
+            const char* value_type_str;
+            std::string value_type;
+
             bool hasValue = ASTNode_get_attr_int(init, "value", &value);
             bool hasRepeat = ASTNode_get_attr_int(init, "repeat", &repeat);
             assert(hasRepeat);
 
             if (ASTNode_id_is(init, "Exp")) {
                 translateExp(init);
+                bool hasType = ASTNode_get_attr_str(init, "type", &value_type_str);
+                assert(hasType);
+                value_type = value_type_str;
             } else {
+                // 常量的情况下，直接加载
                 assert(hasValue);
-                if (value!= 0 || !cleared) adapter->loadImmediate(accumulatorReg, value);
+                // 如果是 0，那么判断数组是不是已经使用 memset 初始化过了
+                if (value != 0 || !cleared) {
+                    translateExpInner(init);
+                }
+                bool hasType = ASTNode_get_attr_str(init, "type", &value_type_str);
+                assert(hasType);
+                value_type = value_type_str;
+            }
+
+            if (value_type != var_type) {
+                // 类型不同，需要转换
+                translateTypeConversion(init, var_type);
             }
 
             if (value != 0 || !cleared) {
                 // 如果不是 0 或者没有清空过，那么就赋值
                 for (int i = 0; i < repeat; i++) {
-                    adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset + idx * adapter->getWordSize());
+                    if (var_type == SyInt) {
+                        adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(),  offset + idx * adapter->getWordSize());
+                    } else if (var_type == SyFloat) {
+                        adapter->fstoreRegister(floatAccumulatorReg, adapter->getFramePointerName(), offset + idx * adapter->getWordSize());
+                    } else {
+                        assert(0);
+                    }
                     idx++;
                 }
             } else {
@@ -702,9 +731,25 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
 
         translateExp(init_exp);
 
-        // TODO: 这里需要根据类型来判断是否需要转换类型
+        const char* init_type_str;
+        bool hasInitType = ASTNode_get_attr_str(init_exp, "type", &init_type_str);
+        assert(hasInitType);
+        std::string init_type = init_type_str;
 
-        adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+        assert(init_type != SyVoid);
+
+        if (init_type != var_type) {
+            // 类型不同，需要转换
+            translateTypeConversion(init_exp, var_type);
+        }
+
+        if (var_type == SyInt) {
+            adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+        } else if (var_type == SyFloat) {
+            adapter->fstoreRegister(floatAccumulatorReg, adapter->getFramePointerName(), offset);
+        } else {
+            assert(0);
+        }
     }
 }
 
