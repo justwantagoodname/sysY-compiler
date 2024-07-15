@@ -12,17 +12,23 @@
 int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
 	Flag::getFlag().init(argc, argv);
-  
-	Element root = Element::CreateByFile(Flag::getFlag().getFlagFor("input").c_str());
+
+	Element root = Element::CreateByFile(Flag::getFlag().getFlagFor<std::string>("input").c_str());
+
+	if (Flag::getFlag().getFlagFor<bool>("dump-raw")) {
+  		root.print();
+	}
 
 #ifdef UNI_OPTIMIZTION
 	ConstNode_unfold(root);
 	ArrayDecl_flatten(root);
-  	root.print();
+	if (Flag::getFlag().getFlagFor<bool>("dump-optimized-tree")) {
+  		root.print();
+	}
 #endif
 
 #ifdef ASM_GEN
-	AssemblyBuilder asm_file(Flag::getFlag().getFlagFor("output").c_str());
+	AssemblyBuilder asm_file(Flag::getFlag().getFlagFor<std::string>("output").c_str());
 
 	GlobalDeclInflater const_inflater(root.unwrap());
     const_inflater.inflate(asm_file);
@@ -32,8 +38,9 @@ int main(int argc, const char** argv) {
     StackTranslator translator(root.unwrap(), std::make_unique<ARMAdapter>(arm_adapter));
 	translator.translate();
 
-    printf("=== ASM Start ===\n");
-	root.print();
+	if (Flag::getFlag().getFlagFor<bool>("dump-generated-tree")) {
+  		root.print();
+	}
 #endif
 
 #ifdef TRIPLE_DEBUG

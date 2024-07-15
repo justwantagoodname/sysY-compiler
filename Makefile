@@ -44,7 +44,7 @@ BISON_C_FILES = $(Y_FILES:.y=.tab.cc)
 BISON_H_FILES = $(Y_FILES:.y=.tab.hh)
 FLEX_C_FILES = $(L_FILES:.l=.lex.cc)
 
-TEST_CASES := $(shell find testcase -type f -name "*.cc" | sed 's/^\.\///')
+# TEST_CASES := $(shell find testcase -type f -name "*.cc" | sed 's/^\.\///')
 
 SRC = $(CC_FILES) # 运行的时候展开 因为必须确保 paser-files 生成之后才能编译
 

@@ -27,9 +27,12 @@ void Flag::init(int argc, const char** argv) {
 
     flags["input"] = argv[1];
     flags["output"] = "-"; // 默认输出到标准输出
+    flags["dump-raw"] = false;
+    flags["dump-optimized-tree"] = false;
+    flags["dump-generated-tree"] = false;
 
     int ch;
-    while ((ch = getopt(argc, (char* const*)argv, "hvSo:O::")) != -1) {
+    while ((ch = getopt(argc, (char* const*)argv, "hvSo:O::f:")) != -1) {
         switch (ch) {
             case 'S':
                 flags["S"] = "true";
@@ -39,6 +42,9 @@ void Flag::init(int argc, const char** argv) {
                 break;
             case 'O':
                 flags["Olevel"] = atoi(optarg);
+                break;
+            case 'f':
+                flags[optarg] = true;
                 break;
             case 'h':
                 print_help(argv[0]); // 这个函数直接终止程序
@@ -63,11 +69,3 @@ void Flag::init(int argc, const char** argv) {
 #endif
 
 }
-
-
-const std::string& Flag::getFlagFor(const std::string& key) const {
-    assert(flags.find(key) != flags.end());
-
-    return std::get<std::string>(flags.find(key)->second);
-}
-
