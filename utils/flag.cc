@@ -21,7 +21,7 @@ void Flag::init(int argc, const char** argv) {
 
     auto& flags = Flag::getFlagInstance().flags;
 
-    if (argc == 2) {
+    if (argc == 1) {
         print_help(argv[0]);
     }
 
@@ -29,7 +29,7 @@ void Flag::init(int argc, const char** argv) {
     flags["output"] = "-"; // 默认输出到标准输出
 
     int ch;
-    while ((ch = getopt(argc - 1, (char* const*)argv + 1, "hvSo:O::")) != -1) {
+    while ((ch = getopt(argc, (char* const*)argv, "hvSo:O::")) != -1) {
         switch (ch) {
             case 'S':
                 flags["S"] = "true";
