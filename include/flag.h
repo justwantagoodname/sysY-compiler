@@ -37,6 +37,13 @@ public:
 
         return std::get<T>(flags.find(key)->second);
     }
+
+    template <typename T>
+    const T& by(const std::string& key) const {
+        assert(flags.find(key) != flags.end());
+
+        return std::get<T>(flags.find(key)->second);
+    }
 };
 
 #endif
