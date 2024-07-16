@@ -40,13 +40,12 @@ class TestCase:
     def check_valid(self):
         if not os.path.exists(self.source):
             raise FileNotFoundError(f'{self.source} not found')
-        # if not os.path.exists(f'{self.path}/{self.input}'):
-        #     raise FileNotFoundError(f'{self.input} not found')
-        # if not os.path.exists(f'{self.path}/{self.output}'):
+        if not os.path.exists(self.input):
+            self.input = 'stdin'
+        # if not os.path.exists(self.output):
         #    raise FileNotFoundError(f'{self.output} not found')
 
 class Runner:
-
     def run(self, testcase):
         logger.info(f'Running testcase: {testcase.name}')
 
@@ -55,7 +54,7 @@ class Runner:
         if ret != 0:
             exit(ret)
 
-        arm_simulation = subprocess.Popen(['make', 'run-arm'], cwd='..')
+        arm_simulation = subprocess.Popen(['bash', 'run_wrapper.sh', 'arm', 'empty.in', 'hello.out'], cwd='.')
         ret = arm_simulation.wait()
 
         if ret != 0:

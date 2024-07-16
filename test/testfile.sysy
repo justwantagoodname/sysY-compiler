@@ -1,9 +1,6 @@
 int main() {
-    // int a[3] = {1,2,3};
-    // float b = 1.0;
-    float c = 2;
-
-    float b[3] = {1.0, c, 3};
-    putf("%f %f %f\n", b[0], b[1], b[2]);
+    int x;
+    x = getint();
+    putint(x);
     return 0;
 }
