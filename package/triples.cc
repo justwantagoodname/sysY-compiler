@@ -202,6 +202,7 @@ Triples::TripleValue& Triples::TripleValue::operator=(const Triples::TripleValue
 		added = new TripleValue(*(at.added));
 	else
 		added = nullptr;
+	return *this;
 }
 
 Triples::TripleValue::~TripleValue()

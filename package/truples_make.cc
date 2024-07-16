@@ -420,7 +420,7 @@ void Triples::make()
 		}
 		ife("Mod") {
 			EopE(Cmd.mod);
-			assert(strcat("Int", element.get_attr_str("type")) == 0);
+			assert(strcmp("Int", element.get_attr_str("type")) == 0);
 		}
 		ife("Call") {
 			TripleValue parms = { 0, TT.parms };
