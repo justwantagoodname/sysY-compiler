@@ -56,9 +56,9 @@ void Triples::pretreat()
 void Triples::make()
 {
 	Triples& triples = *this;
-	int temp_count = 0; // ÁÙÊ±±äÁ¿¼ÆÊýÆ÷ 
-	int tag_count = 0; // ÁÙÊ±±êÇ©¼ÆÊýÆ÷
-	int block_count = 0; // block¼ÆÊýÆ÷
+	int temp_count = 0; // ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+	int tag_count = 0; // ï¿½ï¿½Ê±ï¿½ï¿½Ç©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	int block_count = 0; // blockï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	//for (auto element : root) {
 	DFS_Element(root) {
@@ -420,13 +420,13 @@ void Triples::make()
 		}
 		ife("Mod") {
 			EopE(Cmd.mod);
-			assert(strcat("Int", element.get_attr_str("type")) == 0);
+			assert(strcmp("Int", element.get_attr_str("type")) == 0);
 		}
 		ife("Call") {
 			TripleValue parms = { 0, TT.parms };
 
-			// ÕâÊÇµ¹ÐòpusµÄ´úÂë£¬ ËüÃÇ»áµ¹Ðò½«Ã¿Ò»¸ö²ÎÊýÍ¨¹ýpusÖ¸Áî·ÅÈëÕ»
-			// Çë±£ÁôÕâÐ©´úÂë£¬ÒÔ·ÀÄ³Ò»ÌìÒª½øÐÐ»ØÍË
+			// ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½pusï¿½Ä´ï¿½ï¿½ë£¬ ï¿½ï¿½ï¿½Ç»áµ¹ï¿½ï¿½Ã¿Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½pusÖ¸ï¿½ï¿½ï¿½ï¿½ï¿½Õ»
+			// ï¿½ë±£ï¿½ï¿½ï¿½ï¿½Ð©ï¿½ï¿½ï¿½ë£¬ï¿½Ô·ï¿½Ä³Ò»ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½
 			//int count = 0;
 			//{
 			//	ASTNode* head = element.unwrap()->children;
@@ -449,9 +449,9 @@ void Triples::make()
 			//		}
 			//	} while (iter != head->prev);
 			//}
-			// µ½Õâ£¨ > w < )
+			// ï¿½ï¿½ï¿½â£¨ > w < )
 
-			// ÕâÐ©ÊÇ½«parm´ò°üÎªÒ»¸ötriple valueµÄ´úÂë
+			// ï¿½ï¿½Ð©ï¿½Ç½ï¿½parmï¿½ï¿½ï¿½ÎªÒ»ï¿½ï¿½triple valueï¿½Ä´ï¿½ï¿½ï¿½
 			{
 				int count = 0;
 				ASTNode* head = element.unwrap()->children;
@@ -482,7 +482,7 @@ void Triples::make()
 				}
 				parms.value = count;
 			}
-			// µ½Õâ£¨ > w < )
+			// ï¿½ï¿½ï¿½â£¨ > w < )
 
 			const char* name = element.get_attr_str("name");
 			element.add_attr("temp", temp_count);
