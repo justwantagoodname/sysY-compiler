@@ -8,15 +8,18 @@ RVOperand::RVOperand(RVOperandTag tag, int value)
     : tag(tag), value(value) {
         return;
 }
-std::string RVOperand::toASM() const {
-    assert(false);
-    return "NULL";
-}
 bool RVOperand::isreg() const {
     return tag == REG || tag == SREG;
 }
 bool RVOperand::isimm() const {
     return tag == IMM || tag == SIMM;
+}
+bool RVOperand::isfloat() const {
+    return tag == SREG || tag == SIMM;
+}
+std::string RVOperand::toASM() const {
+    assert(false);
+    return "NULL";
 }
 
 
@@ -36,13 +39,10 @@ RVOperand make_simm(float value) {
 RVInstr::RVInstr() : tag(NOP) {
     return;
 }
-RVInstr::RVInstr(RVInstrTag op) : tag(op) {
+RVInstr::RVInstr(RVOp opt) : opt(opt) {
     return;
 }
-RVRInstr::RVRInstr(RVROp opt, const RVOperand& opr1, const RVOperand& opr2, const RVOperand& dst)
-    : RVInstr(RInstr), opt(opt), opr1(opr1), opr2(opr2), dst(dst) {
-    return;
-}
+
 std::string RVRInstr::toASM() {
     static const std::map<RVROp, std::string> asm_op_tag = {
         {ADD, "add"},
@@ -83,11 +83,58 @@ std::string RVRInstr::toASM() {
     return result;
 }
 
+RVArith::RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RVOperand& opr2)
+    : RVInstr(opt), dst(dst), opr1(opr1), opr2(opr2) {
+        assert(opt == RVOp::ADD || opt == RVOp::SUB || opt == RVOp::MUL
+            || opt == RVOp::DIV || opt == RVOp::MOD);
+        assert(dst.isreg());
+        assert(opr1.isreg());
+        assert(opr2.isreg() || opr2.isimm());
 
-RVIInstr::RVIInstr(RVIOp opt, const RVOperand& opr, const RVOperand& dst) 
-    : RVInstr(IInstr), opt(opt), opr(opr), dst(dst) {
-    return;
+        if (opr1.isfloat() || opr2.isfloat()) {
+            is_float = true;
+        }
+        return;
 }
+std::string RVArith::toASM() {
+    std::string result = "    ";
+    switch (opt) {
+        case RVOp::ADD:
+            result += "add";
+            break;
+        case RVOp::SUB:
+            result += "sub";
+            break;
+        case RVOp::MUL:
+            result += "mul";
+            break;
+        case RVOp::DIV:
+            result += "div";
+            break;
+        case RVOp::MOD:
+            result += "rem";
+            break;
+        default:
+            assert(false);
+    }
+    if (opr2.isimm()) {
+        result.push_back('i');
+    }
+    
+    result += " " + dst.toASM() + " " + opr1.toASM() + " " + opr2.toASM();
+    return result;
+}
+
+
+// RVIInstr::RVIInstr(RVIOp opt, const RVOperand& opr, const RVOperand& dst) 
+//     : RVInstr(IInstr), opt(opt), opr(opr), dst(dst) {
+//     return;
+// }
 std::string RVIInstr::toASM() {
+    assert(false);
+    static const std::map<RVIOp, std::string> asm_op_tag = {
+        {ADDI, "addi"},
+        {}
+    };
     return "";
 }
