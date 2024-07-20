@@ -97,6 +97,9 @@ RVArith::RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RV
         return;
 }
 std::string RVArith::toASM() {
+    if (is_float) {
+        panic("TODO: RVArith::toASM()");
+    }
     std::string result = "    ";
     switch (opt) {
         case RVOp::ADD:

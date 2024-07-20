@@ -34,4 +34,9 @@ extern "C" {
 }
 #endif
 
+#define panic(str) do { \
+    printf(str "\n"); \
+    assert(false); \
+} while (0)
+
 #endif
