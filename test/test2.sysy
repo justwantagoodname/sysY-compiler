@@ -9,5 +9,7 @@ int main() {
 
     c = a + b;
 
+    float g = 3.14;
+
     return 0;
 }

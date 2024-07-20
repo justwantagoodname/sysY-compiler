@@ -14,7 +14,8 @@ enum RVOperandTag {
     SREG,
     IMM,
     SIMM,
-    ADDR
+    ADDR,
+    STACK
 };
 
 
@@ -22,6 +23,9 @@ class RVOperand {
 public:
     RVOperandTag tag;
     int32_t value;
+    int32_t addr;
+    uint8_t reg;
+    int32_t offset;
     RVOperand();
     RVOperand(RVOperandTag tag, int value);
     bool isreg() const;
@@ -176,13 +180,6 @@ public:
     virtual std::string toASM() override;
 };
 
-class RVArith : public RVInstr {
-public:
-    bool is_float;
-    RVOperand dst, opr1, opr2;
-    RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RVOperand& opr2);
-    virtual std::string toASM() override;
-};
 
 
 enum RVIOp {
@@ -208,9 +205,17 @@ public:
 };
 
 
+class RVArith : public RVInstr {
+public:
+    bool is_float;
+    RVOperand dst, opr1, opr2;
+    RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RVOperand& opr2);
+    virtual std::string toASM() override;
+};
 
 // Call
 class RVCall : public RVInstr {
+    std::string intPutOnReg(const RVOperand& opr, uint8_t reg);
 public:
     std::vector<RVOperand> args;
     virtual std::string toASM() override;

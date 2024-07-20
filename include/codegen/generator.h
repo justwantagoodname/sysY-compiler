@@ -4,6 +4,7 @@
 #define GENERATOR_H
 
 #include <vector>
+#include <map>
 
 #include "codegen/riscvinstr.h"
 #include "sysY.h"
@@ -17,6 +18,7 @@ public:
 class RiscVGenerator : Generator {
 private:
     std::vector<RVInstr> instrs;
+    std::map<int, int> simm_table;
 public:
     void generate(Triples& triples, bool optimize_flag);
 };
