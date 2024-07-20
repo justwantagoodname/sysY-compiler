@@ -64,6 +64,8 @@ void Triples::make()
 	DFS_Element(root) {
 		Element element = *iter;
 
+		printf("--%s\n", element.id());
+
 		ifb("Decl") {
 			cut;
 		}
@@ -394,7 +396,7 @@ void Triples::make()
 				}
 				ife("Mod") {
 					EopE(Cmd.mod, Cmd.mod);
-					assert(strcat("Int", element.get_attr_str("type")) == 0);
+					assert(strcmp("Int", element.get_attr_str("type")) == 0);
 				}
 		*/
 #define EopE(cmd) do{\
