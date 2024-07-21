@@ -65,7 +65,6 @@ void Flag::init(int argc, const char** argv) {
     };
 
     // 设置默认值
-    flags["input"] = std::string(argv[1]);
     flags["output"] = std::string("-"); // 默认输出到标准输出
     flags["dump-raw"] = false;
     flags["dump-optimized-tree"] = false;
@@ -74,13 +73,16 @@ void Flag::init(int argc, const char** argv) {
     flags["ASM"] = true;
     flags["Olevel"] = 0;
     
-    for (int i = 0; i < argc; i++) {
+    // arg 0 is the program name
+    for (int i = 1; i < argc; i++) {
         if (is_option(argv[i])) {
             i += parser_option(i);
         } else {
             arguments.push_back(argv[i]);
         }
     }
+
+    flags["input"] = std::string(arguments[0]);
 
     if (Flag::getFlagInstance().by<bool>("debug-flag")) {
         for (auto &flag : flags) {
