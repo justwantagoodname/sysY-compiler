@@ -1088,8 +1088,8 @@ void StackTranslator::translateTypePush(ASTNode* exp) {
     std::string cur_type = type;
 
     assert(cur_type != SyVoid);
-
-    if (cur_type == SyInt) {
+    if (cur_type == SyInt || is_array_type(cur_type)) {
+        // 数组（LVal）地址被放在accumulatorReg中
         adapter->pushStack({accumulatorReg});
     } else if (cur_type == SyFloat) {
         adapter->fpushStack({floatAccumulatorReg});
