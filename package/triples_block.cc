@@ -71,8 +71,7 @@ void Triples::minTempVar()
 		// 采用贪心求解每个变量的最大合并占用
 
 		// 合并标记
-		bool* meraged = new bool[block_temp.size() + 5];
-		memset(meraged, 0, block_temp.size());
+		std::vector<bool>meraged(block_temp.size(), false);
 
 		// 临时函数：查找未被合并过的离某个起点最近起始的变量
 		auto found_nearlest = [&var_begin, &block_temp, &meraged](int begin) {
@@ -87,9 +86,9 @@ void Triples::minTempVar()
 			return min_temp;
 			};
 
-		auto meraged_finish = [&meraged, &block_temp]() {
-			for (int i = 0; i < block_temp.size(); ++i) {
-				if (!meraged[i]) return false;
+		auto meraged_finish = [&meraged]() {
+			for (bool i : meraged) {
+				if (!i) return false;
 			}
 			return true;
 			};
@@ -122,7 +121,6 @@ void Triples::minTempVar()
 			}
 			meraged[begint] = true;
 		}
-		delete[] meraged;
 	}
 
 	auto sett = [var_merage](TripleValue* e) {
@@ -153,9 +151,9 @@ void Triples::eliUnnecVar()
 {
 	// 消除到立即数的无用中间变量
 	int* imd_temp = new int[temp_count + 5];
-	memset(imd_temp, -1, sizeof(int) * temp_count);
+	memset(imd_temp, 0xFF, sizeof(int) * temp_count);
 	bool* imd_type = new bool[temp_count + 5];
-	memset(imd_type, false, sizeof(int) * temp_count);
+	memset(imd_type, false, sizeof(bool) * temp_count);
 
 	auto sett = [f = [&imd_temp, &imd_type](auto&& self, TripleValue* e) -> void {
 		if (e->type == TT.temp && imd_temp[e->value] != -1) {
