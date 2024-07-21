@@ -64,6 +64,8 @@ void Triples::make()
 	DFS_Element(root) {
 		Element element = *iter;
 
+		printf("--%s\n", element.id());
+
 		ifb("Decl") {
 			cut;
 		}
@@ -86,10 +88,16 @@ void Triples::make()
 			}
 		}
 		ife("Number") {
+
 			int val = element.get_attr_int("value");
 
 			element.add_attr("temp", temp_count);
-			triples.add(Cmd.mov, { val ,TT.imd }, {}, { temp_count });
+			if (strcmp(element.get_attr_str("type"), "Int") == 0) {
+				triples.add(Cmd.mov, { val ,TT.dimd }, {}, { temp_count });
+			}
+			else {
+				triples.add(Cmd.mov, { val ,TT.fimd }, {}, { temp_count });
+			}
 			++temp_count;
 
 		}
@@ -120,13 +128,13 @@ void Triples::make()
 			int count = 0;
 			ASTNode* cur = NULL;
 			int cr = 1;
-			triples.add(Cmd.mov, { 0, TT.imd }, {}, { temp });
+			triples.add(Cmd.mov, { 0, TT.dimd }, {}, { temp });
 			DL_FOREACH(element.unwrap()->children, cur) {
 				int t;
 				ASTNode_get_attr_int(cur, "temp", &t);
 				if (count > 0) {
 					cr *= value[count].get_attr_int("value");
-					triples.add(Cmd.mul, { t }, { cr, TT.imd }, { t });
+					triples.add(Cmd.mul, { t }, { cr, TT.dimd }, { t });
 				}
 				++count;
 				triples.add(Cmd.add, { temp }, { t }, { temp });
@@ -206,39 +214,39 @@ void Triples::make()
 		}while(0)
 
 		/*
-#define makeCond(cmd, fcmd) do{\
-		bool isfloat = false;\
-		int t0 = element[0].get_attr_int("temp");\
-		int t1 = element[1].get_attr_int("temp");\
-		int idx = triples.size();\
-		EopETypeTras(element, t0, t1, isfloat);\
-		CMD::CMD_ENUM tcmd = isfloat ? (fcmd) : (cmd);\
-		triples.add(tcmd, {t0}, {t1}, {});\
-		triples.add(Cmd.jmp, {}, {}, {});\
-		triples.add(Cmd.tag, { tag_count++, TT.lamb}, {}, {});\
-		element.add_attr("true", idx);\
-		element.add_attr("false", idx + 1);\
-		} while(0)
+	#define makeCond(cmd, fcmd) do{\
+			bool isfloat = false;\
+			int t0 = element[0].get_attr_int("temp");\
+			int t1 = element[1].get_attr_int("temp");\
+			int idx = triples.size();\
+			EopETypeTras(element, t0, t1, isfloat);\
+			CMD::CMD_ENUM tcmd = isfloat ? (fcmd) : (cmd);\
+			triples.add(tcmd, {t0}, {t1}, {});\
+			triples.add(Cmd.jmp, {}, {}, {});\
+			triples.add(Cmd.tag, { tag_count++, TT.lamb}, {}, {});\
+			element.add_attr("true", idx);\
+			element.add_attr("false", idx + 1);\
+			} while(0)
 
-		ife("Equal") {
-			makeCond(Cmd.jeq, Cmd.jeqf);
-		}
-		ife("NotEq") {
-			makeCond(Cmd.jne, Cmd.jnef);
-		}
-		ife("Less") {
-			makeCond(Cmd.jlt, Cmd.jltf);
-		}
-		ife("LessEq") {
-			makeCond(Cmd.jle, Cmd.jlef);
-		}
-		ife("Greater") {
-			makeCond(Cmd.jgt, Cmd.jgtf);
-		}
-		ife("GreaterEq") {
-			makeCond(Cmd.jge, Cmd.jgef);
-		}
-*/
+			ife("Equal") {
+				makeCond(Cmd.jeq, Cmd.jeqf);
+			}
+			ife("NotEq") {
+				makeCond(Cmd.jne, Cmd.jnef);
+			}
+			ife("Less") {
+				makeCond(Cmd.jlt, Cmd.jltf);
+			}
+			ife("LessEq") {
+				makeCond(Cmd.jle, Cmd.jlef);
+			}
+			ife("Greater") {
+				makeCond(Cmd.jgt, Cmd.jgtf);
+			}
+			ife("GreaterEq") {
+				makeCond(Cmd.jge, Cmd.jgef);
+			}
+	*/
 #define makeCond(cmd) do{\
 		bool isfloat = false;\
 		int t0 = element[0].get_attr_int("temp");\
@@ -394,7 +402,7 @@ void Triples::make()
 				}
 				ife("Mod") {
 					EopE(Cmd.mod, Cmd.mod);
-					assert(strcat("Int", element.get_attr_str("type")) == 0);
+					assert(strcmp("Int", element.get_attr_str("type")) == 0);
 				}
 		*/
 #define EopE(cmd) do{\
@@ -529,8 +537,7 @@ void Triples::make()
 				init.add_attr("name", element.get_attr_str("name"));
 				init.add_attr("type", element.get_attr_str("type"));
 			}
-		}
-		ife("Var") {
+
 			int size = 1;
 
 			const char* s = element.get_attr_str("name");
@@ -544,7 +551,7 @@ void Triples::make()
 			if (strcmp("Float", value.get_attr_str("type")) == 0)
 				type = 1;
 
-			triples.add(Cmd.var, { a , TT.value }, { size , TT.imd }, { type, TT.typetag });
+			triples.add(Cmd.var, { a , TT.value }, { size , TT.dimd }, { type, TT.typetag });
 		}
 		ife("InitValue") {
 			const char* et = element.get_attr_str("type");
@@ -568,7 +575,7 @@ void Triples::make()
 				element.add_attr("size", count);
 				triples.add(Cmd.mset,
 					{ value_idx, TT.value },
-					{ count , TT.imd }, {});
+					{ count , TT.dimd }, {});
 				for (auto e : element) {
 					int len = e.get_attr_int("repeat");
 					int base = e.get_attr_int("start");
@@ -576,16 +583,16 @@ void Triples::make()
 
 					TripleValue t;
 					if (e.get_attr("value")) {
-						t = { e.get_attr_int("value"), TT.imd };
+						t = { e.get_attr_int("value"), TT.dimd };
 					}
 					else if (e.get_attr("temp")) {
 						t = { e.get_attr_int("temp"), TT.temp };
 					}
-					if (t.value != 0 || t.type != TT.imd) {
+					if (t.value != 0 || t.type != TT.dimd) {
 						for (int i = 0; i < len; ++i) {
 							//TypeTras(et, vt, t);
 							triples.add(Cmd.mov, t, {},
-								{ value_idx, TT.value, {base + i, TT.imd} });
+								{ value_idx, TT.value, {base + i, TT.dimd} });
 						}
 					}
 				}

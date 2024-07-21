@@ -71,7 +71,8 @@ void Triples::minTempVar()
 		// 采用贪心求解每个变量的最大合并占用
 
 		// 合并标记
-		std::vector<bool> meraged(block_temp.size(), false);
+		bool* meraged = new bool[block_temp.size() + 5];
+		memset(meraged, 0, block_temp.size());
 
 		// 临时函数：查找未被合并过的离某个起点最近起始的变量
 		auto found_nearlest = [&var_begin, &block_temp, &meraged](int begin) {
@@ -86,9 +87,9 @@ void Triples::minTempVar()
 			return min_temp;
 			};
 
-		auto meraged_finish = [&meraged]() {
-			for (auto i : meraged) {
-				if (!i) return false;
+		auto meraged_finish = [&meraged, &block_temp]() {
+			for (int i = 0; i < block_temp.size(); ++i) {
+				if (!meraged[i]) return false;
 			}
 			return true;
 			};
@@ -121,6 +122,7 @@ void Triples::minTempVar()
 			}
 			meraged[begint] = true;
 		}
+		delete[] meraged;
 	}
 
 	auto sett = [var_merage](TripleValue* e) {
@@ -152,11 +154,19 @@ void Triples::eliUnnecVar()
 	// 消除到立即数的无用中间变量
 	int* imd_temp = new int[temp_count + 5];
 	memset(imd_temp, -1, sizeof(int) * temp_count);
+	bool* imd_type = new bool[temp_count + 5];
+	memset(imd_type, false, sizeof(int) * temp_count);
 
-	auto sett = [f = [imd_temp](auto&& self, TripleValue* e) -> void {
+	auto sett = [f = [&imd_temp, &imd_type](auto&& self, TripleValue* e) -> void {
 		if (e->type == TT.temp && imd_temp[e->value] != -1) {
+			if (imd_type[e->value]) {
+				e->type = TT.fimd;
+			}
+			else {
+				e->type = TT.dimd;
+			}
 			e->value = imd_temp[e->value];
-			e->type = TT.imd;
+
 		}
 		if (e->added != nullptr) {
 			self(self, e->added);
@@ -169,8 +179,11 @@ void Triples::eliUnnecVar()
 		sett(&(*it)->e2);
 
 		// 获取某个立即数并绑定到临时变量
-		if ((*it)->cmd == Cmd.mov && (*it)->e1.type == TT.imd && (*it)->to.type == TT.temp) {
+		if ((*it)->cmd == Cmd.mov && ((*it)->e1.type == TT.dimd || (*it)->e1.type == TT.fimd) && (*it)->to.type == TT.temp) {
 			imd_temp[(*it)->to.value] = (*it)->e1.value;
+			if ((*it)->e1.type == TT.fimd) {
+				imd_type[(*it)->to.value] = true;
+			}
 			it = triples.erase(it);
 			--it;
 		}
@@ -181,6 +194,7 @@ void Triples::eliUnnecVar()
 	}
 
 	delete[] imd_temp;
+	delete[] imd_type;
 }
 
 void Triples::resortTemp()

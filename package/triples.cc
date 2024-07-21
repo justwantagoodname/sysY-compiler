@@ -202,7 +202,6 @@ Triples::TripleValue& Triples::TripleValue::operator=(const Triples::TripleValue
 		added = new TripleValue(*(at.added));
 	else
 		added = nullptr;
-
 	return *this;
 }
 
@@ -223,8 +222,11 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 	case TT.temp:
 		snprintf(s, 20, "T%d", value);
 		break;
-	case TT.imd:
+	case TT.dimd:
 		snprintf(s, 40, "#%d", value);
+		break;
+	case TT.fimd:
+		snprintf(s, 40, "#%f", *(float*)(&value));
 		break;
 	case TT.value:
 		if (added == nullptr) {
