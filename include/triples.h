@@ -95,15 +95,15 @@ public:
 		void toString(char[], const Triples& triples);
 	};
 
-private:
-	int temp_count = -1;
-
 	struct Triple {
 		int cmd;
 		TripleValue e1, e2, to;
 
 		Triple(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 	};
+
+private:
+	int temp_count = -1;
 
 	std::vector<std::shared_ptr<Triple>> triples;
 	std::vector<Element> value_pointer;
@@ -154,10 +154,11 @@ public:
 	Triple& operator[](int idx) {
 		return *triples[idx];
 	};
+
 	size_t size();
 
-	std::vector<std::shared_ptr<Triple>>::iterator begin() { return triples.begin(); }
-	std::vector<std::shared_ptr<Triple>>::iterator end() { return triples.end(); }
+	std::vector<std::shared_ptr<Triple>>::iterator& begin() { return triples.begin(); }
+	std::vector<std::shared_ptr<Triple>>::iterator& end() { return triples.end(); }
 
 	void print() const;
 
