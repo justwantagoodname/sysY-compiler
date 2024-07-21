@@ -156,7 +156,7 @@ void Triples::eliUnnecVar()
 	auto sett = [f = [imd_temp](auto&& self, TripleValue* e) -> void {
 		if (e->type == TT.temp && imd_temp[e->value] != -1) {
 			e->value = imd_temp[e->value];
-			e->type = TT.imd;
+			e->type = TT.dimd;
 		}
 		if (e->added != nullptr) {
 			self(self, e->added);
@@ -169,7 +169,7 @@ void Triples::eliUnnecVar()
 		sett(&(*it)->e2);
 
 		// 获取某个立即数并绑定到临时变量
-		if ((*it)->cmd == Cmd.mov && (*it)->e1.type == TT.imd && (*it)->to.type == TT.temp) {
+		if ((*it)->cmd == Cmd.mov && (*it)->e1.type == TT.dimd && (*it)->to.type == TT.temp) {
 			imd_temp[(*it)->to.value] = (*it)->e1.value;
 			it = triples.erase(it);
 			--it;
