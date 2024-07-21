@@ -47,13 +47,8 @@ void Flag::init(int argc, const char** argv) {
                 flags["output"] = (std::string) argv[index + 1];
                 return 1;
             case 'O':
-                if (index + 1 < argc && !is_option(argv[index + 1])) {
-                    flags["Olevel"] = atoi(argv[index + 1]);
-                    return 2;
-                } else {
-                    flags["Olevel"] = atoi(option.substr(2).c_str());
-                }
-                return 1;
+                flags["Olevel"] = atoi(option.substr(2).c_str());
+                return 0;
             case 'f':
                 flags[option.substr(2)] = true;
                 return 1;
