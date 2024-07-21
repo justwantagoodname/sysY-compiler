@@ -13,8 +13,6 @@ int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
 	Flag::getFlag().init(argc, argv);
 
-	return 100;
-
 	Element root = Element::CreateByFile(Flag::getFlag().by<std::string>("input").c_str());
 
 	return 114;

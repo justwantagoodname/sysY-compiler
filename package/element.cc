@@ -13,7 +13,10 @@ Element Element::CreateByFile(const char* filename) {
 	assert(yyin != nullptr);
 	ASTNode* node = nullptr;
 	int i = yyparse(&node);
+
+	exit(101);
 	assert(i == 0);
+	
 	if (i != 0) {
 		node = nullptr;
 	}
