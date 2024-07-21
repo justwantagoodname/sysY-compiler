@@ -130,6 +130,7 @@ void Triples::print() const
 			"}",
 			"var"
 		};
+
 		if (i->cmd == Cmd.tag) {
 			i->e1.toString(ts1, *this);
 			printf("%d- %s :\n", idx, ts1);
@@ -234,7 +235,7 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		}
 		else {
 			added->toString(ts, triples);
-			snprintf(s, 50, "%s[%s]", triples.value_pointer[value].get_attr_str("name"), ts);
+			snprintf(s, 60, "%s[%s]", triples.value_pointer[value].get_attr_str("name"), ts);
 		}
 		break;
 	case TT.func:
