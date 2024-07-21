@@ -9,6 +9,7 @@ test/compiler
 test/*.exe
 test/output.*
 .vs/
+.vscode/
 sysY-compiler/
 x64/
 *.filters

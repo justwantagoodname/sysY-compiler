@@ -1,0 +1,16 @@
+int main() {
+    int a = 1, b = 2, c = 3, d = 5, f;
+
+    a = a * b * c + a * d + 4 + 5 * c * d;
+    float dd = 0.5;
+
+    int e[5][3];
+
+    e[2][1] = 4;
+
+    c = a + b;
+
+    float g = 3.14;
+
+    return 0;
+}

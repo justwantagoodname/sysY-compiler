@@ -8,6 +8,8 @@
 #include "codegen/const_inflater.hpp"
 #include "codegen/stack_translator.hpp"
 #include "codegen/arm_adapter.hpp"
+#define UNI_OPTIMIZTION
+#define TRIPLE_DEBUG
 
 int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
@@ -51,10 +53,21 @@ int main(int argc, const char** argv) {
 
 	root.print();
 
-	triples.make();
 	printf("===After make===\n");
+	triples.make();
 	root.print();
+	triples.print();
 
+	printf("===After eliUnnecVar===\n");
+	triples.eliUnnecVar();
+	triples.print();
+
+	printf("===After MinTemp===\n");
+	triples.minTempVar();
+	triples.print();
+
+	printf("===After ResortTemp===\n");
+	triples.resortTemp();
 	triples.print();
 #endif
 

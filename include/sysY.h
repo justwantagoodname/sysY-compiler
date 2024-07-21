@@ -5,6 +5,8 @@
 
 #ifdef __cplusplus
 
+#include <cstdint>
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -34,13 +36,15 @@ extern "C" {
 }
 #endif
 
-// SysY 类型
-
+// 数组类型的以[开头表示一个数组
+// 左值类型的以L开头
 const auto SyInt = "Int";
 const auto SyVoid = "Void";
 const auto SyFloat = "Float";
 
-// 数组类型的以[开头表示一个数组
-// 左值类型的以L开头
+#define panic(str) do { \
+    printf(str "\n"); \
+    assert(false); \
+} while (0)
 
 #endif
