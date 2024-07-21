@@ -15,22 +15,20 @@ int main(int argc, const char** argv) {
 
 	Element root = Element::CreateByFile(Flag::getFlag().by<std::string>("input").c_str());
 
-	
-
 	if (Flag::getFlag().by<bool>("dump-raw")) {
   		root.print();
 	}
 
-#ifdef UNI_OPTIMIZTION
+// #ifdef UNI_OPTIMIZTION
 	ConstNode_unfold(root);
 	
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
   		root.print();
 	}
-#endif
-	return 114;
-#ifdef ASM_GEN
+// #endif
+	
+// #ifdef ASM_GEN
 	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());
 
 	GlobalDeclInflater const_inflater(root.unwrap());
@@ -44,7 +42,7 @@ int main(int argc, const char** argv) {
 	if (Flag::getFlag().by<bool>("dump-generated-tree")) {
   		root.print();
 	}
-#endif
+// #endif
 
 #ifdef TRIPLE_DEBUG
 	Triples triples(root);
