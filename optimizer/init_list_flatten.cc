@@ -32,18 +32,11 @@ bool ArrayInitNode_need_flatten(const ASTNode *root) {
     assert(false); // 不应该到达这里
 }
 
-ASTNode *ArrayInitItem_create(int value, int repeat, const char* type) {
+ASTNode *ArrayInitItem_create(double value, int repeat, const std::string& decl_type) {
     ASTNode *ret = ASTNode_create("Number");
-    ASTNode_add_attr_int(ret, "value", value);
+    ASTNode_add_attr_int(ret, "value", (int) value);
     ASTNode_add_attr_int(ret, "repeat", repeat);
-    ASTNode_add_attr_str(ret, "type", type);
-    return ret;
-}
-
-ASTNode *ArrayInitItem_create(int value, int repeat) {
-    ASTNode *ret = ASTNode_create("Number");
-    ASTNode_add_attr_int(ret, "value", value);
-    ASTNode_add_attr_int(ret, "repeat", repeat);
+    ASTNode_add_attr_str(ret, "type", decl_type.c_str());
     return ret;
 }
 
@@ -55,7 +48,7 @@ ASTNode *ArrayInitItem_create(int value, int repeat) {
  * @param depth 当前的维度
  * @param space 将要初始化的值的数量
  */
-void ConstInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_node, ASTNode *linear_init, int depth,
+void ConstInitNode_flattener(const std::string decl_type, const std::vector<int> &dim_sizes, ASTNode *cur_node, ASTNode *linear_init, int depth,
                              int space) {
     assert(cur_node != NULL);
     assert(linear_init != NULL);
@@ -63,7 +56,7 @@ void ConstInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_nod
     assert(depth <= dim_sizes.size());
 
     if (ASTNode_children_size(cur_node) == 0) {
-        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space));
+        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space, decl_type));
         return;
     }
 
@@ -91,7 +84,7 @@ void ConstInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_nod
 
         child = ASTNode_querySelectorOne(iter->node, "/ConstInitValue");
         if (child != NULL || ASTNode_children_size(iter->node) == 0) {
-            ConstInitNode_flattener(dim_sizes, iter->node, linear_init, depth + 1, dim_sizes[depth + 1]);
+            ConstInitNode_flattener(decl_type, dim_sizes, iter->node, linear_init, depth + 1, dim_sizes[depth + 1]);
             space -= dim_sizes[depth + 1];
 
             continue;
@@ -101,7 +94,7 @@ void ConstInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_nod
         assert(false);
     }
     if (space > 0) {
-        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space));
+        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space, decl_type));
     }
 }
 
@@ -111,13 +104,17 @@ void ConstInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_nod
  * @return 返回展开到线性的节点，注意此时还未修改原节点
  */
 void ConstInitNode_flatten(ASTNode* decl, const std::vector<int>& dim_sizes) {
+    const char *decl_type_str;
+    ASTNode_get_attr_str(decl, "type", &decl_type_str);
+    std::string decl_type(decl_type_str);
+
     ASTNode *init_value = ASTNode_querySelectorOne(decl, "/ConstInitValue");
 
     assert(init_value != nullptr);
 
     ASTNode *linear_init = ASTNode_create_attr("ConstInitValue", 2, "array", "true", "flatten", "true");
 
-    ConstInitNode_flattener(dim_sizes, init_value, linear_init, 0, dim_sizes[0]);
+    ConstInitNode_flattener(decl_type, dim_sizes, init_value, linear_init, 0, dim_sizes[0]);
 
     ASTNode_replace(linear_init, init_value);
     ASTNode_free(init_value);
@@ -132,7 +129,7 @@ void ConstInitNode_flatten(ASTNode* decl, const std::vector<int>& dim_sizes) {
  * @param depth 当前的维度
  * @param space 将要初始化的值的数量
  */
-void VarInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_node, ASTNode *linear_init, int depth,
+void VarInitNode_flattener(const std::string& decl_type, const std::vector<int> &dim_sizes, ASTNode *cur_node, ASTNode *linear_init, int depth,
                            int space) {
     assert(cur_node != NULL);
     assert(linear_init != NULL);
@@ -140,7 +137,7 @@ void VarInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_node,
     assert(depth <= dim_sizes.size());
 
     if (ASTNode_children_size(cur_node) == 0) {
-        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space));
+        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space, decl_type));
         return;
     }
 
@@ -177,7 +174,7 @@ void VarInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_node,
 
         child = ASTNode_querySelectorOne(iter->node, "/InitValue");
         if (child != NULL || ASTNode_children_size(iter->node) == 0) {
-            VarInitNode_flattener(dim_sizes, iter->node, linear_init, depth + 1, dim_sizes[depth + 1]);
+            VarInitNode_flattener(decl_type, dim_sizes, iter->node, linear_init, depth + 1, dim_sizes[depth + 1]);
             space -= dim_sizes[depth + 1];
 
             continue;
@@ -186,7 +183,7 @@ void VarInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_node,
         assert(false);
     }
     if (space > 0) {
-        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space));
+        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space, decl_type));
     }
 }
 
@@ -194,17 +191,21 @@ void VarInitNode_flattener(const std::vector<int> &dim_sizes, ASTNode *cur_node,
  * 只展开变量数组
  */
 void VarInitNode_flatten(ASTNode* decl, const std::vector<int>& dim_sizes) {
+    const char* decl_type_str;
+    ASTNode_get_attr_str(decl, "type", &decl_type_str);
+    std::string decl_type(decl_type_str);
+
     ASTNode *init_value = ASTNode_querySelectorOne(decl, "/InitValue");
 
     assert(init_value != nullptr);
 
     ASTNode *linear_init = ASTNode_create_attr("InitValue", 2, "array", "true", "flatten", "true");
 
-    VarInitNode_flattener(dim_sizes, init_value, linear_init, 0, dim_sizes[0]);
+    VarInitNode_flattener(decl_type, dim_sizes, init_value, linear_init, 0, dim_sizes[0]);
 
     ASTNode_replace(linear_init, init_value);
     ASTNode_free(init_value);
-    ASTNode_print(linear_init);
+    // ASTNode_print(linear_init);
 }
 
 /**

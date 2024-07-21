@@ -1,0 +1,10 @@
+int main() {
+   int a;
+   float b;
+
+   a = 1.5;
+   b = 2;
+
+   putf("a = %d, b = %f\n", a, b);
+   return 0;
+}

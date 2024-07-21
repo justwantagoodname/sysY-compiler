@@ -1,0 +1,19 @@
+void f(float a) {
+    putf("%f\n", a);
+    return;
+}
+
+
+void g(int a) {
+    putf("%d\n", a);
+    return;
+}
+
+int main() {
+    f(1.0);
+    g(2);
+    
+    f(3);
+    g(4.5);
+    return 0;
+}

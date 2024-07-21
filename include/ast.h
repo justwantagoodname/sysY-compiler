@@ -45,11 +45,14 @@ typedef struct ASTNode ASTNode;
     /* ASTNode */
 ASTNode *ASTNode_create(const char* id);
 ASTNode *ASTNode_create_attr(const char* id, int attr_count, ...);
+void ASTNode_set_id(ASTNode *node, const char* id);
+
     /* Children */
 size_t ASTNode_children_size(const ASTNode *node);
 void ASTNode_add_nchild(ASTNode *parent, int n, ...);
 void ASTNode_lpush_child(ASTNode *parent, ASTNode *child);
 void ASTNode_add_child(ASTNode *parent, ASTNode *child);
+
     /* Attributes */
 void ASTNode_add_attr_int(ASTNode *node, const char* key, int value);
 void ASTNode_add_attr_str(ASTNode *node, const char* key, const char* value);
@@ -62,11 +65,13 @@ bool ASTNode_get_attr_float(const ASTNode *node, const char* key, float *value);
 bool ASTNode_get_attr_number(const ASTNode *node, const char* key, double *value);
 bool ASTNode_set_attr_str(ASTNode *node, const char* key, const char* value);
 
+    /* Attribute Comparisons */
 bool ASTNode_attr_eq_int(const ASTNode *node, const char* key, int value);
 bool ASTNode_attr_eq_str(const ASTNode *node, const char* key, const char* value);
 bool ASTNode_attr_eq_float(const ASTNode *node, const char* key, float value);
     /* Utils */
 void ASTNode_print(const ASTNode *node);
+void ASTNode_copy_attr(const ASTNode *from, ASTNode *to);
 void ASTNode_move_children(ASTNode *from, ASTNode *to);
 void ASTNode_copy_children(ASTNode *from, ASTNode *to);
 void ASTNode_replace(ASTNode *after, ASTNode *before);

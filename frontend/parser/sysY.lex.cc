@@ -1050,18 +1050,18 @@ YY_RULE_SETUP
 case 40:
 YY_RULE_SETUP
 #line 90 "frontend/parser/sysY.l"
-{ yylval.intValue = std::stoi(yytext, 0, 10);      return IntegerConst; }
+{ yylval.intValue = std::stoll(yytext, 0, 10);      return IntegerConst; }
 	YY_BREAK
 /* 为了尊重原 sysy 文档实际上 单个零会变成八进制常量，不过这无所谓因为 0 表示是一样的 */
 case 41:
 YY_RULE_SETUP
 #line 93 "frontend/parser/sysY.l"
-{ yylval.intValue = std::stoi(yytext, 0, 8);       return IntegerConst; }
+{ yylval.intValue = std::stoll(yytext, 0, 8);       return IntegerConst; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
 #line 95 "frontend/parser/sysY.l"
-{ yylval.intValue = std::stoi(yytext, 0, 16);      return IntegerConst; }
+{ yylval.intValue = std::stoll(yytext, 0, 16);      return IntegerConst; }
 	YY_BREAK
 /* 这个从神必网址抄过来的 https://www.regular-expressions.info/floatingpoint.html 😇 */
 case 43:

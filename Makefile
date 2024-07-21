@@ -44,7 +44,7 @@ BISON_C_FILES = $(Y_FILES:.y=.tab.cc)
 BISON_H_FILES = $(Y_FILES:.y=.tab.hh)
 FLEX_C_FILES = $(L_FILES:.l=.lex.cc)
 
-TEST_CASES := $(shell find testcase -type f -name "*.cc" | sed 's/^\.\///')
+# TEST_CASES := $(shell find testcase -type f -name "*.cc" | sed 's/^\.\///')
 
 SRC = $(CC_FILES) # 运行的时候展开 因为必须确保 paser-files 生成之后才能编译
 
@@ -109,6 +109,7 @@ debug-arm: $(TEST_DIR)/output.s $(TEST_DIR)/libsysy.a
 start-gdb:
 	gdb-multiarch $(TEST_DIR)/$(basename $(notdir $(TEST_DIR)/output.s)).arm -ex "target remote localhost:1234" -ex "b main" -ex "c"
 
+
 run-riscv: $(TEST_DIR)/output.s $(TEST_DIR)/libsysy.riscv.a
 	riscv64-linux-gnu-gcc-12 $< $(TEST_DIR)/libsysy.riscv.a -static -o $(TEST_DIR)/$(basename $(notdir $<)).rv
 	qemu-riscv64-static $(TEST_DIR)/$(basename $(notdir $<)).rv
@@ -136,9 +137,8 @@ clean:
 requirements:
 ifeq ($(UNAME), Linux) 
 		sudo apt-get -y install build-essential flex bison entr libxml2-utils \
-						gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user-static \
+						gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user-static gdb-multiarch \
 						gcc-12-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-system-misc \
-						gdb-multiarch
 endif
 
 ifeq ($(UNAME), Darwin)
@@ -152,6 +152,6 @@ dev:
 
 all: release-compiler
 
-.PHONY: clean dev zip test-compiler release-compiler dev-compiler parser-files requirements
+.PHONY: clean dev zip test-compiler release-compiler dev-compiler parser-files requirements start-gdb run-arm debug-arm test-submit-compiler
 
 .DEFAULT_GOAL := all

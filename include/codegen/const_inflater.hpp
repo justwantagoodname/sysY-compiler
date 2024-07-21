@@ -4,7 +4,7 @@
 #define CONST_INFLATER_H
 
 #include "ast.h"
-#include "ashelper.hpp"
+#include "asm_helper.hpp"
 
 class GlobalDeclInflater {
 private:

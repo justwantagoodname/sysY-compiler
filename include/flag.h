@@ -10,7 +10,7 @@
 class Flag {
 private:
 
-    std::map<std::string, std::variant<int, std::string> > flags;
+    std::map<std::string, std::variant<int, std::string, bool> > flags;
 
     /* 声明单例对象 */
     Flag() = default;
@@ -31,7 +31,19 @@ public:
 
     static void init(int argc, const char** argv);
 
-    const std::string& getFlagFor(const std::string& key) const;
+    template <typename T>
+    const T& getFlagFor(const std::string& key) const {
+        assert(flags.find(key) != flags.end());
+
+        return std::get<T>(flags.find(key)->second);
+    }
+
+    template <typename T>
+    const T& by(const std::string& key) const {
+        assert(flags.find(key) != flags.end());
+
+        return std::get<T>(flags.find(key)->second);
+    }
 };
 
 #endif
