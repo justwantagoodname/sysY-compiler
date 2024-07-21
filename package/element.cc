@@ -12,14 +12,16 @@ Element Element::CreateByFile(const char* filename) {
 	yyin = fopen(filename, "r");
 	assert(yyin != nullptr);
 	ASTNode* node = nullptr;
-	int i = yyparse(&node);
+	int status = yyparse(&node);
 
-	exit(101);
-	assert(i == 0);
 	
-	if (i != 0) {
+	assert(status == 0);
+
+	if (status != 0) {
 		node = nullptr;
 	}
+	
+	exit(101);
 	return Element(node);
 }
 
