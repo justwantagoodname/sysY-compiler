@@ -23,13 +23,13 @@ std::string RVOperand::toASM() const {
 }
 
 
-RVOperand make_reg(uint8_t reg) {
+RVOperand make_reg(RVRegs reg) {
     RVOperand opr;
     opr.tag = REG;
     opr.reg = reg;
     return opr;
 }
-RVOperand make_sreg(int sreg) {
+RVOperand make_sreg(RVRegs sreg) {
     RVOperand opr;
     opr.tag = SREG;
     opr.reg = sreg;
@@ -45,6 +45,13 @@ RVOperand make_simm(int value) {
     RVOperand opr;
     opr.tag = SIMM;
     opr.value = value;
+    return opr;
+}
+RVOperand make_stack(RVRegs reg, uint16_t offset) {
+    RVOperand opr;
+    opr.tag = STACK;
+    opr.reg = reg;
+    opr.offset = offset;
     return opr;
 }
 
@@ -140,15 +147,25 @@ std::string RVArith::toASM() {
     return result;
 }
 
+RVMem::RVMem(RVOp opt, const RVOperand& opr, uint16_t offset) 
+    : RVInstr(opt), opr(opr), dst(make_stack(RVRegs::sp, offset)) {
+    assert(opt == RVOp::LW || opt == RVOp::FLW || opt == RVOp::SW || opt == RVOp::FSW);
+}
+std::string RVMem::toASM() {
+    panic("TODO!");
+    return "";
+}
+
 std::string RVCall::intPutOnReg(const RVOperand& opr, uint8_t reg) {
     if (opr.isimm()) {
-        return "    li " + std::to_string(reg) + " " + std::to_string(opr.value) + "\n";
+        return "    li " + std::to_string(reg) + ", " + opr.toASM() + "\n";
     } else if (opr.isreg()) {
-        return "    mv " + std::to_string(reg) + " " + std::to_string(opr.reg) + "\n";
+        return "    mv " + std::to_string(reg) + ", " + opr.toASM() + "\n";
     }
 }
 std::string RVCall::toASM() {
     std::string result = "";
+    std::string put_stack = "", put_regs = "";
 
     // deal with args
     uint8_t int_count = 0, float_count = 0;
@@ -165,7 +182,7 @@ std::string RVCall::toASM() {
             if (int_count >= 8) {
                 panic("TODO: put on stack");
             } else {
-                result += intPutOnReg(args[i], int_count);
+                put_regs += intPutOnReg(args[i], int_count);
             }
         }
     }
@@ -174,15 +191,7 @@ std::string RVCall::toASM() {
     return result;
 }
 
-// RVIInstr::RVIInstr(RVIOp opt, const RVOperand& opr, const RVOperand& dst) 
-//     : RVInstr(IInstr), opt(opt), opr(opr), dst(dst) {
-//     return;
-// }
-std::string RVIInstr::toASM() {
-    assert(false);
-    static const std::map<RVIOp, std::string> asm_op_tag = {
-        {ADDI, "addi"},
-        {}
-    };
+std::string RVPutf::toASM() {
+    panic("TODO!");
     return "";
 }

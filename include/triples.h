@@ -95,15 +95,15 @@ public:
 		void toString(char[], const Triples& triples);
 	};
 
-private:
-	int temp_count = -1;
-
 	struct Triple {
 		int cmd;
 		TripleValue e1, e2, to;
 
 		Triple(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 	};
+private:
+	int temp_count = -1;
+
 
 	std::vector<std::shared_ptr<Triple>> triples;
 	std::vector<Element> value_pointer;
