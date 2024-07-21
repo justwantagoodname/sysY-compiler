@@ -10,6 +10,7 @@ Element::Element() : node(nullptr) {}
 
 Element Element::CreateByFile(const char* filename) {
 	yyin = fopen(filename, "r");
+	assert(yyin != nullptr);
 	ASTNode* node = nullptr;
 	int i = yyparse(&node);
 	assert(i == 0);
