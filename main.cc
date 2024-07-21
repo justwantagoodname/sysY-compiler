@@ -15,6 +15,8 @@ int main(int argc, const char** argv) {
 
 	Element root = Element::CreateByFile(Flag::getFlag().by<std::string>("input").c_str());
 
+	return 114;
+
 	if (Flag::getFlag().by<bool>("dump-raw")) {
   		root.print();
 	}
