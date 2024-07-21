@@ -135,10 +135,10 @@ clean:
 	find . -type f -name "*.output" -delete
 
 requirements:
-ifeq ($(UNAME), Linux) 
+ifeq ($(UNAME), Linux)
 		sudo apt-get -y install build-essential flex bison entr libxml2-utils \
 						gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user-static gdb-multiarch \
-						gcc-12-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-system-misc \
+						gcc-12-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-system-misc
 endif
 
 ifeq ($(UNAME), Darwin)
