@@ -15,7 +15,7 @@ int main(int argc, const char** argv) {
 
 	Element root = Element::CreateByFile(Flag::getFlag().by<std::string>("input").c_str());
 
-	return 114;
+	
 
 	if (Flag::getFlag().by<bool>("dump-raw")) {
   		root.print();
@@ -23,12 +23,13 @@ int main(int argc, const char** argv) {
 
 #ifdef UNI_OPTIMIZTION
 	ConstNode_unfold(root);
+	
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
   		root.print();
 	}
 #endif
-
+	return 114;
 #ifdef ASM_GEN
 	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());
 
