@@ -21,7 +21,6 @@ Element Element::CreateByFile(const char* filename) {
 		node = nullptr;
 	}
 	
-	exit(101);
 	return Element(node);
 }
 
