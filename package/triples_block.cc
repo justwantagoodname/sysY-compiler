@@ -71,7 +71,8 @@ void Triples::minTempVar()
 		// 采用贪心求解每个变量的最大合并占用
 
 		// 合并标记
-		std::vector<bool> meraged(block_temp.size(), false);
+		bool* meraged = new bool[block_temp.size() + 5];
+		memset(meraged, 0, block_temp.size());
 
 		// 临时函数：查找未被合并过的离某个起点最近起始的变量
 		auto found_nearlest = [&var_begin, &block_temp, &meraged](int begin) {
@@ -86,9 +87,9 @@ void Triples::minTempVar()
 			return min_temp;
 			};
 
-		auto meraged_finish = [&meraged]() {
-			for (auto i : meraged) {
-				if (!i) return false;
+		auto meraged_finish = [&meraged, &block_temp]() {
+			for (int i = 0; i < block_temp.size(); ++i) {
+				if (!meraged[i]) return false;
 			}
 			return true;
 			};

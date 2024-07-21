@@ -226,7 +226,7 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		snprintf(s, 40, "#%d", value);
 		break;
 	case TT.fimd:
-		snprintf(s, 40, "#%f", value);
+		snprintf(s, 40, "#%f", *(float*)(&value));
 		break;
 	case TT.value:
 		if (added == nullptr) {
