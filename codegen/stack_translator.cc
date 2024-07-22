@@ -940,9 +940,8 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
         assert(false);
     }
 
-    // 逻辑表达式实际上没有实际计算值，但是为了方便起见设置为 Bool 和一般的 Int 作出区分
-    // 实际上因为 sysy 没有实际的 bool 类型，在文法上也不能把逻辑表达式的值赋值给变量所以没有关系
-    ASTNode_add_attr_str(logic, "type", "Bool");
+    // Update: 统一按照 SyInt 处理
+    ASTNode_add_attr_str(logic, "type", SyInt);
 
     auto lhs = ASTNode_querySelectorOne(logic, "*[0]"),
         rhs = ASTNode_querySelectorOne(logic, "*[1]");
