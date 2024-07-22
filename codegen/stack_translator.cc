@@ -264,10 +264,10 @@ void StackTranslator::translateExp(ASTNode *exp) {
 }
 
 void StackTranslator::translateExpInner(ASTNode *exp) {
-    static std::set<std::string> logicOp = {"Or", "And", "Not"};
+    static std::set<std::string> logicOp = {"Or", "And"};
     static std::set<std::string> relOp = { "Equal", "NotEq", "Less", "LessEq", "Greater", "GreaterEq"};
     static std::set<std::string> arithOp = {"Plus", "Minus", "Mult", "Div", "Mod"};
-    static std::set<std::string> unaryOp = {"UnPlus", "UnMinus"};
+    static std::set<std::string> unaryOp = {"UnPlus", "UnMinus", "Not"};
     if (ASTNode_id_is(exp, "Call")) {
         translateCall(exp);
     } else if (ASTNode_id_is(exp, "Number")) {
@@ -954,8 +954,6 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
     bool hasLhsType = ASTNode_get_attr_str(lhs, "type", &lhs_type);
     assert(hasLhsType);
 
-    // TODO: 这里需要根据类型来判断是否需要转换类型 比如 float
-
     if (ASTNode_id_is(logic, "And")) {
         // 短路与
         adapter->jumpEqual(accumulatorReg, 0, false_label);
@@ -973,7 +971,6 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
     bool hasRhsType = ASTNode_get_attr_str(rhs, "type", &rhs_type);
     assert(hasRhsType);
 
-    // TODO: 同上
     assert(strcmp(rhs_type, "Int") == 0);
 
     // 计算到这里，说明左边无法得到整个表达式的值，根据右边的值进行转跳
