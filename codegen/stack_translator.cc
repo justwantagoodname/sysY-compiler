@@ -807,14 +807,13 @@ void StackTranslator::translateUnaryOp(ASTNode *exp) {
         auto inner = ASTNode_querySelectorOne(exp, "*");
         translateExpInner(inner);
 
-        const char* inner_type_str;
         std::string inner_type;
-        bool hasType = ASTNode_get_attr_str(inner, "type", &inner_type_str);
+        bool hasType = ASTNode_get_attr_str(inner, "type", inner_type);
         assert(hasType);
 
-        if (inner_type_str == SyInt) {
+        if (inner_type == SyInt) {
             adapter->neg(accumulatorReg, accumulatorReg);
-        } else if (inner_type_str == SyFloat) {
+        } else if (inner_type == SyFloat) {
             adapter->fneg(floatAccumulatorReg, floatAccumulatorReg);
         } else {
             assert(0);
@@ -824,14 +823,13 @@ void StackTranslator::translateUnaryOp(ASTNode *exp) {
         auto inner = ASTNode_querySelectorOne(exp, "*");
         translateExpInner(inner);
 
-        const char* inner_type_str;
         std::string inner_type;
-        bool hasType = ASTNode_get_attr_str(inner, "type", &inner_type_str);
+        bool hasType = ASTNode_get_attr_str(inner, "type", inner_type);
         assert(hasType);
 
-        if (inner_type_str == SyInt) {
+        if (inner_type == SyInt) {
             adapter->notReg(accumulatorReg, accumulatorReg);
-        } else if (inner_type_str == SyFloat) {
+        } else if (inner_type == SyFloat) {
             adapter->fnotReg(accumulatorReg, floatAccumulatorReg);
         } else {
             assert(0);
