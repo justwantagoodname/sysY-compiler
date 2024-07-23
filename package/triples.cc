@@ -95,6 +95,7 @@ void Triples::print() const
 			"mov",
 			"call",
 			"jmp",
+			"j!0",
 			"jeq",
 			"jne",
 			"jgt",

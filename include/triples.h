@@ -16,6 +16,7 @@ public:
 			mov,
 			call,
 			jmp,
+			jn0,
 			jeq,
 			jne,
 			jgt,
@@ -157,8 +158,8 @@ public:
 
 	size_t size();
 
-	std::vector<std::shared_ptr<Triple>>::iterator& begin() { return triples.begin(); }
-	std::vector<std::shared_ptr<Triple>>::iterator& end() { return triples.end(); }
+	std::vector<std::shared_ptr<Triple>>::iterator begin() { return triples.begin(); }
+	std::vector<std::shared_ptr<Triple>>::iterator end() { return triples.end(); }
 
 	void print() const;
 

@@ -11,6 +11,9 @@ int main() {
     c = a + b;
 
     float g = 3.14;
+    if(1)g = 12.6;
+    if(a % 2  && b % 2 )
+        printf("no");
 
     return 0;
 }

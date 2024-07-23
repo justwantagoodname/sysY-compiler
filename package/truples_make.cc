@@ -6,8 +6,8 @@ using std::vector;
 #define DFS_Element(node) 	for (Element::Iter iter = (node).dfsbegin();\
 		 iter != (node).dfsend(); iter.next()) 
 #define DFS_Element_init Element element = *iter
-#define beginElement(eqid) (!strcmp((*iter).id(), (eqid)) && !(*iter).flag)
-#define endElement(eqid) (!strcmp((*iter).id(), (eqid)) && (*iter).flag)
+#define beginElement(eqid) ((*iter).id_is(eqid) && !(*iter).flag)
+#define endElement(eqid) ((*iter).id_is(eqid) && (*iter).flag)
 #define ife(eqid) if (endElement(eqid))
 #define ifb(eqid) if (beginElement(eqid))
 #define cut {iter.flag = true; continue;}
@@ -44,13 +44,58 @@ void Triples::pretreat()
 		adecl.add_attr("value", adecl[0].get_attr_int("value"));
 	}
 
-	Query ex_functions = root("//Call[@name='printf'|@name='getint'|@name='getfloat']");
+	Query ex_functions = root("//Call[@name='printf'|@name='getint'|@name='getfloat'|@name='starttime'|@name='stoptime']");
 	for (auto ex_fun : ex_functions) {
 		ex_fun.add_attr("ex_fun", 1);
 	}
 
 	Element decls = root("//Scope/Decl");
 	decls.add_attr("name", "Global");
+
+	Query cond_node = root("//And");
+	cond_node += root("//Or");
+	cond_node += root("//Cond");
+
+	for (auto cond : cond_node) {
+		Element copy_cond_node = cond.clone();
+		copy_cond_node.unwrap()->children = NULL;
+
+		ASTNode* head = cond.children();
+		ASTNode* el = NULL;
+		for ((el) = (head); el; (el) = (el)->next) {
+			Element item = el;
+
+			if (!item.id_is("Equal") &&
+				!item.id_is("NotEq") &&
+				!item.id_is("Less") &&
+				!item.id_is("LessEq") &&
+				!item.id_is("Greater") &&
+				!item.id_is("GreaterEq") &&
+				!item.id_is("NotZero"))
+
+			{
+				Element cutnode = Element("NotZero");
+				cutnode.unwrap()->next = el->next;
+				cutnode.unwrap()->prev = el->prev;
+				if (el->next)
+					el->next->prev = cutnode.unwrap();
+				if (el->prev->next)
+					el->prev->next = cutnode.unwrap();
+
+				cutnode.unwrap()->parent = el->parent;
+				cutnode.unwrap()->children = el;
+				el->next = NULL;
+				el->prev = el;
+
+				if (el == head) {
+					el->parent->children = cutnode.unwrap();
+				}
+
+				el->parent = cutnode.unwrap();
+				el = cutnode.unwrap();
+			}
+		}
+	}
 }
 
 void Triples::make()
@@ -108,6 +153,7 @@ void Triples::make()
 			}
 		}
 		ife("Address") {
+
 			const char* s = element.get_attr_str("base");
 			Element value = element.table(s);
 
@@ -120,6 +166,7 @@ void Triples::make()
 			element.add_attr("type", value.get_attr_str("type"));
 		}
 		ife("Locator") {
+			element.print();
 			const char* s = element.get_attr_str("base");
 			Element value = element.table(s)[0];
 
@@ -278,6 +325,14 @@ void Triples::make()
 		ife("GreaterEq") {
 			makeCond(Cmd.jge);
 		}
+		ife("NotZero") {
+			int temp = element[0].get_attr_int("temp");
+			triples.add(Cmd.jn0, { temp }, {}, {});
+			triples.add(Cmd.jmp, {}, {}, {});
+
+			element.add_attr("true", triples.size() - 2);
+			element.add_attr("false", triples.size() - 1);
+		}
 		ife("And") {
 			int t1 = element[0].get_attr_int("true"),
 				t2 = element[1].get_attr_int("true");
@@ -325,9 +380,10 @@ void Triples::make()
 			element("parent::*")[0].add_attr("false", f);
 			do {
 				TripleValue tmp = triples[t].to;
-				triples[t].to = { triples[triples.size() - 1].e1.value, TT.lamb };
+				triples[t].to = { tag_count, TT.lamb };
 				t = tmp.value;
 			} while (t != 0);
+			triples.add(Cmd.tag, { tag_count++, TT.lamb }, {}, {});
 		}
 		ife("Then") {
 			Element if_element = element("parent::If");
@@ -428,7 +484,6 @@ void Triples::make()
 		}
 		ife("Mod") {
 			EopE(Cmd.mod);
-			assert(strcmp("Int", element.get_attr_str("type")) == 0);
 		}
 		ife("Call") {
 			TripleValue parms = { 0, TT.parms };
