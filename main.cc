@@ -9,7 +9,8 @@
 #include "codegen/stack_translator.hpp"
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
-#define TRIPLE_DEBUG
+#define ASM_GEN
+//#define TRIPLE_DEBUG
 
 int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
@@ -21,14 +22,14 @@ int main(int argc, const char** argv) {
   		root.print();
 	}
 
-// #ifdef UNI_OPTIMIZTION
+#ifdef UNI_OPTIMIZTION
 	ConstNode_unfold(root);
 	
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
   		root.print();
 	}
-// #endif
+#endif
 	
 #ifdef ASM_GEN
 	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());

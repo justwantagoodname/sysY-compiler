@@ -83,6 +83,7 @@ ASTNode *collectDecl(ASTNode *scope_node, ASTNode *decls) {
     ASTNode *block = ASTNode_querySelectorOne(scope_node, "/Block");
     if (ASTNode_id_is(decls, "VarTemp")) {
         // 查询有InitValue的变量
+        // TODO: 改回去都加到block里
         QueryResult *init_vars = ASTNode_querySelector(decls, "/Var/InitValue/.."), *cur = nullptr;
         DL_FOREACH(init_vars, cur) {
             auto init_var = cur->node;

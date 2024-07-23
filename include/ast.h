@@ -126,4 +126,6 @@ typedef struct SearchParam SearchParam;
 }
 #endif
 
+bool ASTNode_get_attr_str(const ASTNode *node, const char* key, std::string& value);
+
 #endif
