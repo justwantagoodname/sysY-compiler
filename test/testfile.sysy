@@ -1,17 +1,11 @@
-/* const int SHIFT_TABLE[16] = {1,   2,   4,    8,    16,   32,   64,    128,
-                             256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
-
-int long_func() {
-  int ans, i, x, y, cur;
-  ans = ans + 1 * SHIFT_TABLE[i];
+/*/skipher/*/
+//int main(){
+int main(){
+	////return 0;}/*
+	/*}
+	//}return 1;*/
+	//}return 2;*//*
+	return 3;
+	//*/
 }
-
-*/
-
-const int TEST[3] = {1,2,3};
-// int B[3] = {1,2,3};
-int i = 1;
-int main() {
-   int a = TEST[i];
-   int b = TEST[2];
-}
+//
