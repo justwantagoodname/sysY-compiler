@@ -18,14 +18,18 @@ enum RVOperandTag {
     STACK
 };
 
+enum class RVRegs {
+    ra = 1,
+    sp = 2
+};
 
 class RVOperand {
 public:
     RVOperandTag tag;
     int32_t value;
     int32_t addr;
-    uint8_t reg;
-    int32_t offset;
+    RVRegs reg;
+    uint16_t offset;
     RVOperand();
     RVOperand(RVOperandTag tag, int value);
     bool isreg() const;
@@ -92,8 +96,10 @@ enum class RVOp {
 
     // Load
     LW,
+    FLW,
     // Store
     SW,
+    FSW,
 
     // I
     // Arithmetic
@@ -180,31 +186,6 @@ public:
     virtual std::string toASM() override;
 };
 
-
-
-enum RVIOp {
-    // Arithmetic
-    ADDI,
-
-    // Logical
-    XORI,
-    ORI,
-    ANDI,
-
-    // Compare
-    // set < immediate
-    SLTI,
-    SLTIU
-};
-class RVIInstr : public RVInstr {
-public:
-    RVIOp opt;
-    RVOperand dst, opr;
-    RVIInstr(RVIOp opt, const RVOperand& opr, const RVOperand& dst);
-    virtual std::string toASM() override;
-};
-
-
 class RVArith : public RVInstr {
 public:
     bool is_float;
@@ -213,9 +194,25 @@ public:
     virtual std::string toASM() override;
 };
 
+// Load & Store
+class RVMem : public RVInstr {
+public:
+    bool is_float;
+    RVOperand dst, opr;
+    RVMem(RVOp opt, const RVOperand& opr, uint16_t offset);
+    virtual std::string toASM() override;
+};
+
 // Call
 class RVCall : public RVInstr {
     std::string intPutOnReg(const RVOperand& opr, uint8_t reg);
+public:
+    std::vector<RVOperand> args;
+    virtual std::string toASM() override;
+};
+
+// Putf
+class RVPutf : public RVInstr {
 public:
     std::vector<RVOperand> args;
     virtual std::string toASM() override;
