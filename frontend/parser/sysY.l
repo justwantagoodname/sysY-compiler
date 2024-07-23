@@ -86,12 +86,12 @@ Whitespaces [ \f\n\r\t\v]
 
 
     /* 解析十进制常量 */
-{DecConst}      { yylval.intValue = std::stoi(yytext, 0, 10);      return IntegerConst; }
+{DecConst}      { yylval.intValue = std::stoll(yytext, 0, 10);      return IntegerConst; }
 
     /* 为了尊重原 sysy 文档实际上 单个零会变成八进制常量，不过这无所谓因为 0 表示是一样的 */
-{OctConst}          { yylval.intValue = std::stoi(yytext, 0, 8);       return IntegerConst; }
+{OctConst}          { yylval.intValue = std::stoll(yytext, 0, 8);       return IntegerConst; }
 
-{HexConst}          { yylval.intValue = std::stoi(yytext, 0, 16);      return IntegerConst; }
+{HexConst}          { yylval.intValue = std::stoll(yytext, 0, 16);      return IntegerConst; }
 
     /* 这个从神必网址抄过来的 https://www.regular-expressions.info/floatingpoint.html 😇 */
 {DecimalFloatConst} { char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }

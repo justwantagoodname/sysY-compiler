@@ -157,11 +157,19 @@ ASTNode *ExpNode_simplify_unary_operator(const ASTNode *exp) {
     } else if (ASTNode_id_is(exp, "UnMinus")) {
         ASTNode *child = ASTNode_querySelectorOne(exp, "/*");
         ret = ExpNode_simplify_recursive(child);
-        sim_result_t value = -1;
-        ASTNode_get_attr_number(ret, "value", &value);
-        ASTNode_free(ret);
-        ret = ASTNode_create("Number");
-        ExpNode_push_value(ret, -value);
+        if (ExpNode_is_atomic(ret)) {
+            sim_result_t value = -1;
+            ASTNode_get_attr_number(ret, "value", &value);
+            ASTNode_free(ret);
+            ret = ASTNode_create("Number");
+            ExpNode_push_value(ret, -value);
+        } else {
+            // 如果不是字面量，那么就是一个取负数的表达式
+            auto neg_node = ASTNode_create(exp->id);
+            ASTNode_copy_attr(exp, neg_node);
+            ASTNode_add_child(neg_node, ret);
+            ret = neg_node;
+        }
     } else if (ASTNode_id_is(exp, "Fetch")) {
         return ExpNode_try_fetch_const(exp);
     } else {
@@ -210,6 +218,7 @@ ASTNode *ExpNode_simplify_binary_operator(const ASTNode *exp) {
     } else {
         // TODO: 都不是字面量，理论上可以用一些运算性质化简
         ret = ASTNode_create(exp->id);
+        ASTNode_copy_attr(exp, ret);
         ASTNode_add_nchild(ret, 2, sim_left, sim_right);
     }
 
@@ -357,6 +366,7 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
 
             ASTNode *new_sim_side = ASTNode_clone(non_atomic_desc);
             ASTNode *ret = ASTNode_create(exp->id);
+            ASTNode_copy_attr(exp, ret);
             ASTNode_add_nchild(ret, 2, new_sim_side, atomic);
 
             ASTNode_free(non_atomic);
@@ -368,6 +378,7 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
 
     clone_new:
         ASTNode *ret = ASTNode_create(exp->id);
+        ASTNode_copy_attr(exp, ret);
         ASTNode_add_nchild(ret, 2, sim_left, sim_right);
         return ret;
 }
@@ -375,10 +386,9 @@ ASTNode *ExpNode_calc_partial(const ASTNode *exp, ASTNode *sim_left, ASTNode *si
 ASTNode *ExpNode_simplify_call_params(const ASTNode *exp) {
     assert(ASTNode_id_is(exp, "Call"));
 
-    const char* func_name = nullptr;
-    ASTNode_get_attr_str(exp, "name", &func_name);
-    auto ret = ASTNode_create_attr(exp->id, 1, "name", func_name);
 
+    auto ret = ASTNode_create(exp->id);
+    ASTNode_copy_attr(exp, ret);
     QueryResult *queryResult = ASTNode_querySelector(exp, "Param"), *cur = nullptr;
 
     DL_FOREACH(queryResult, cur) {

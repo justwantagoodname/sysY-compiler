@@ -291,6 +291,7 @@ Exp: Exp Or Exp        { $$ = createOpNode("Or", $1, $3);        }
 
 UnaryExp: PrimaryExp { $$ = $1; }
         | Identifier LeftParent FuncRParams RightParent { $$ = ASTNode_create("Call"); 
+                                                          ASTNode_add_attr_int($$, "line", @1.first_line); // 一些外部函数调用需要使用 __LINE__ 宏，这里模拟一下
                                                           ASTNode_add_attr_str($$, "name", $1); 
                                                           ASTNode_move_children($3, $$);
                                                           ASTNode_free($3); }

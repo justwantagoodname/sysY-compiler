@@ -344,6 +344,11 @@ void ASTNode_replace(ASTNode *after, ASTNode *before) {
         DL_REPLACE_ELEM(after->parent->children, before, after);
 }
 
+/**
+ * @note 注意这个仅clone节点自身及子树，不会clone兄弟节点和父母节点
+ * @param node
+ * @return
+ */
 ASTNode *ASTNode_clone(const ASTNode *node) {
     assert(node != NULL);
 
@@ -435,4 +440,21 @@ bool ASTNode_set_attr_str(ASTNode *node, const char* key, const char* value) {
         }
     }
     return false;
+}
+
+void ASTNode_copy_attr(const ASTNode *from, ASTNode *to) {
+    assert(from != NULL && to != NULL);
+
+    ASTAttribute *attr = NULL, *tmp = NULL;
+    HASH_ITER(hh, from->attrs, attr, tmp) {
+        ASTAttribute *clone_attr = ASTAttribute_clone(attr);
+        HASH_ADD_STR(to->attrs, key, clone_attr);
+    }
+}
+
+void ASTNode_set_id(ASTNode *node, const char* id) {
+    assert(node != NULL && id != NULL);
+
+    free((char *)node->id);
+    node->id = strdup(id);
 }

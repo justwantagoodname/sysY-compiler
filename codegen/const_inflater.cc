@@ -27,6 +27,9 @@ void GlobalDeclInflater::inflateConstDecl(ASTNode* const_decl, AssemblyBuilder& 
     assert(label != nullptr);
 
     asm_builder
+        .line("\t.type %s, %%object", label)
+        .line("\t.section .rodata")
+        .line("\t.align %d", this->word_align)
         .line("%s:", label);
 
     bool is_array = ASTNode_querySelectorOne(const_decl, "/.[@array]") != nullptr;
@@ -54,8 +57,6 @@ void GlobalDeclInflater::inflateConstDecl(ASTNode* const_decl, AssemblyBuilder& 
     }
 
     asm_builder 
-        .line("\t.section .rodata")
-        .line("\t.align %d", this->word_align)
         .line();
     
 }
@@ -96,10 +97,14 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
     ASTNode_get_attr_str(static_var_decl, "label", &label);
     assert(label != nullptr);
 
-    asm_builder
-        .line("%s:", label);
     bool is_array = ASTNode_querySelectorOne(static_var_decl, "/.[@array]") != nullptr;
     bool is_inited = ASTNode_querySelectorOne(static_var_decl, "//InitValue[0]") != nullptr;
+
+    asm_builder
+        .line("\t.type %s, %%object", label)
+        .line("\t.section .%s", is_inited ? "data" : "bss")
+        .line("\t.align %d", this->word_align)
+        .line("%s:", label);
 
     if (is_array) {
         if (is_inited) {
@@ -116,8 +121,6 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
                     }
                 }
             }
-            asm_builder
-                .line("\t.section .data");
         } else {
             int array_size = 1;
             QueryResult *array_sizes = ASTNode_querySelector(static_var_decl, "/ArraySize/Dimension//Number"), *cur = nullptr;
@@ -128,8 +131,7 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
                 array_size *= size;
             }
             asm_builder
-                .line("\t.space %d", array_size * this->word_size)
-                .line("\t.section .bss");
+                .line("\t.space %d", array_size * this->word_size);
         }
     } else {
         // 不是数组
@@ -139,16 +141,13 @@ void GlobalDeclInflater::inflateStaticVarDecl(ASTNode *static_var_decl, Assembly
             int value = -1;
             ASTNode_get_attr_int(init_value, "value", &value);
             asm_builder
-                .line("\t.word %d", value)
-                .line("\t.section .data");
+                .line("\t.word %d", value);
         } else {
             asm_builder
-                .line("\t.space %d", this->word_size)
-                .line("\t.section .bss");
+                .line("\t.space %d", this->word_size);
         }
     }
     asm_builder
-        .line("\t.align %d", this->word_align)
         .line();
 }
 
@@ -183,10 +182,11 @@ void GlobalDeclInflater::inflateStringConst(ASTNode *string_const, AssemblyBuild
     ASTNode_get_attr_str(string_const, "value", &str_literal);
 
     asm_builder
-        .line("%s:", label_name)
-        .line("\t.asciz \"%s\"", str_literal)
+        .line("\t.type %s, %%object", label_name)
         .line("\t.section .rodata")
         .line("\t.align %d", this->word_align)
+        .line("%s:", label_name)
+        .line("\t.asciz \"%s\"", str_literal)
         .line();
 }
 

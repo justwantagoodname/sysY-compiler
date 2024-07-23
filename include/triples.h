@@ -102,6 +102,9 @@ public:
 
 		Triple(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 	};
+private:
+	int temp_count = -1;
+
 
 private:
 	int temp_count = -1;

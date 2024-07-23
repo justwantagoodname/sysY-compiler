@@ -25,6 +25,39 @@ void ConstNode_unfold(ASTNode* root) {
 }
 
 /**
+ * 计算数组大小并存在 AST 中的 size 属性中，注意此属性其实是元素个数而并不是字节数
+ */
+void ArrayNode_calculate_size(ASTNode* decl) {
+    assert(decl);
+    assert(ASTNode_id_is(decl, "Var") || ASTNode_id_is(decl, "Const"));
+    assert(ASTNode_has_attr(decl, "array"));
+
+    if (ASTNode_has_attr(decl, "size")) {
+        return;
+    }
+
+    // ArraySize 中的表达式必须在之前被化简
+    QueryResult* dims = ASTNode_querySelector(decl, "/ArraySize//Number"), *cur = nullptr;
+    int dim_size = 0;
+    int total_size = 1;
+
+    DL_FOREACH(dims, cur) {
+        const char* type = nullptr;
+        ASTNode_get_attr_str(cur->node, "type", &type);
+        assert(strcmp(type, "Int") == 0);
+
+        int dim;
+        ASTNode_get_attr_int(cur->node, "value", &dim);
+        dim_size++;
+        total_size *= dim;
+    }
+    assert(dim_size == ASTNode_children_size(ASTNode_querySelectorOne(decl, "/ArraySize")));
+
+    ASTNode_add_attr_int(decl, "size", total_size);
+}
+
+
+/**
  * 鉴于有些变量和常量数组可能未被引用，所以再扫描一遍
  * @param root
  */
@@ -39,6 +72,7 @@ void ArrayDecl_flatten(ASTNode* root) {
     DL_CONCAT(const_array_decls, var_array_decls);
 
     DL_FOREACH(const_array_decls, iter) {
+        ArrayNode_calculate_size(iter->node);
         if (ArrayInitNode_need_flatten(iter->node)) {
             ArrayInitNode_flatten(iter->node);
         }
