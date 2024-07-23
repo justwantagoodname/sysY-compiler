@@ -106,9 +106,6 @@ private:
 	int temp_count = -1;
 
 
-private:
-	int temp_count = -1;
-
 	std::vector<std::shared_ptr<Triple>> triples;
 	std::vector<Element> value_pointer;
 	std::vector<Element> function_pointer;
