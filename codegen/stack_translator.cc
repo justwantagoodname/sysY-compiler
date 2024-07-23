@@ -264,10 +264,10 @@ void StackTranslator::translateExp(ASTNode *exp) {
 }
 
 void StackTranslator::translateExpInner(ASTNode *exp) {
-    static std::set<std::string> logicOp = {"Or", "And", "Not"};
+    static std::set<std::string> logicOp = {"Or", "And"};
     static std::set<std::string> relOp = { "Equal", "NotEq", "Less", "LessEq", "Greater", "GreaterEq"};
     static std::set<std::string> arithOp = {"Plus", "Minus", "Mult", "Div", "Mod"};
-    static std::set<std::string> unaryOp = {"UnPlus", "UnMinus"};
+    static std::set<std::string> unaryOp = {"UnPlus", "UnMinus", "Not"};
     if (ASTNode_id_is(exp, "Call")) {
         translateCall(exp);
     } else if (ASTNode_id_is(exp, "Number")) {
@@ -807,14 +807,13 @@ void StackTranslator::translateUnaryOp(ASTNode *exp) {
         auto inner = ASTNode_querySelectorOne(exp, "*");
         translateExpInner(inner);
 
-        const char* inner_type_str;
         std::string inner_type;
-        bool hasType = ASTNode_get_attr_str(inner, "type", &inner_type_str);
+        bool hasType = ASTNode_get_attr_str(inner, "type", inner_type);
         assert(hasType);
 
-        if (inner_type_str == SyInt) {
+        if (inner_type == SyInt) {
             adapter->neg(accumulatorReg, accumulatorReg);
-        } else if (inner_type_str == SyFloat) {
+        } else if (inner_type == SyFloat) {
             adapter->fneg(floatAccumulatorReg, floatAccumulatorReg);
         } else {
             assert(0);
@@ -824,14 +823,13 @@ void StackTranslator::translateUnaryOp(ASTNode *exp) {
         auto inner = ASTNode_querySelectorOne(exp, "*");
         translateExpInner(inner);
 
-        const char* inner_type_str;
         std::string inner_type;
-        bool hasType = ASTNode_get_attr_str(inner, "type", &inner_type_str);
+        bool hasType = ASTNode_get_attr_str(inner, "type", inner_type);
         assert(hasType);
 
-        if (inner_type_str == SyInt) {
+        if (inner_type == SyInt) {
             adapter->notReg(accumulatorReg, accumulatorReg);
-        } else if (inner_type_str == SyFloat) {
+        } else if (inner_type == SyFloat) {
             adapter->fnotReg(accumulatorReg, floatAccumulatorReg);
         } else {
             assert(0);
@@ -942,9 +940,8 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
         assert(false);
     }
 
-    // 逻辑表达式实际上没有实际计算值，但是为了方便起见设置为 Bool 和一般的 Int 作出区分
-    // 实际上因为 sysy 没有实际的 bool 类型，在文法上也不能把逻辑表达式的值赋值给变量所以没有关系
-    ASTNode_add_attr_str(logic, "type", "Bool");
+    // Update: 统一按照 SyInt 处理
+    ASTNode_add_attr_str(logic, "type", SyInt);
 
     auto lhs = ASTNode_querySelectorOne(logic, "*[0]"),
         rhs = ASTNode_querySelectorOne(logic, "*[1]");
@@ -956,8 +953,6 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
     const char* lhs_type;
     bool hasLhsType = ASTNode_get_attr_str(lhs, "type", &lhs_type);
     assert(hasLhsType);
-
-    // TODO: 这里需要根据类型来判断是否需要转换类型 比如 float
 
     if (ASTNode_id_is(logic, "And")) {
         // 短路与
@@ -976,7 +971,6 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
     bool hasRhsType = ASTNode_get_attr_str(rhs, "type", &rhs_type);
     assert(hasRhsType);
 
-    // TODO: 同上
     assert(strcmp(rhs_type, "Int") == 0);
 
     // 计算到这里，说明左边无法得到整个表达式的值，根据右边的值进行转跳
@@ -1088,8 +1082,8 @@ void StackTranslator::translateTypePush(ASTNode* exp) {
     std::string cur_type = type;
 
     assert(cur_type != SyVoid);
-
-    if (cur_type == SyInt) {
+    if (cur_type == SyInt || is_array_type(cur_type)) {
+        // 数组（LVal）地址被放在accumulatorReg中
         adapter->pushStack({accumulatorReg});
     } else if (cur_type == SyFloat) {
         adapter->fpushStack({floatAccumulatorReg});

@@ -3,7 +3,7 @@ LEX = flex
 YACC = bison
 ZIP = zip
 
-DEFINES = -DXML_PP -DDEBUG -DUNI_OPTIMIZTION -DASM_GEN
+DEFINES = -DXML_PP -DDEBUG
 CXXFLAGS = -std=c++17 
 LDFLAGS = -lm
 JOBS := 4
@@ -138,7 +138,7 @@ requirements:
 ifeq ($(UNAME), Linux)
 		sudo apt-get -y install build-essential flex bison entr libxml2-utils \
 						gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user-static gdb-multiarch \
-						gcc-12-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-system-misc
+						gcc-12-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-system-misc 
 endif
 
 ifeq ($(UNAME), Darwin)
