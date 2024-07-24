@@ -271,6 +271,8 @@ ASTNode *ExpNode_fetch_const_array_value(const ASTNode *fetch, const ASTNode *ta
 
     DL_FOREACH(locator_dims, iter) {
         ASTNode *sim_dim_exp = ExpNode_simplify_recursive(iter->node);
+        // 这里如果不是常量表达式，取值失败直接返回fetch
+        if (!ASTNode_id_is(iter->node, "Number")) return ASTNode_clone(fetch);
         ASTNode *sim_dim = ASTNode_create("Dimension");
         if (!ASTNode_id_is(sim_dim_exp, "Number")) const_foldable = false;
         ASTNode_add_child(sim_dim, sim_dim_exp);

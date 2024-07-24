@@ -258,6 +258,18 @@ bool ASTNode_get_attr_str(const ASTNode *node, const char* key, const char **val
     }
 }
 
+bool ASTNode_get_attr_str(const ASTNode *node, const char* key, std::string& value) {
+    assert(node != NULL && key != NULL);
+
+    struct ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
+    if (attr != NULL) {
+        value = attr->value.str_value;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /**
  * Retrieves a float attribute value from the given ASTNode.
  *
