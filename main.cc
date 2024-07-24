@@ -9,8 +9,8 @@
 #include "codegen/stack_translator.hpp"
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
-#define ASM_GEN
-//#define TRIPLE_DEBUG
+// #define ASM_GEN
+#define TRIPLE_DEBUG
 
 int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
