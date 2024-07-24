@@ -32,7 +32,7 @@ class RVOperand {
 public:
     RVOperandTag tag;
     int32_t value;
-    int32_t addr;
+    std::string addr;
     RVRegs reg;
     uint16_t offset;
     RVOperand();
@@ -47,12 +47,8 @@ RVOperand make_reg(int reg);
 RVOperand make_sreg(int sreg);
 RVOperand make_imm(int value);
 RVOperand make_simm(float value);
-
-enum RVInstrTag {
-    NOP,
-    RInstr,
-    IInstr
-};
+RVOperand make_stack(RVRegs reg, uint16_t offset);
+RVOperand make_addr(const std::string& label);
 
 enum class RVOp {
     // Arithmetic
@@ -118,78 +114,19 @@ enum class RVOp {
     // Compare
     // set < immediate
     SLTI,
-    SLTIU
+    SLTIU,
+
+    NOP
 };
 
 class RVInstr {
 public:
-    RVInstrTag tag;
     RVOp opt;
     RVInstr();
     RVInstr(RVOp opt);
     virtual std::string toASM() = 0;
 };
 
-
-
-enum RVROp {
-    // Arithmetic
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    MOD,
-    // Float arithmetic
-    FADD,
-    FSUB,
-    FMUL,
-    FDIV,
-    FMOD,
-
-    // Float move
-    // from integer
-    FMVF,
-    // to integer
-    FMVT,
-
-    // Float Convert
-    // from integer
-    FCVTF,
-    // from integer unsigned
-    FCVTFU,
-    // to integer
-    FCVTT,
-    // to integer unsigned
-    FCVTTU,
-
-    // Logical
-    XOR,
-    OR,
-    AND,
-
-    // Shifts
-    SLL,
-    SRL,
-    SRA,
-
-    // Compare
-    // set <
-    SLT,
-    SLTU,
-
-    // Load
-    LW,
-    // Store
-    SW
-    
-};
-class RVRInstr : public RVInstr {
-public:
-    RVROp opt;
-    RVOperand opr1, opr2, dst;
-    RVRInstr(RVROp opt, const RVOperand& opr1, const RVOperand& opr2, const RVOperand& dst);
-    virtual std::string toASM() override;
-};
 
 class RVArith : public RVInstr {
 public:
