@@ -51,7 +51,7 @@ void Flag::init(int argc, const char** argv) {
                 return 0;
             case 'f':
                 flags[option.substr(2)] = true;
-                return 1;
+                return 0;
             default:
                 printf("Unknown option: %s\n", argv[index]);
                 print_help(argv[0]);

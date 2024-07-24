@@ -30,10 +30,9 @@ HexConst (0x|0X)[0-9a-fA-F]+
 
 Identifier [a-zA-Z_][a-zA-Z0-9_]*
 FormatString \".*\"
-Comment "//".*\n
 Whitespaces [ \f\n\r\t\v]
 
-%x MULTI_COMMENT
+%x MULTI_COMMENT SINGLE_COMMENT
 
 %%
     /* comments */
@@ -42,7 +41,10 @@ Whitespaces [ \f\n\r\t\v]
 <MULTI_COMMENT>[ \f\n\r\t\v]      {}
 <MULTI_COMMENT>.   {}
 
-{Comment}       {}
+"//"       BEGIN(SINGLE_COMMENT);
+<SINGLE_COMMENT>\n     BEGIN(INITIAL);
+<SINGLE_COMMENT><<EOF>>     BEGIN(INITIAL);
+<SINGLE_COMMENT>.      {}
 
     /* keywords */
 "const"         { return Const;   }
