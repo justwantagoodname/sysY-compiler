@@ -12,6 +12,11 @@
 // #define ASM_GEN
 #define TRIPLE_DEBUG
 
+#ifdef TRIPLE_DEBUG
+#include "codegen/generator.h"
+#endif
+
+
 int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
 	Flag::getFlag().init(argc, argv);
@@ -57,19 +62,22 @@ int main(int argc, const char** argv) {
 	printf("===After make===\n");
 	triples.make();
 	root.print();
-	triples.print();
+	// triples.print();
 
 	printf("===After eliUnnecVar===\n");
 	triples.eliUnnecVar();
-	triples.print();
+	// triples.print();
 
 	printf("===After MinTemp===\n");
 	triples.minTempVar();
-	triples.print();
+	// triples.print();
 
 	printf("===After ResortTemp===\n");
 	triples.resortTemp();
 	triples.print();
+
+	RiscVGenerator g;
+	g.generate(triples, false);
 #endif
 
 	return 0;
