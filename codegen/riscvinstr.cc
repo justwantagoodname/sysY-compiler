@@ -1,6 +1,19 @@
 #include "codegen/riscvinstr.h"
 #include <map>
 
+std::string RVOperand::getRegName() const {
+    assert(isreg());
+    if (reg == zero) return "zero";
+    if (reg == ra) return "ra";
+    if (reg == sp) return "sp";
+    if (reg == s1) return "s1";
+    if (10 <= reg && reg <= 17) return "a" + std::to_string(reg - 10);
+    if (18 <= reg && reg <= 27) return "s" + std::to_string(reg - 16);
+    if (0 <= reg && reg <= 27) return "x" + std::to_string(reg);
+
+    panic("Error: getRegName()");
+    return "";
+}
 RVOperand::RVOperand() : tag(UNDEF), value(0) {
     return;
 }
@@ -18,7 +31,7 @@ bool RVOperand::isfloat() const {
     return tag == SREG || tag == SIMM;
 }
 std::string RVOperand::toASM() const {
-    assert(false);
+    panic("TODO!\n");
     return "NULL";
 }
 

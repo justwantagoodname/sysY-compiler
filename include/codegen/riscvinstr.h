@@ -18,12 +18,17 @@ enum RVOperandTag {
     STACK
 };
 
-enum class RVRegs {
+enum RVRegs {
+    zero = 0,
     ra = 1,
-    sp = 2
+    sp = 2,
+    s1 = 9,
+    a0 = 10, a1, a2, a3, a4, a5, a6, a7 = 17,
+    s2 = 18, s3, s4, s5, s6, s7, s8, s9, s10, s11 = 27
 };
 
 class RVOperand {
+    std::string getRegName() const;
 public:
     RVOperandTag tag;
     int32_t value;
