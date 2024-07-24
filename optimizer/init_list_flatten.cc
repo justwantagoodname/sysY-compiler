@@ -8,7 +8,7 @@
 //#define ARRAY_FLAT_LOG printf
 #define ARRAY_FLAT_LOG(...) (0)
 
-// 在Const下寻找子ConstInitValue 如果存在则需要展开 后面需要支持 Var
+// 在 Decl 下寻找 InitValue 如果存在则需要展开
 bool ArrayInitNode_need_flatten(const ASTNode *root) {
     assert(root != nullptr);
     assert(ASTNode_id_is(root, "Const") || ASTNode_id_is(root, "Var"));
@@ -175,7 +175,7 @@ ASTNode *ArrayInitNode_get_value_by_linear_index(const ASTNode *decl, const ASTN
     size_t linear_index = multi_dimensional_index_to_linear_index(dim_sizes, locator_access_size);
 
     // 获取初始化列表
-    QueryResult *init_list = ASTNode_querySelector(decl, "/ConstInitValue[@array,@flatten]/Number");
+    QueryResult *init_list = ASTNode_querySelector(decl, "/InitValue[@array,@flatten]/Number");
     iter = NULL;
 
     assert(init_list != NULL);

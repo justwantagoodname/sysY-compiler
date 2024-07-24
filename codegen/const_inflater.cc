@@ -34,14 +34,14 @@ void GlobalDeclInflater::inflateConstDecl(ASTNode* const_decl, AssemblyBuilder& 
 
     bool is_array = ASTNode_querySelectorOne(const_decl, "/.[@array]") != nullptr;
     if (!is_array) {
-        ASTNode* init_value = ASTNode_querySelectorOne(const_decl, "/ConstInitValue//Number");
+        ASTNode* init_value = ASTNode_querySelectorOne(const_decl, "/InitValue//Number");
         assert(init_value != nullptr);
         int value = -1;
         ASTNode_get_attr_int(init_value, "value", &value);
         asm_builder
             .line("\t.word %d", value);
     } else {
-        QueryResult *init_values = ASTNode_querySelector(const_decl, "/ConstInitValue[@array]//Number"), *cur = NULL;
+        QueryResult *init_values = ASTNode_querySelector(const_decl, "/InitValue[@array]//Number"), *cur = NULL;
         DL_FOREACH(init_values, cur) {
             int value = -1, repeat = -1;
             ASTNode_get_attr_int(cur->node, "value", &value);

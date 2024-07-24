@@ -124,25 +124,19 @@ ConstDefList: ConstDef { $$ = ASTNode_create("ConstantTemp"); ASTNode_add_child(
             ;
 
 ConstDef: Identifier Assign InitValue {
-                                              $$ = ASTNode_create_attr("Const", 1, "name", $1); 
-                                              ASTNode_add_child($$, $3); 
-                                           }
+                                        $$ = ASTNode_create_attr("Const", 1, "name", $1);
+
+                                        auto value = ASTNode_create("InitValue");
+                                        ASTNode_add_child(value, $3);
+                                        ASTNode_add_child($$, value);
+                                      }
         | Identifier ArrayDecl Assign InitValue { 
-                                                       $$ = ASTNode_create_attr("Const", 2, "name", $1, "array", "true"); 
-                                                       ASTNode* as = ASTNode_create("ArraySize");
-                                                       ASTNode_move_children($2, as);
-                                                       ASTNode_add_nchild($$, 2, as, $4);
-                                                      }
+                                                  $$ = ASTNode_create_attr("Const", 2, "name", $1, "array", "true"); 
+                                                  ASTNode* as = ASTNode_create("ArraySize");
+                                                  ASTNode_move_children($2, as);
+                                                  ASTNode_add_nchild($$, 2, as, $4);
+                                                }
         ;
-
-/* ConstInitValue: ConstExp { $$ = $1; }
-              | LeftBrace ConstInitValList RightBrace { $$ = $2; }
-              ;
-
-ConstInitValList: %empty { $$ = ASTNode_create("ConstInitValue"); }
-                | ConstInitValue { $$ = ASTNode_create("ConstInitValue"); ASTNode_add_child($$, $1);}
-                | ConstInitValList Comma ConstInitValue { $$ = $1; ASTNode_add_child($$, $3); }
-                ; */
 
 VarDecl: PrimaryType VarDefList SemiCon { modifyValueType($2, $1); $$ = $2; }
        ;
@@ -152,7 +146,11 @@ VarDefList: VarDef { $$ = ASTNode_create("VarTemp"); ASTNode_add_child($$, $1);}
           ;
 
 VarDef: Identifier { $$ = ASTNode_create_attr("Var", 1, "name", $1); }
-      | Identifier Assign InitValue { $$ = ASTNode_create_attr("Var", 1, "name", $1); ASTNode_add_child($$, $3); }
+      | Identifier Assign InitValue { $$ = ASTNode_create_attr("Var", 1, "name", $1);                                               
+                                      auto value = ASTNode_create("InitValue");
+                                      ASTNode_add_child(value, $3);
+                                      ASTNode_add_child($$, value);
+                                    }
       | Identifier ArrayDecl { $$ = ASTNode_create_attr("Var", 2, "name", $1, "array", "true"); 
                                ASTNode_add_child($$, $2);
                               }

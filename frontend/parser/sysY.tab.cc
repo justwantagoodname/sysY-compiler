@@ -503,15 +503,15 @@ static const yytype_int8 yytranslate[] =
 static const yytype_int16 yyrline[] =
 {
        0,    95,    95,    97,   103,   109,   115,   116,   119,   122,
-     123,   126,   130,   147,   150,   151,   154,   155,   156,   159,
-     165,   171,   179,   180,   183,   184,   185,   188,   189,   190,
-     193,   202,   203,   206,   207,   210,   211,   216,   224,   226,
-     233,   234,   240,   241,   244,   245,   246,   247,   248,   249,
-     250,   251,   252,   253,   258,   259,   262,   263,   266,   269,
-     270,   273,   276,   277,   278,   279,   280,   281,   282,   283,
-     284,   285,   286,   287,   288,   289,   292,   293,   298,   301,
-     302,   303,   306,   307,   308,   311,   312,   315,   322,   331,
-     340,   341,   344,   347
+     123,   126,   133,   141,   144,   145,   148,   149,   154,   157,
+     163,   169,   177,   178,   181,   182,   183,   186,   187,   188,
+     191,   200,   201,   204,   205,   208,   209,   214,   222,   224,
+     231,   232,   238,   239,   242,   243,   244,   245,   246,   247,
+     248,   249,   250,   251,   256,   257,   260,   261,   264,   267,
+     268,   271,   274,   275,   276,   277,   278,   279,   280,   281,
+     282,   283,   284,   285,   286,   287,   290,   291,   296,   299,
+     300,   301,   304,   305,   306,   309,   310,   313,   320,   329,
+     338,   339,   342,   345
 };
 #endif
 
@@ -1366,142 +1366,149 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
   case 11: /* ConstDef: Identifier Assign InitValue  */
 #line 126 "frontend/parser/sysY.y"
                                       {
-                                              ((*yyvalp).astNode) = ASTNode_create_attr("Const", 1, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.strValue)); 
-                                              ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); 
-                                           }
-#line 1373 "frontend/parser/sysY.tab.cc"
+                                        ((*yyvalp).astNode) = ASTNode_create_attr("Const", 1, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.strValue));
+
+                                        auto value = ASTNode_create("InitValue");
+                                        ASTNode_add_child(value, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));
+                                        ASTNode_add_child(((*yyvalp).astNode), value);
+                                      }
+#line 1376 "frontend/parser/sysY.tab.cc"
     break;
 
   case 12: /* ConstDef: Identifier ArrayDecl Assign InitValue  */
-#line 130 "frontend/parser/sysY.y"
+#line 133 "frontend/parser/sysY.y"
                                                 { 
-                                                       ((*yyvalp).astNode) = ASTNode_create_attr("Const", 2, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval.strValue), "array", "true"); 
-                                                       ASTNode* as = ASTNode_create("ArraySize");
-                                                       ASTNode_move_children((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), as);
-                                                       ASTNode_add_nchild(((*yyvalp).astNode), 2, as, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));
-                                                      }
-#line 1384 "frontend/parser/sysY.tab.cc"
+                                                  ((*yyvalp).astNode) = ASTNode_create_attr("Const", 2, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval.strValue), "array", "true"); 
+                                                  ASTNode* as = ASTNode_create("ArraySize");
+                                                  ASTNode_move_children((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), as);
+                                                  ASTNode_add_nchild(((*yyvalp).astNode), 2, as, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));
+                                                }
+#line 1387 "frontend/parser/sysY.tab.cc"
     break;
 
   case 13: /* VarDecl: PrimaryType VarDefList SemiCon  */
-#line 147 "frontend/parser/sysY.y"
+#line 141 "frontend/parser/sysY.y"
                                         { modifyValueType((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.strValue)); ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode); }
-#line 1390 "frontend/parser/sysY.tab.cc"
+#line 1393 "frontend/parser/sysY.tab.cc"
     break;
 
   case 14: /* VarDefList: VarDef  */
-#line 150 "frontend/parser/sysY.y"
+#line 144 "frontend/parser/sysY.y"
                    { ((*yyvalp).astNode) = ASTNode_create("VarTemp"); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));}
-#line 1396 "frontend/parser/sysY.tab.cc"
+#line 1399 "frontend/parser/sysY.tab.cc"
     break;
 
   case 15: /* VarDefList: VarDefList Comma VarDef  */
-#line 151 "frontend/parser/sysY.y"
+#line 145 "frontend/parser/sysY.y"
                                     { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1402 "frontend/parser/sysY.tab.cc"
+#line 1405 "frontend/parser/sysY.tab.cc"
     break;
 
   case 16: /* VarDef: Identifier  */
-#line 154 "frontend/parser/sysY.y"
+#line 148 "frontend/parser/sysY.y"
                    { ((*yyvalp).astNode) = ASTNode_create_attr("Var", 1, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.strValue)); }
-#line 1408 "frontend/parser/sysY.tab.cc"
+#line 1411 "frontend/parser/sysY.tab.cc"
     break;
 
   case 17: /* VarDef: Identifier Assign InitValue  */
-#line 155 "frontend/parser/sysY.y"
-                                    { ((*yyvalp).astNode) = ASTNode_create_attr("Var", 1, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.strValue)); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1414 "frontend/parser/sysY.tab.cc"
+#line 149 "frontend/parser/sysY.y"
+                                    { ((*yyvalp).astNode) = ASTNode_create_attr("Var", 1, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.strValue));                                               
+                                      auto value = ASTNode_create("InitValue");
+                                      ASTNode_add_child(value, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));
+                                      ASTNode_add_child(((*yyvalp).astNode), value);
+                                    }
+#line 1421 "frontend/parser/sysY.tab.cc"
     break;
 
   case 18: /* VarDef: Identifier ArrayDecl  */
-#line 156 "frontend/parser/sysY.y"
+#line 154 "frontend/parser/sysY.y"
                              { ((*yyvalp).astNode) = ASTNode_create_attr("Var", 2, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.strValue), "array", "true"); 
                                ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));
                               }
-#line 1422 "frontend/parser/sysY.tab.cc"
+#line 1429 "frontend/parser/sysY.tab.cc"
     break;
 
   case 19: /* VarDef: Identifier ArrayDecl Assign InitValue  */
-#line 159 "frontend/parser/sysY.y"
+#line 157 "frontend/parser/sysY.y"
                                               { ((*yyvalp).astNode) = ASTNode_create_attr("Var", 2, "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval.strValue), "array", "true"); 
                                                 ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode));
                                                 ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));
                                               }
-#line 1431 "frontend/parser/sysY.tab.cc"
+#line 1438 "frontend/parser/sysY.tab.cc"
     break;
 
   case 20: /* ArrayDecl: LeftBrack ConstExp RightBrack  */
-#line 165 "frontend/parser/sysY.y"
+#line 163 "frontend/parser/sysY.y"
                                           { 
                                             ((*yyvalp).astNode) = ASTNode_create("ArraySize");
                                             ASTNode* dimension = ASTNode_create("Dimension"); 
                                             ASTNode_add_child(dimension, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode));
                                             ASTNode_add_child(((*yyvalp).astNode), dimension); 
                                           }
-#line 1442 "frontend/parser/sysY.tab.cc"
+#line 1449 "frontend/parser/sysY.tab.cc"
     break;
 
   case 21: /* ArrayDecl: ArrayDecl LeftBrack ConstExp RightBrack  */
-#line 171 "frontend/parser/sysY.y"
+#line 169 "frontend/parser/sysY.y"
                                                     { 
                                                       ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval.astNode); 
                                                       ASTNode* dimension = ASTNode_create("Dimension"); 
                                                       ASTNode_add_child(dimension, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode));
                                                       ASTNode_add_child(((*yyvalp).astNode), dimension); 
                                                     }
-#line 1453 "frontend/parser/sysY.tab.cc"
+#line 1460 "frontend/parser/sysY.tab.cc"
     break;
 
   case 22: /* InitValue: ExpWrapper  */
-#line 179 "frontend/parser/sysY.y"
+#line 177 "frontend/parser/sysY.y"
                       { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode); }
-#line 1459 "frontend/parser/sysY.tab.cc"
+#line 1466 "frontend/parser/sysY.tab.cc"
     break;
 
   case 23: /* InitValue: LeftBrace InitValList RightBrace  */
-#line 180 "frontend/parser/sysY.y"
+#line 178 "frontend/parser/sysY.y"
                                             { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode); }
-#line 1465 "frontend/parser/sysY.tab.cc"
+#line 1472 "frontend/parser/sysY.tab.cc"
     break;
 
   case 24: /* InitValList: %empty  */
-#line 183 "frontend/parser/sysY.y"
+#line 181 "frontend/parser/sysY.y"
                     { ((*yyvalp).astNode) = ASTNode_create("InitValue"); }
-#line 1471 "frontend/parser/sysY.tab.cc"
+#line 1478 "frontend/parser/sysY.tab.cc"
     break;
 
   case 25: /* InitValList: InitValue  */
-#line 184 "frontend/parser/sysY.y"
+#line 182 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = ASTNode_create("InitValue"); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));}
-#line 1477 "frontend/parser/sysY.tab.cc"
+#line 1484 "frontend/parser/sysY.tab.cc"
     break;
 
   case 26: /* InitValList: InitValList Comma InitValue  */
-#line 185 "frontend/parser/sysY.y"
+#line 183 "frontend/parser/sysY.y"
                                          { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1483 "frontend/parser/sysY.tab.cc"
+#line 1490 "frontend/parser/sysY.tab.cc"
     break;
 
   case 27: /* FuncType: Void  */
-#line 188 "frontend/parser/sysY.y"
+#line 186 "frontend/parser/sysY.y"
                { ((*yyvalp).strValue) = "Void"; }
-#line 1489 "frontend/parser/sysY.tab.cc"
+#line 1496 "frontend/parser/sysY.tab.cc"
     break;
 
   case 28: /* FuncType: Int  */
-#line 189 "frontend/parser/sysY.y"
+#line 187 "frontend/parser/sysY.y"
                { ((*yyvalp).strValue) = "Int"; }
-#line 1495 "frontend/parser/sysY.tab.cc"
+#line 1502 "frontend/parser/sysY.tab.cc"
     break;
 
   case 29: /* FuncType: Float  */
-#line 190 "frontend/parser/sysY.y"
+#line 188 "frontend/parser/sysY.y"
                 {((*yyvalp).strValue) = "Float";}
-#line 1501 "frontend/parser/sysY.tab.cc"
+#line 1508 "frontend/parser/sysY.tab.cc"
     break;
 
   case 30: /* FuncDef: FuncType Identifier LeftParent FuncFParams RightParent Block  */
-#line 193 "frontend/parser/sysY.y"
+#line 191 "frontend/parser/sysY.y"
                                                                       { 
             ((*yyvalp).astNode) = ASTNode_create_attr("Function", 2, "return", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-5)].yystate.yysemantics.yyval.strValue), "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval.strValue));
             ASTNode_add_nchild(((*yyvalp).astNode), 2, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));
@@ -1509,68 +1516,68 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
             ASTNode* decl = ASTNode_querySelectorOne((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode), "/Decl");
             ASTNode_copy_children((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), decl);
           }
-#line 1513 "frontend/parser/sysY.tab.cc"
+#line 1520 "frontend/parser/sysY.tab.cc"
     break;
 
   case 31: /* FuncFParams: %empty  */
-#line 202 "frontend/parser/sysY.y"
+#line 200 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = ASTNode_create("Params"); }
-#line 1519 "frontend/parser/sysY.tab.cc"
+#line 1526 "frontend/parser/sysY.tab.cc"
     break;
 
   case 32: /* FuncFParams: FuncFParamList  */
-#line 203 "frontend/parser/sysY.y"
+#line 201 "frontend/parser/sysY.y"
                             { ((*yyvalp).astNode) = ASTNode_create("Params"); ASTNode_move_children((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode), ((*yyvalp).astNode)); ASTNode_free((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));}
-#line 1525 "frontend/parser/sysY.tab.cc"
+#line 1532 "frontend/parser/sysY.tab.cc"
     break;
 
   case 33: /* FuncFParamList: FuncFParam  */
-#line 206 "frontend/parser/sysY.y"
+#line 204 "frontend/parser/sysY.y"
                            { ((*yyvalp).astNode) = ASTNode_create("ParamList"); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1531 "frontend/parser/sysY.tab.cc"
+#line 1538 "frontend/parser/sysY.tab.cc"
     break;
 
   case 34: /* FuncFParamList: FuncFParamList Comma FuncFParam  */
-#line 207 "frontend/parser/sysY.y"
+#line 205 "frontend/parser/sysY.y"
                                                 { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1537 "frontend/parser/sysY.tab.cc"
+#line 1544 "frontend/parser/sysY.tab.cc"
     break;
 
   case 35: /* FuncFParam: PrimaryType Identifier  */
-#line 210 "frontend/parser/sysY.y"
+#line 208 "frontend/parser/sysY.y"
                                     { ((*yyvalp).astNode) = ASTNode_create_attr("ParamDecl", 2, "type", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.strValue), "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.strValue)); }
-#line 1543 "frontend/parser/sysY.tab.cc"
+#line 1550 "frontend/parser/sysY.tab.cc"
     break;
 
   case 36: /* FuncFParam: PrimaryType Identifier LeftBrack RightBrack  */
-#line 211 "frontend/parser/sysY.y"
+#line 209 "frontend/parser/sysY.y"
                                                         { 
                                                           ((*yyvalp).astNode) = ASTNode_create_attr("ParamDecl", 3, "type", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval.strValue), "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.strValue), "array", "true"); 
                                                           ASTNode* dimension = ASTNode_create_attr("Dimension", 1, "size", "Unknown");
                                                           ASTNode_add_child(((*yyvalp).astNode), dimension);
                                                         }
-#line 1553 "frontend/parser/sysY.tab.cc"
+#line 1560 "frontend/parser/sysY.tab.cc"
     break;
 
   case 37: /* FuncFParam: PrimaryType Identifier LeftBrack RightBrack ArrayDecl  */
-#line 216 "frontend/parser/sysY.y"
+#line 214 "frontend/parser/sysY.y"
                                                                   { 
                                                                     ((*yyvalp).astNode) = ASTNode_create_attr("ParamDecl", 3, "type", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval.strValue), "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval.strValue), "array", "true"); 
                                                                     ASTNode* dimension = ASTNode_create_attr("Dimension", 1, "size", "Unknown");
                                                                     ASTNode_add_child(((*yyvalp).astNode), dimension);
                                                                     ASTNode_move_children((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode), ((*yyvalp).astNode));
                                                                   }
-#line 1564 "frontend/parser/sysY.tab.cc"
+#line 1571 "frontend/parser/sysY.tab.cc"
     break;
 
   case 38: /* Block: LeftBrace BlockItem RightBrace  */
-#line 224 "frontend/parser/sysY.y"
+#line 222 "frontend/parser/sysY.y"
                                       { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode); }
-#line 1570 "frontend/parser/sysY.tab.cc"
+#line 1577 "frontend/parser/sysY.tab.cc"
     break;
 
   case 39: /* BlockItem: %empty  */
-#line 226 "frontend/parser/sysY.y"
+#line 224 "frontend/parser/sysY.y"
                   { ((*yyvalp).astNode) = ASTNode_create("Scope");
                           char* scopeName = getAnonymousName();
                           ASTNode_add_attr_str(((*yyvalp).astNode), "name", scopeName);
@@ -1578,300 +1585,300 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
                           ASTNode_add_nchild(((*yyvalp).astNode), 2, ASTNode_create("Decl"), ASTNode_create("Block")); 
 
                         }
-#line 1582 "frontend/parser/sysY.tab.cc"
+#line 1589 "frontend/parser/sysY.tab.cc"
     break;
 
   case 40: /* BlockItem: BlockItem Decl  */
-#line 233 "frontend/parser/sysY.y"
+#line 231 "frontend/parser/sysY.y"
                           { ((*yyvalp).astNode) = collectDecl((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1588 "frontend/parser/sysY.tab.cc"
+#line 1595 "frontend/parser/sysY.tab.cc"
     break;
 
   case 41: /* BlockItem: BlockItem Stmt  */
-#line 234 "frontend/parser/sysY.y"
+#line 232 "frontend/parser/sysY.y"
                           { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode);
                             ASTNode* block = ASTNode_querySelectorOne(((*yyvalp).astNode), "/Block"); 
                             ASTNode_add_child(block, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); 
                           }
-#line 1597 "frontend/parser/sysY.tab.cc"
+#line 1604 "frontend/parser/sysY.tab.cc"
     break;
 
   case 42: /* PrimaryType: Int  */
-#line 240 "frontend/parser/sysY.y"
+#line 238 "frontend/parser/sysY.y"
                  { ((*yyvalp).strValue) = "Int"; }
-#line 1603 "frontend/parser/sysY.tab.cc"
+#line 1610 "frontend/parser/sysY.tab.cc"
     break;
 
   case 43: /* PrimaryType: Float  */
-#line 241 "frontend/parser/sysY.y"
+#line 239 "frontend/parser/sysY.y"
                    { ((*yyvalp).strValue) = "Float"; }
-#line 1609 "frontend/parser/sysY.tab.cc"
+#line 1616 "frontend/parser/sysY.tab.cc"
     break;
 
   case 44: /* Stmt: LVal Assign ExpWrapper SemiCon  */
-#line 244 "frontend/parser/sysY.y"
+#line 242 "frontend/parser/sysY.y"
                                      { ((*yyvalp).astNode) = ASTNode_create("Assign"); ASTNode* dest = ASTNode_create("Dest"); ASTNode_add_child(dest, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval.astNode)); ASTNode_add_child(((*yyvalp).astNode), dest); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode));}
-#line 1615 "frontend/parser/sysY.tab.cc"
+#line 1622 "frontend/parser/sysY.tab.cc"
     break;
 
   case 45: /* Stmt: SemiCon  */
-#line 245 "frontend/parser/sysY.y"
+#line 243 "frontend/parser/sysY.y"
               { ((*yyvalp).astNode) = ASTNode_create("NOP"); }
-#line 1621 "frontend/parser/sysY.tab.cc"
+#line 1628 "frontend/parser/sysY.tab.cc"
     break;
 
   case 46: /* Stmt: ExpWrapper SemiCon  */
-#line 246 "frontend/parser/sysY.y"
+#line 244 "frontend/parser/sysY.y"
                          { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode); }
-#line 1627 "frontend/parser/sysY.tab.cc"
+#line 1634 "frontend/parser/sysY.tab.cc"
     break;
 
   case 47: /* Stmt: Block  */
-#line 247 "frontend/parser/sysY.y"
+#line 245 "frontend/parser/sysY.y"
             { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode); }
-#line 1633 "frontend/parser/sysY.tab.cc"
+#line 1640 "frontend/parser/sysY.tab.cc"
     break;
 
   case 48: /* Stmt: IfStmt  */
-#line 248 "frontend/parser/sysY.y"
+#line 246 "frontend/parser/sysY.y"
              { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode); }
-#line 1639 "frontend/parser/sysY.tab.cc"
+#line 1646 "frontend/parser/sysY.tab.cc"
     break;
 
   case 49: /* Stmt: While LeftParent Cond RightParent Stmt  */
-#line 249 "frontend/parser/sysY.y"
+#line 247 "frontend/parser/sysY.y"
                                              { ((*yyvalp).astNode) = createWhileNode((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));}
-#line 1645 "frontend/parser/sysY.tab.cc"
+#line 1652 "frontend/parser/sysY.tab.cc"
     break;
 
   case 50: /* Stmt: Return ExpWrapper SemiCon  */
-#line 250 "frontend/parser/sysY.y"
+#line 248 "frontend/parser/sysY.y"
                                 { ((*yyvalp).astNode) = ASTNode_create("Return"); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode));}
-#line 1651 "frontend/parser/sysY.tab.cc"
+#line 1658 "frontend/parser/sysY.tab.cc"
     break;
 
   case 51: /* Stmt: Return SemiCon  */
-#line 251 "frontend/parser/sysY.y"
+#line 249 "frontend/parser/sysY.y"
                      {((*yyvalp).astNode) = ASTNode_create("Return");}
-#line 1657 "frontend/parser/sysY.tab.cc"
+#line 1664 "frontend/parser/sysY.tab.cc"
     break;
 
   case 52: /* Stmt: Break SemiCon  */
-#line 252 "frontend/parser/sysY.y"
+#line 250 "frontend/parser/sysY.y"
                     { ((*yyvalp).astNode) = ASTNode_create("Break"); }
-#line 1663 "frontend/parser/sysY.tab.cc"
+#line 1670 "frontend/parser/sysY.tab.cc"
     break;
 
   case 53: /* Stmt: Continue SemiCon  */
-#line 253 "frontend/parser/sysY.y"
+#line 251 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = ASTNode_create("Continue"); }
-#line 1669 "frontend/parser/sysY.tab.cc"
+#line 1676 "frontend/parser/sysY.tab.cc"
     break;
 
   case 54: /* IfStmt: If LeftParent Cond RightParent Stmt  */
-#line 258 "frontend/parser/sysY.y"
+#line 256 "frontend/parser/sysY.y"
                                             { ((*yyvalp).astNode) = createIfNode((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode), NULL); }
-#line 1675 "frontend/parser/sysY.tab.cc"
+#line 1682 "frontend/parser/sysY.tab.cc"
     break;
 
   case 55: /* IfStmt: If LeftParent Cond RightParent Stmt Else Stmt  */
-#line 259 "frontend/parser/sysY.y"
+#line 257 "frontend/parser/sysY.y"
                                                       { ((*yyvalp).astNode) = createIfNode((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-4)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));}
-#line 1681 "frontend/parser/sysY.tab.cc"
+#line 1688 "frontend/parser/sysY.tab.cc"
     break;
 
   case 56: /* LVal: Identifier  */
-#line 262 "frontend/parser/sysY.y"
+#line 260 "frontend/parser/sysY.y"
                  { ((*yyvalp).astNode) = ASTNode_create_attr("Address", 1, "base", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.strValue)); /*ASTNode_add_attr_str($$, "base", $1);*/ }
-#line 1687 "frontend/parser/sysY.tab.cc"
+#line 1694 "frontend/parser/sysY.tab.cc"
     break;
 
   case 57: /* LVal: Identifier ArrayLocatorList  */
-#line 263 "frontend/parser/sysY.y"
+#line 261 "frontend/parser/sysY.y"
                                   { ((*yyvalp).astNode) = ASTNode_create_attr("Address", 1, "base", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.strValue)); /*ASTNode_add_attr_str($$, "base", $1); */ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); /* TODO: calc base */ }
-#line 1693 "frontend/parser/sysY.tab.cc"
+#line 1700 "frontend/parser/sysY.tab.cc"
     break;
 
   case 58: /* ArrayLocator: LeftBrack Exp RightBrack  */
-#line 266 "frontend/parser/sysY.y"
+#line 264 "frontend/parser/sysY.y"
                                        { ((*yyvalp).astNode) = ASTNode_create("Dimension"); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode)); }
-#line 1699 "frontend/parser/sysY.tab.cc"
+#line 1706 "frontend/parser/sysY.tab.cc"
     break;
 
   case 59: /* ArrayLocatorList: ArrayLocator  */
-#line 269 "frontend/parser/sysY.y"
+#line 267 "frontend/parser/sysY.y"
                                { ((*yyvalp).astNode) = ASTNode_create("Locator"); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1705 "frontend/parser/sysY.tab.cc"
+#line 1712 "frontend/parser/sysY.tab.cc"
     break;
 
   case 60: /* ArrayLocatorList: ArrayLocatorList ArrayLocator  */
-#line 270 "frontend/parser/sysY.y"
+#line 268 "frontend/parser/sysY.y"
                                                 { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1711 "frontend/parser/sysY.tab.cc"
+#line 1718 "frontend/parser/sysY.tab.cc"
     break;
 
   case 61: /* ExpWrapper: Exp  */
-#line 273 "frontend/parser/sysY.y"
+#line 271 "frontend/parser/sysY.y"
                 { ((*yyvalp).astNode) = ASTNode_create("Exp"); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1717 "frontend/parser/sysY.tab.cc"
+#line 1724 "frontend/parser/sysY.tab.cc"
     break;
 
   case 62: /* Exp: Exp Or Exp  */
-#line 276 "frontend/parser/sysY.y"
+#line 274 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("Or", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));        }
-#line 1723 "frontend/parser/sysY.tab.cc"
+#line 1730 "frontend/parser/sysY.tab.cc"
     break;
 
   case 63: /* Exp: Exp And Exp  */
-#line 277 "frontend/parser/sysY.y"
+#line 275 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("And", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));       }
-#line 1729 "frontend/parser/sysY.tab.cc"
+#line 1736 "frontend/parser/sysY.tab.cc"
     break;
 
   case 64: /* Exp: Exp Equal Exp  */
-#line 278 "frontend/parser/sysY.y"
+#line 276 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("Equal", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));     }
-#line 1735 "frontend/parser/sysY.tab.cc"
+#line 1742 "frontend/parser/sysY.tab.cc"
     break;
 
   case 65: /* Exp: Exp NotEq Exp  */
-#line 279 "frontend/parser/sysY.y"
+#line 277 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("NotEq", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));     }
-#line 1741 "frontend/parser/sysY.tab.cc"
+#line 1748 "frontend/parser/sysY.tab.cc"
     break;
 
   case 66: /* Exp: Exp Less Exp  */
-#line 280 "frontend/parser/sysY.y"
+#line 278 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("Less", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));      }
-#line 1747 "frontend/parser/sysY.tab.cc"
+#line 1754 "frontend/parser/sysY.tab.cc"
     break;
 
   case 67: /* Exp: Exp Greater Exp  */
-#line 281 "frontend/parser/sysY.y"
+#line 279 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("Greater", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));   }
-#line 1753 "frontend/parser/sysY.tab.cc"
+#line 1760 "frontend/parser/sysY.tab.cc"
     break;
 
   case 68: /* Exp: Exp LessEq Exp  */
-#line 282 "frontend/parser/sysY.y"
+#line 280 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("LessEq", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));    }
-#line 1759 "frontend/parser/sysY.tab.cc"
+#line 1766 "frontend/parser/sysY.tab.cc"
     break;
 
   case 69: /* Exp: Exp GreaterEq Exp  */
-#line 283 "frontend/parser/sysY.y"
+#line 281 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("GreaterEq", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1765 "frontend/parser/sysY.tab.cc"
+#line 1772 "frontend/parser/sysY.tab.cc"
     break;
 
   case 70: /* Exp: Exp Plus Exp  */
-#line 284 "frontend/parser/sysY.y"
+#line 282 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("Plus", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));      }
-#line 1771 "frontend/parser/sysY.tab.cc"
+#line 1778 "frontend/parser/sysY.tab.cc"
     break;
 
   case 71: /* Exp: Exp Minus Exp  */
-#line 285 "frontend/parser/sysY.y"
+#line 283 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("Minus", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));     }
-#line 1777 "frontend/parser/sysY.tab.cc"
+#line 1784 "frontend/parser/sysY.tab.cc"
     break;
 
   case 72: /* Exp: Exp Mult Exp  */
-#line 286 "frontend/parser/sysY.y"
+#line 284 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("Mult", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));      }
-#line 1783 "frontend/parser/sysY.tab.cc"
+#line 1790 "frontend/parser/sysY.tab.cc"
     break;
 
   case 73: /* Exp: Exp Div Exp  */
-#line 287 "frontend/parser/sysY.y"
+#line 285 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("Div", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));       }
-#line 1789 "frontend/parser/sysY.tab.cc"
+#line 1796 "frontend/parser/sysY.tab.cc"
     break;
 
   case 74: /* Exp: Exp Mod Exp  */
-#line 288 "frontend/parser/sysY.y"
+#line 286 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = createOpNode("Mod", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode));       }
-#line 1795 "frontend/parser/sysY.tab.cc"
+#line 1802 "frontend/parser/sysY.tab.cc"
     break;
 
   case 75: /* Exp: UnaryExp  */
-#line 289 "frontend/parser/sysY.y"
+#line 287 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode); }
-#line 1801 "frontend/parser/sysY.tab.cc"
+#line 1808 "frontend/parser/sysY.tab.cc"
     break;
 
   case 76: /* UnaryExp: PrimaryExp  */
-#line 292 "frontend/parser/sysY.y"
+#line 290 "frontend/parser/sysY.y"
                      { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode); }
-#line 1807 "frontend/parser/sysY.tab.cc"
+#line 1814 "frontend/parser/sysY.tab.cc"
     break;
 
   case 77: /* UnaryExp: Identifier LeftParent FuncRParams RightParent  */
-#line 293 "frontend/parser/sysY.y"
+#line 291 "frontend/parser/sysY.y"
                                                         { ((*yyvalp).astNode) = ASTNode_create("Call"); 
                                                           ASTNode_add_attr_int(((*yyvalp).astNode), "line", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yyloc).first_line); // 一些外部函数调用需要使用 __LINE__ 宏，这里模拟一下
                                                           ASTNode_add_attr_str(((*yyvalp).astNode), "name", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-3)].yystate.yysemantics.yyval.strValue)); 
                                                           ASTNode_move_children((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode), ((*yyvalp).astNode));
                                                           ASTNode_free((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode)); }
-#line 1817 "frontend/parser/sysY.tab.cc"
+#line 1824 "frontend/parser/sysY.tab.cc"
     break;
 
   case 78: /* UnaryExp: UnaryOp UnaryExp  */
-#line 298 "frontend/parser/sysY.y"
+#line 296 "frontend/parser/sysY.y"
                            { ((*yyvalp).astNode) = ASTNode_create((YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.strValue)); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1823 "frontend/parser/sysY.tab.cc"
+#line 1830 "frontend/parser/sysY.tab.cc"
     break;
 
   case 79: /* PrimaryExp: LVal  */
-#line 301 "frontend/parser/sysY.y"
+#line 299 "frontend/parser/sysY.y"
                  { ((*yyvalp).astNode) = ASTNode_create("Fetch"); ASTNode_add_attr_int(((*yyvalp).astNode), "line", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yyloc).first_line); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
-#line 1829 "frontend/parser/sysY.tab.cc"
+#line 1836 "frontend/parser/sysY.tab.cc"
     break;
 
   case 80: /* PrimaryExp: Number  */
-#line 302 "frontend/parser/sysY.y"
+#line 300 "frontend/parser/sysY.y"
                    { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode); }
-#line 1835 "frontend/parser/sysY.tab.cc"
+#line 1842 "frontend/parser/sysY.tab.cc"
     break;
 
   case 81: /* PrimaryExp: LeftParent Exp RightParent  */
-#line 303 "frontend/parser/sysY.y"
+#line 301 "frontend/parser/sysY.y"
                                        { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-1)].yystate.yysemantics.yyval.astNode); }
-#line 1841 "frontend/parser/sysY.tab.cc"
+#line 1848 "frontend/parser/sysY.tab.cc"
     break;
 
   case 82: /* UnaryOp: Plus  */
-#line 306 "frontend/parser/sysY.y"
+#line 304 "frontend/parser/sysY.y"
                 { ((*yyvalp).strValue) = "UnPlus";  }
-#line 1847 "frontend/parser/sysY.tab.cc"
+#line 1854 "frontend/parser/sysY.tab.cc"
     break;
 
   case 83: /* UnaryOp: Minus  */
-#line 307 "frontend/parser/sysY.y"
+#line 305 "frontend/parser/sysY.y"
                 { ((*yyvalp).strValue) = "UnMinus"; }
-#line 1853 "frontend/parser/sysY.tab.cc"
+#line 1860 "frontend/parser/sysY.tab.cc"
     break;
 
   case 84: /* UnaryOp: Not  */
-#line 308 "frontend/parser/sysY.y"
+#line 306 "frontend/parser/sysY.y"
                 { ((*yyvalp).strValue) = "Not";     }
-#line 1859 "frontend/parser/sysY.tab.cc"
+#line 1866 "frontend/parser/sysY.tab.cc"
     break;
 
   case 85: /* FuncRParams: %empty  */
-#line 311 "frontend/parser/sysY.y"
+#line 309 "frontend/parser/sysY.y"
                        { ((*yyvalp).astNode) = ASTNode_create("ParamArray"); }
-#line 1865 "frontend/parser/sysY.tab.cc"
+#line 1872 "frontend/parser/sysY.tab.cc"
     break;
 
   case 86: /* FuncRParams: FuncRParamList  */
-#line 312 "frontend/parser/sysY.y"
+#line 310 "frontend/parser/sysY.y"
                             { ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode);  }
-#line 1871 "frontend/parser/sysY.tab.cc"
+#line 1878 "frontend/parser/sysY.tab.cc"
     break;
 
   case 87: /* FuncRParamList: Exp  */
-#line 315 "frontend/parser/sysY.y"
+#line 313 "frontend/parser/sysY.y"
                     { 
                       ((*yyvalp).astNode) = ASTNode_create("ParamArray");
                       ASTNode* param = ASTNode_create("Param"); 
@@ -1879,11 +1886,11 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
                       ASTNode_add_child(((*yyvalp).astNode), param);
                       ASTNode_add_child(param, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); 
                     }
-#line 1883 "frontend/parser/sysY.tab.cc"
+#line 1890 "frontend/parser/sysY.tab.cc"
     break;
 
   case 88: /* FuncRParamList: StringConst  */
-#line 322 "frontend/parser/sysY.y"
+#line 320 "frontend/parser/sysY.y"
                             { 
                               ((*yyvalp).astNode) = ASTNode_create("ParamArray");
                               ASTNode* param = ASTNode_create("Param"); 
@@ -1893,11 +1900,11 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
                               ASTNode_add_attr_str(param, "type", "StringConst");
                               free(strContent);
                             }
-#line 1897 "frontend/parser/sysY.tab.cc"
+#line 1904 "frontend/parser/sysY.tab.cc"
     break;
 
   case 89: /* FuncRParamList: FuncRParamList Comma Exp  */
-#line 331 "frontend/parser/sysY.y"
+#line 329 "frontend/parser/sysY.y"
                                          { 
                                             ((*yyvalp).astNode) = (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (-2)].yystate.yysemantics.yyval.astNode); 
                                             ASTNode* param = ASTNode_create("Param"); 
@@ -1905,23 +1912,23 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
                                             ASTNode_add_child(param, (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); 
                                             ASTNode_add_child(((*yyvalp).astNode), param); 
                                           }
-#line 1909 "frontend/parser/sysY.tab.cc"
+#line 1916 "frontend/parser/sysY.tab.cc"
     break;
 
   case 90: /* Number: IntegerConst  */
-#line 340 "frontend/parser/sysY.y"
+#line 338 "frontend/parser/sysY.y"
                       { ((*yyvalp).astNode) = ASTNode_create_attr("Number", 1, "type", "Int"); ASTNode_add_attr_int(((*yyvalp).astNode), "value", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.intValue));     }
-#line 1915 "frontend/parser/sysY.tab.cc"
+#line 1922 "frontend/parser/sysY.tab.cc"
     break;
 
   case 91: /* Number: FloatConst  */
-#line 341 "frontend/parser/sysY.y"
+#line 339 "frontend/parser/sysY.y"
                       { ((*yyvalp).astNode) = ASTNode_create_attr("Number", 1, "type", "Float"); ASTNode_add_attr_float(((*yyvalp).astNode), "value", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.floatValue));   }
-#line 1921 "frontend/parser/sysY.tab.cc"
+#line 1928 "frontend/parser/sysY.tab.cc"
     break;
 
 
-#line 1925 "frontend/parser/sysY.tab.cc"
+#line 1932 "frontend/parser/sysY.tab.cc"
 
       default: break;
     }
@@ -3526,7 +3533,7 @@ yypdumpstack (yyGLRStack* yystackp)
 
 
 
-#line 349 "frontend/parser/sysY.y"
+#line 347 "frontend/parser/sysY.y"
 
 
 void yyerror(struct ASTNode **cur, const char *s) {
