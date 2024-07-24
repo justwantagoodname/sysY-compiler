@@ -63,7 +63,7 @@ void yyerror(struct ASTNode **cur, const char *s);
 %type <astNode> CompUnit GlobalScope 
                 Block BlockItem Stmt LVal 
                 ConstExp Exp UnaryExp PrimaryExp ExpWrapper 
-                InitValue InitValList ConstInitValue ConstInitValList
+                InitValue InitValList 
                 IfStmt Cond FuncRParams FuncRParamList FuncDef
                 FuncFParams FuncFParamList FuncFParam
                 VarDecl VarDefList VarDef 
@@ -123,11 +123,11 @@ ConstDefList: ConstDef { $$ = ASTNode_create("ConstantTemp"); ASTNode_add_child(
             | ConstDefList Comma ConstDef { $$ = $1; ASTNode_add_child($$, $3); }
             ;
 
-ConstDef: Identifier Assign ConstInitValue {
+ConstDef: Identifier Assign InitValue {
                                               $$ = ASTNode_create_attr("Const", 1, "name", $1); 
                                               ASTNode_add_child($$, $3); 
                                            }
-        | Identifier ArrayDecl Assign ConstInitValue { 
+        | Identifier ArrayDecl Assign InitValue { 
                                                        $$ = ASTNode_create_attr("Const", 2, "name", $1, "array", "true"); 
                                                        ASTNode* as = ASTNode_create("ArraySize");
                                                        ASTNode_move_children($2, as);
@@ -135,14 +135,14 @@ ConstDef: Identifier Assign ConstInitValue {
                                                       }
         ;
 
-ConstInitValue: ConstExp { $$ = ASTNode_create("ConstInitValue"); ASTNode_add_child($$, $1); }
+/* ConstInitValue: ConstExp { $$ = $1; }
               | LeftBrace ConstInitValList RightBrace { $$ = $2; }
               ;
 
 ConstInitValList: %empty { $$ = ASTNode_create("ConstInitValue"); }
                 | ConstInitValue { $$ = ASTNode_create("ConstInitValue"); ASTNode_add_child($$, $1);}
                 | ConstInitValList Comma ConstInitValue { $$ = $1; ASTNode_add_child($$, $3); }
-                ;
+                ; */
 
 VarDecl: PrimaryType VarDefList SemiCon { modifyValueType($2, $1); $$ = $2; }
        ;
@@ -176,7 +176,7 @@ ArrayDecl: LeftBrack ConstExp RightBrack  {
                                                     }
          ;
 
-InitValue: ExpWrapper { $$ = ASTNode_create("InitValue"); ASTNode_add_child($$, $1); }
+InitValue: ExpWrapper { $$ = $1; }
          | LeftBrace InitValList RightBrace { $$ = $2; }
          ;
 

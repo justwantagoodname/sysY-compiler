@@ -17,6 +17,10 @@
 #include <variant>
 #include <memory>
 #include <functional>
+
+// 需要可以直接添加
+using std::string;
+using std::vector;
 #endif
 
 #ifdef __cplusplus
@@ -43,8 +47,19 @@ const auto SyVoid = "Void";
 const auto SyFloat = "Float";
 
 #define panic(str) do { \
-    printf(str "\n"); \
+    fprintf(stderr, str "\n"); \
     assert(false); \
 } while (0)
+
+#ifdef DEBUG
+#define panic_on(cond, str) do { \
+    if (cond) { \
+        fprintf(stderr, str "\n"); \
+        assert(false); \
+    } \
+} while (0)
+#else
+#define panic_on(cond, str) do { } while (0)
+#endif
 
 #endif

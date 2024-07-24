@@ -10,26 +10,26 @@
 
 // 在Const下寻找子ConstInitValue 如果存在则需要展开 后面需要支持 Var
 bool ArrayInitNode_need_flatten(const ASTNode *root) {
-    assert(root != NULL);
+    assert(root != nullptr);
     assert(ASTNode_id_is(root, "Const") || ASTNode_id_is(root, "Var"));
 
-    if (ASTNode_id_is(root, "Var")) {
-        return ASTNode_has_attr(root, "array")
-               && ASTNode_querySelectorOne(root, "/InitValue") != nullptr; // 如果是变量数组并且有初始化列表
-    } else if (ASTNode_id_is(root, "Const")) {
+    auto init_list = ASTNode_querySelectorOne(root, "/InitValue");
+    bool has_init_list = init_list != nullptr;
 
-        if (!ASTNode_has_attr(root, "array")) {
-            return false;
-        }
-
-        // 是常量数组
-        ASTNode *const_init_list = ASTNode_querySelectorOne(root, "/ConstInitValue");
-
-        assert(ASTNode_id_is(root, "Const") && const_init_list != NULL); // 如果是常量数组这里必须有初始化列表
-
-        return !ASTNode_has_attr(const_init_list, "flatten");
-    }
-    assert(false); // 不应该到达这里
+    bool ret;
+    When(root, {
+        TagMatch("Const", [&]() {
+            // panic_on(ASTNode_id_is(root, "Const") && !has_init_list, "常量数组这里必须有初始化列表");
+            // assert(init_list);
+            ret = true;
+//            ret = ASTNode_has_attr(root, "array");
+            // && !ASTNode_has_attr(init_list, "flatten");
+        }),
+        TagMatch("Var", [&]() {
+            ret = ASTNode_has_attr(root, "array") && has_init_list; // 如果是变量数组并且有初始化列表
+        })
+    });
+    return ret;
 }
 
 ASTNode *ArrayInitItem_create(double value, int repeat, const std::string& decl_type) {
@@ -48,53 +48,52 @@ ASTNode *ArrayInitItem_create(double value, int repeat, const std::string& decl_
  * @param depth 当前的维度
  * @param space 将要初始化的值的数量
  */
-void ConstInitNode_flattener(const std::string decl_type, const std::vector<int> &dim_sizes, ASTNode *cur_node, ASTNode *linear_init, int depth,
-                             int space) {
-    assert(cur_node != NULL);
-    assert(linear_init != NULL);
-    assert(space > 0);
-    assert(depth <= dim_sizes.size());
+// Update: 修改为递归填充
+void ArrayInitNode_flattener(const std::string decl_type, const std::vector<int> &dim_sizes, ASTNode *cur_node, ASTNode *linear_init, int depth) {
+    assert(cur_node != nullptr);
+    assert(linear_init != nullptr);
+    assert(depth < dim_sizes.size());
 
-    if (ASTNode_children_size(cur_node) == 0) {
-        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space, decl_type));
-        return;
+    auto current_array_size = dim_sizes[depth]; // 当前类型(维度)下剩余填充需要的元素数量
+
+    QueryResult *sub_list = ASTNode_querySelector(cur_node, "*"), *item;
+    DL_FOREACH(sub_list, item) {
+        if (ASTNode_has_attr(item->node, "visited")) continue;
+        if (current_array_size == 0) return; // 当前维度已经填充完毕，直接返回填充下一个维度
+
+        When(item->node, {
+            TagMatch("Exp", [&]() {
+                // 内部是一个表达式，这个表达式应该是一个常量表达式，因为常量折叠已经完成
+                // 那么填充最内层的维度
+                if (dim_sizes[depth + 1] != 1) {
+                    // 进入下一个维度，但是语法节点不变因为实际的节点是被省略了
+                    ArrayInitNode_flattener(decl_type, dim_sizes, cur_node, linear_init, depth + 1);
+                    current_array_size -= dim_sizes[depth + 1]; // 已经填充了一部分
+                } else {
+                    // 否则，那么已经到达需要填充的维度了，直接填充即可
+                    auto number = ASTNode_querySelectorOne(item->node, "/Number");
+                    int value;
+                    string type;
+                    ASTNode_get_attr_int(number, "value", &value);
+                    ASTNode_get_attr_str(number, "type", type);
+                    ASTNode_add_child(linear_init, ArrayInitItem_create(value, 1, type));
+                    current_array_size--; // 已经填充了一个
+                }
+            }),
+            TagMatch("ConstInitValue", [&]() {
+                // 内部是另一个初始化列表，递归填充
+                panic_on(depth + 1 > dim_sizes.size(), "初始化列表和实际声明层级不匹配");
+                ArrayInitNode_flattener(decl_type, dim_sizes, item->node, linear_init, depth + 1);
+                current_array_size -= dim_sizes[depth + 1]; // 已经填充了一部分
+            })
+        });
+
+        if (!ASTNode_has_attr(item->node, "visited")) ASTNode_add_attr_str(item->node, "visited", "true");
     }
 
-    QueryResult *sub_list = ASTNode_querySelector(cur_node, "/ConstInitValue"), *iter = NULL;
-
-    DL_FOREACH(sub_list, iter) {
-
-        ASTNode *child = ASTNode_querySelectorOne(iter->node, "/Exp[0]");
-        if (child != NULL) {
-            // 这个是一个表达式，因为语法生成的AST 是 <ConstInitValue><Exp><Number></Number></Exp></ConstInitValue>
-            // 由于常量折叠和化简同步进行，在确保依赖关系正确的情况下，Exp 内总是化为Number字面量的或者引用之前的变量的
-            assert(ASTNode_id_is(child, "Exp"));
-            ASTNode *number = ASTNode_querySelectorOne(child, "/*");
-            assert(ASTNode_id_is(number, "Number"));
-            int value = -1;
-            ASTNode_get_attr_int(number, "value", &value);
-            const char *type;
-            ASTNode_get_attr_str(number, "type", &type);
-
-            ASTNode_add_child(linear_init, ArrayInitItem_create(value, 1, type));
-            --space;
-
-            continue;
-        }
-
-        child = ASTNode_querySelectorOne(iter->node, "/ConstInitValue");
-        if (child != NULL || ASTNode_children_size(iter->node) == 0) {
-            ConstInitNode_flattener(decl_type, dim_sizes, iter->node, linear_init, depth + 1, dim_sizes[depth + 1]);
-            space -= dim_sizes[depth + 1];
-
-            continue;
-        }
-
-        // Shouldn't reach there.
-        assert(false);
-    }
-    if (space > 0) {
-        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space, decl_type));
+    // 当前填充完后如果还有剩余的，或者是空的 {}，那么应该填充全零 0，数量为当前类型维度的大小
+    if (current_array_size > 0) {
+        ASTNode_add_child(linear_init, ArrayInitItem_create(0, current_array_size, decl_type));
     }
 }
 
@@ -108,17 +107,16 @@ void ConstInitNode_flatten(ASTNode* decl, const std::vector<int>& dim_sizes) {
     ASTNode_get_attr_str(decl, "type", &decl_type_str);
     std::string decl_type(decl_type_str);
 
-    ASTNode *init_value = ASTNode_querySelectorOne(decl, "/ConstInitValue");
+    ASTNode *init_value = ASTNode_querySelectorOne(decl, "/InitValue");
 
     assert(init_value != nullptr);
 
-    ASTNode *linear_init = ASTNode_create_attr("ConstInitValue", 2, "array", "true", "flatten", "true");
+    ASTNode *linear_init = ASTNode_create_attr("InitValue", 2, "array", "true", "flatten", "true");
 
-    ConstInitNode_flattener(decl_type, dim_sizes, init_value, linear_init, 0, dim_sizes[0]);
+    ArrayInitNode_flattener(decl_type, dim_sizes, init_value, linear_init, 0);
 
     ASTNode_replace(linear_init, init_value);
     ASTNode_free(init_value);
-    // ASTNode_print(linear_init);
 }
 
 /**

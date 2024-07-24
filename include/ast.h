@@ -128,4 +128,11 @@ typedef struct SearchParam SearchParam;
 
 bool ASTNode_get_attr_str(const ASTNode *node, const char* key, std::string& value);
 
+auto default_func = []() { panic("No Matching!"); };
+void When(const ASTNode* target,
+          std::initializer_list<std::function<std::pair<bool, const std::function<void()>>(const ASTNode*)>> conditions,
+          const std::function<void()> &failed = default_func);
+
+std::function<std::pair<bool, const std::function<void()>>(const ASTNode*)> TagMatch(const std::string& tag_name, const std::function<void()>& exec);
+
 #endif

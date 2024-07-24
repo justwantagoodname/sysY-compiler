@@ -313,9 +313,10 @@ bool ASTNode_get_attr_number(const ASTNode *node, const char* key, double *value
 }
 
 bool ASTNode_id_is(const ASTNode *node, const char* id) {
-    assert(node != NULL && id != NULL);
+    // Update: 一个空的节点或者空指针一定不等于任何 id
+    assert(id != nullptr);
 
-    return strcmp(node->id, id) == 0;
+    return node && strcmp(node->id, id) == 0;
 }
 
 /**
@@ -469,4 +470,25 @@ void ASTNode_set_id(ASTNode *node, const char* id) {
 
     free((char *)node->id);
     node->id = strdup(id);
+}
+
+void When(const ASTNode* target,
+          std::initializer_list<std::function<std::pair<bool, const std::function<void()>>(const ASTNode*)>> conditions,
+          const std::function<void()> &failed) {
+    for (const auto& condition : conditions) {
+        auto [assert_result, callback] = condition(target);
+        if (assert_result) {
+            callback();
+            std::cout << "我执行了" << std::endl;
+            return;
+        }
+    }
+    std::cout << "为啥还是执行了" << std::endl;
+    exit(0);
+}
+
+std::function<std::pair<bool, const std::function<void()>>(const ASTNode*)> TagMatch(const std::string& tag_name, const std::function<void()>& exec) {
+    return [&tag_name, &exec](const ASTNode* elem) {
+        return std::make_pair(ASTNode_id_is(elem, tag_name.c_str()), exec);
+    };
 }
