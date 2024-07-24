@@ -482,6 +482,16 @@ void StackTranslator::translateLVal(ASTNode *lval) {
                     // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
                     dim_sizes.push_back(size);
                 }
+            }),
+            TagMatch<void>("Const", [&]() {
+                QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize/Dimension/Exp/Number"), *cur; // 必须确保所有数组大小被计算好了
+
+                DL_FOREACH(dims, cur) {
+                    int size;
+                    ASTNode_get_attr_int(cur->node, "value", &size);
+                    // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
+                    dim_sizes.push_back(size);
+                }
             })
         });
 
