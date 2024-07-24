@@ -49,13 +49,13 @@ void Triples::pretreat()
 		adecl.add_attr("value", adecl[0].get_attr_int("value"));
 	}
 
-	Query ex_functions = root("//Call[@name='printf'"
-		"|@name='getint'|@name='getfloat'|@name='getarray'"
-		"|@name='starttime'|@name='stoptime'"
-		"|@name='putint'|@name='putfloat'|@name='putch'|@name='putarray']");
-	for (auto ex_fun : ex_functions) {
-		ex_fun.add_attr("ex_fun", 1);
-	}
+	//Query ex_functions = root("//Call[@name='printf'"
+	//	"|@name='getint'|@name='getfloat'|@name='getarray'"
+	//	"|@name='starttime'|@name='stoptime'"
+	//	"|@name='putint'|@name='putfloat'|@name='putch'|@name='putarray']");
+	//for (auto ex_fun : ex_functions) {
+	//	ex_fun.add_attr("ex_fun", 1);
+	//}
 
 	Element decls = root("//Scope/Decl");
 	decls.add_attr("name", "Global");
@@ -120,8 +120,8 @@ void Triples::make()
 	DFS_Element(root) {
 		Element element = *iter;
 
-		printf("--%p", element.unwrap());
-		printf("->%s\n", element.id());
+		//printf("--%p", element.unwrap());
+		printf("--%s\n", element.id());
 
 		ifb("Decl") {
 			cut;
