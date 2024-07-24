@@ -5,6 +5,8 @@
 #include "action.h"
 
 void yyerror(struct ASTNode **cur, const char *s);
+
+#define YYINITDEPTH 240000
 %}
 
 %code requires {
