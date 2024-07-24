@@ -460,15 +460,30 @@ void StackTranslator::translateLVal(ASTNode *lval) {
 
     if (is_array) {
         // 在数组的情况下，先计算数组每一维度的大小
-        // TODO: 考虑缓存到 ASTNode 中，避免重复计算 
-        QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize/Dimension/Exp/Number"), *cur = nullptr; // 必须确保所有数组大小被计算好了
+        // TODO: 考虑缓存到 ASTNode 中，避免重复计算
 
-        DL_FOREACH(dims, cur) {
-            int size;
-            ASTNode_get_attr_int(cur->node, "value", &size);
-            // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
-            dim_sizes.push_back(size);
-        }
+        When(decl, {
+            TagMatch<void>("ParamDecl", [&]() {
+                QueryResult *dims = ASTNode_querySelector(decl, "/Dimension/Exp/Number"), *cur; // 必须确保所有数组大小被计算好了
+
+                DL_FOREACH(dims, cur) {
+                    int size;
+                    ASTNode_get_attr_int(cur->node, "value", &size);
+                    // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
+                    dim_sizes.push_back(size);
+                }
+            }),
+            TagMatch<void>("Var", [&]() {
+                QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize/Dimension/Exp/Number"), *cur; // 必须确保所有数组大小被计算好了
+
+                DL_FOREACH(dims, cur) {
+                    int size;
+                    ASTNode_get_attr_int(cur->node, "value", &size);
+                    // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
+                    dim_sizes.push_back(size);
+                }
+            })
+        });
 
         // TODO: 这里需要根据元素类型来确定大小，这里暂时先用机器字长代替，在32位机是正确的
         dim_sizes.push_back(adapter->getWordSize()); // 最后一个地址是元素大小
@@ -489,7 +504,7 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         // 没有访问数组的索引，那么直接返回地址
         if (locator) {
             // 访问数组 依次计算索引，这里翻译为一个连加，因为我们可以控制过程，所以优化一下
-            QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*");
+            QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*"), *cur;
             int idx = 0;
             DL_FOREACH(locators, cur) {
 
