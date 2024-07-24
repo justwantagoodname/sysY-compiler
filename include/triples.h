@@ -16,6 +16,7 @@ public:
 			mov,
 			call,
 			jmp,
+			jn0,
 			jeq,
 			jne,
 			jgt,
@@ -154,6 +155,7 @@ public:
 	Triple& operator[](int idx) {
 		return *triples[idx];
 	};
+
 	size_t size();
 
 	std::vector<std::shared_ptr<Triple>>::iterator begin() { return triples.begin(); }
