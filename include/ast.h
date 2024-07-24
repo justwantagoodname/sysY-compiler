@@ -128,11 +128,23 @@ typedef struct SearchParam SearchParam;
 
 bool ASTNode_get_attr_str(const ASTNode *node, const char* key, std::string& value);
 
-auto default_func = []() { panic("No Matching!"); };
-void When(const ASTNode* target,
-          std::initializer_list<std::function<std::pair<bool, const std::function<void()>>(const ASTNode*)>> conditions,
-          const std::function<void()> &failed = default_func);
+template <typename R = void>
+R When(const ASTNode* target,
+          std::initializer_list<std::function<std::pair<bool, const std::function<R()>>(const ASTNode*)>> conditions,
+          const std::function<R()> &failed = []() { panic("No Matching!"); return R();}) {
+    for (const auto& condition : conditions) {
+        auto [assert_result, callback] = condition(target);
+        if (assert_result) {
+            return callback();
+        }
+    }
+    return failed();
+}
 
-std::function<std::pair<bool, const std::function<void()>>(const ASTNode*)> TagMatch(const std::string& tag_name, const std::function<void()>& exec);
-
+template <typename R = void>
+std::function<std::pair<bool, const std::function<R()>>(const ASTNode*)> TagMatch(const std::string& tag_name, const std::function<R()>& exec) {
+    return [&tag_name, &exec](const ASTNode* elem) {
+        return std::make_pair(ASTNode_id_is(elem, tag_name.c_str()), exec);
+    };
+}
 #endif

@@ -16,20 +16,15 @@ bool ArrayInitNode_need_flatten(const ASTNode *root) {
     auto init_list = ASTNode_querySelectorOne(root, "/InitValue");
     bool has_init_list = init_list != nullptr;
 
-    bool ret;
-    When(root, {
-        TagMatch("Const", [&]() {
-            // panic_on(ASTNode_id_is(root, "Const") && !has_init_list, "常量数组这里必须有初始化列表");
-            // assert(init_list);
-            ret = true;
-//            ret = ASTNode_has_attr(root, "array");
-            // && !ASTNode_has_attr(init_list, "flatten");
+    return When<bool>(root, {
+        TagMatch<bool>("Const", [&]() {
+            panic_on(ASTNode_id_is(root, "Const") && !has_init_list, "常量数组这里必须有初始化列表");
+            return ASTNode_has_attr(root, "array") && !ASTNode_has_attr(init_list, "flatten");
         }),
-        TagMatch("Var", [&]() {
-            ret = ASTNode_has_attr(root, "array") && has_init_list; // 如果是变量数组并且有初始化列表
+        TagMatch<bool>("Var", [&]() {
+            return ASTNode_has_attr(root, "array") && has_init_list; // 如果是变量数组并且有初始化列表
         })
     });
-    return ret;
 }
 
 ASTNode *ArrayInitItem_create(double value, int repeat, const std::string& decl_type) {
@@ -62,7 +57,7 @@ void ArrayInitNode_flattener(const std::string decl_type, const std::vector<int>
         if (current_array_size == 0) return; // 当前维度已经填充完毕，直接返回填充下一个维度
 
         When(item->node, {
-            TagMatch("Exp", [&]() {
+            TagMatch<void>("Exp", [&]() {
                 // 内部是一个表达式，这个表达式应该是一个常量表达式，因为常量折叠已经完成
                 // 那么填充最内层的维度
                 if (dim_sizes[depth + 1] != 1) {
@@ -80,7 +75,7 @@ void ArrayInitNode_flattener(const std::string decl_type, const std::vector<int>
                     current_array_size--; // 已经填充了一个
                 }
             }),
-            TagMatch("ConstInitValue", [&]() {
+            TagMatch<void>("InitValue", [&]() {
                 // 内部是另一个初始化列表，递归填充
                 panic_on(depth + 1 > dim_sizes.size(), "初始化列表和实际声明层级不匹配");
                 ArrayInitNode_flattener(decl_type, dim_sizes, item->node, linear_init, depth + 1);
@@ -98,126 +93,17 @@ void ArrayInitNode_flattener(const std::string decl_type, const std::vector<int>
 }
 
 /**
- * 只展开常量数组
- * @param decl
- * @return 返回展开到线性的节点，注意此时还未修改原节点
- */
-void ConstInitNode_flatten(ASTNode* decl, const std::vector<int>& dim_sizes) {
-    const char *decl_type_str;
-    ASTNode_get_attr_str(decl, "type", &decl_type_str);
-    std::string decl_type(decl_type_str);
-
-    ASTNode *init_value = ASTNode_querySelectorOne(decl, "/InitValue");
-
-    assert(init_value != nullptr);
-
-    ASTNode *linear_init = ASTNode_create_attr("InitValue", 2, "array", "true", "flatten", "true");
-
-    ArrayInitNode_flattener(decl_type, dim_sizes, init_value, linear_init, 0);
-
-    ASTNode_replace(linear_init, init_value);
-    ASTNode_free(init_value);
-}
-
-/**
- * 展开变量数组的逻辑，因为变量数组可以引用常量或者变量作为初始化列表的项目，所以需要特别处理，可以看到目前两块逻辑有很大重叠，等待重构到一起
- * @param dim_sizes 数组每一维度的大小，0代表整体大小
- * @param cur_node 当前初始化列表
- * @param linear_init 生成线性的一维表示结果存储到linear_init中
- * @param depth 当前的维度
- * @param space 将要初始化的值的数量
- */
-void VarInitNode_flattener(const std::string& decl_type, const std::vector<int> &dim_sizes, ASTNode *cur_node, ASTNode *linear_init, int depth,
-                           int space) {
-    assert(cur_node != NULL);
-    assert(linear_init != NULL);
-    assert(space > 0);
-    assert(depth <= dim_sizes.size());
-
-    if (ASTNode_children_size(cur_node) == 0) {
-        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space, decl_type));
-        return;
-    }
-
-    QueryResult *sub_list = ASTNode_querySelector(cur_node, "/InitValue"), *iter = NULL;
-
-    DL_FOREACH(sub_list, iter) {
-
-        ASTNode *child = ASTNode_querySelectorOne(iter->node, "/Exp[0]");
-        if (child != NULL) {
-            // 这个是一个初始化值，因为语法生成的AST 是由于变量数组可以引用变量作为初始化值，因此需要特别处理，
-            // 转为<Exp repeat="1"></Exp>的形式
-            // 或者在Exp内部为字面量的前提下转为Number
-            // 由于常量折叠已经做完，在确保依赖关系正确的情况下，Exp 内总是化为最简化的形式
-            // 注意：这里还是假设输入的程序全部为正确的，不会出现变量引用未定义的情况 可以考虑在后续翻译中检查错误
-            assert(ASTNode_id_is(child, "Exp"));
-            ASTNode *inner = ASTNode_querySelectorOne(child, "/*");
-            if (ASTNode_id_is(inner, "Number")) {
-                int value = -1;
-                ASTNode_get_attr_int(inner, "value", &value);
-                const char *type;
-                ASTNode_get_attr_str(inner, "type", &type);
-                ASTNode_add_child(linear_init, ArrayInitItem_create(value, 1, type));
-            } else {
-                // 不是字面量，整体clone
-                ASTNode* cloned_exp = ASTNode_clone(child);
-                ASTNode_clone(child);
-                ASTNode_add_attr_int(cloned_exp, "repeat", 1);
-                ASTNode_add_child(linear_init, cloned_exp);
-            }
-            --space;
-
-            continue;
-        }
-
-        child = ASTNode_querySelectorOne(iter->node, "/InitValue");
-        if (child != NULL || ASTNode_children_size(iter->node) == 0) {
-            VarInitNode_flattener(decl_type, dim_sizes, iter->node, linear_init, depth + 1, dim_sizes[depth + 1]);
-            space -= dim_sizes[depth + 1];
-
-            continue;
-        }
-
-        assert(false);
-    }
-    if (space > 0) {
-        ASTNode_add_child(linear_init, ArrayInitItem_create(0, space, decl_type));
-    }
-}
-
-/**
- * 只展开变量数组
- */
-void VarInitNode_flatten(ASTNode* decl, const std::vector<int>& dim_sizes) {
-    const char* decl_type_str;
-    ASTNode_get_attr_str(decl, "type", &decl_type_str);
-    std::string decl_type(decl_type_str);
-
-    ASTNode *init_value = ASTNode_querySelectorOne(decl, "/InitValue");
-
-    assert(init_value != nullptr);
-
-    ASTNode *linear_init = ASTNode_create_attr("InitValue", 2, "array", "true", "flatten", "true");
-
-    VarInitNode_flattener(decl_type, dim_sizes, init_value, linear_init, 0, dim_sizes[0]);
-
-    ASTNode_replace(linear_init, init_value);
-    ASTNode_free(init_value);
-    // ASTNode_print(linear_init);
-}
-
-/**
  * 将多维数组的初始化表达式展开为一维数组
- * 需要使用数组的维度信息，将会直接修改Const ConstInitValue节点后续会支持Var节点
+ * 需要使用数组的维度信息，将会直接修改 InitValue 节点
  */
 void ArrayInitNode_flatten(ASTNode *decl) {
-    assert(decl != NULL);
+    assert(decl != nullptr);
     assert(ASTNode_id_is(decl, "Const") || ASTNode_id_is(decl, "Var"));
     assert(ASTNode_has_attr(decl, "array") && !ASTNode_has_attr(decl, "flatten")); // 是数组并且没有展平过
 
     // 首先获取数组的维度信息, 由于是在常量折叠过程中进行的，因此在保证初始化顺序的情况下，可以确保之前的数组声明每一维都被化简到了 Number 节点
 
-    QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize//Number"), *iter = NULL;
+    QueryResult *dims = ASTNode_querySelector(decl, "/ArraySize//Number"), *iter = nullptr;
     std::vector<int> dim_sizes;
 
     DL_FOREACH(dims, iter) {
@@ -233,11 +119,20 @@ void ArrayInitNode_flatten(ASTNode *decl) {
         dim_sizes[i - 1] = dim_sizes[i - 1] * dim_sizes[i];
     }
 
-    if (ASTNode_id_is(decl, "Const")) {
-        ConstInitNode_flatten(decl, dim_sizes);
-    } else if (ASTNode_id_is(decl, "Var")) {
-        VarInitNode_flatten(decl, dim_sizes);
-    }
+    const char *decl_type_str;
+    ASTNode_get_attr_str(decl, "type", &decl_type_str);
+    std::string decl_type(decl_type_str);
+
+    ASTNode *init_value = ASTNode_querySelectorOne(decl, "/InitValue");
+
+    assert(init_value != nullptr);
+
+    ASTNode *linear_init = ASTNode_create_attr("InitValue", 2, "array", "true", "flatten", "true");
+
+    ArrayInitNode_flattener(decl_type, dim_sizes, init_value, linear_init, 0);
+
+    ASTNode_replace(linear_init, init_value);
+    ASTNode_free(init_value);
 }
 
 /**
