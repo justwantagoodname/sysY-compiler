@@ -45,16 +45,20 @@ void Triples::minTempVar()
 		iftin(j, &triples[j]->e2, var_end);
 		iftin(j, &triples[j]->to, var_end);
 
+		//printf("%d > cmd = %d\n", i, triples[i]->cmd);
+
 		// 找到每一个连续运行区间始点
 		if (triples[i]->cmd == Cmd.tag ||
 			(triples[i]->cmd >= Cmd.jmp && triples[i]->cmd <= Cmd.jle))
 		{
-			block_begin.emplace_back(i);
+			block_begin.push_back(i);
 		}
 	}
-	block_begin.emplace_back(triples.size());
+	block_begin.push_back(triples.size());
 
 	// 遍历每一个区间，迭代合并无重叠临时变量直到不存在无合并变量
+	std::vector<bool>meraged(temp_count, false);
+
 	for (int _i = 0; _i < block_begin.size() - 1; ++_i) {
 		int b = block_begin[_i];
 		int e = block_begin[_i + 1];
@@ -71,14 +75,17 @@ void Triples::minTempVar()
 		// 采用贪心求解每个变量的最大合并占用
 
 		// 合并标记
-		std::vector<bool>meraged(block_temp.size(), false);
+		//bool* meraged = new bool[block_temp.size() + 5];
+		//memset(meraged, 0, block_temp.size());
+
 
 		// 临时函数：查找未被合并过的离某个起点最近起始的变量
-		auto found_nearlest = [&var_begin, &block_temp, &meraged](int begin) {
+		auto found_nearlest = [var_begin, &block_temp, &meraged](int begin) {
 			int min = -1;
 			int min_temp = -1;
 			for (auto t : block_temp) {
-				if (var_begin[t] - begin >= 0 && (min == -1 || var_begin[t] - begin < min) && !meraged[t]) {
+				if (var_begin[t] - begin >= 0 &&
+					(min == -1 || var_begin[t] - begin < min) && !meraged[t]) {
 					min = var_begin[t] - begin;
 					min_temp = t;
 				}
@@ -93,12 +100,21 @@ void Triples::minTempVar()
 			return true;
 			};
 
-		auto merage_temp_var = [&meraged, &var_merage, &var_begin, &var_end](int a, int b) {
+		auto merage_temp_var = [&meraged, var_merage, var_begin, var_end, this](int a, int b) {
+
+			//assert(a >= 0 && b >= 0 && a < this->temp_count && b < this->temp_count);
+			printf("2> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
 			var_merage[b] = var_merage[a];
+			printf("2.1> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
 			var_end[a] = var_end[b];
+			printf("2.2> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
+
 			var_begin[b] = var_begin[a];
+			printf("2.3> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
 
 			meraged[b] = true;
+			printf("3> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
+
 			};
 
 		// 合并
@@ -111,11 +127,15 @@ void Triples::minTempVar()
 				break;
 			}
 			while (nextt != -1) {
+				int temp = 42;
 				if (triples[var_begin[nextt]]->cmd == Cmd.load) {
 					meraged[begint] = true;
 					begint = nextt;
 				}
+				printf("%d 1> cmd = %d\n", var_begin[nextt], triples[temp]->cmd);
 				merage_temp_var(begint, nextt);
+				printf("%d 4> cmd = %d\n", var_begin[nextt], triples[temp]->cmd);
+
 				bottom = var_end[nextt];
 				nextt = found_nearlest(bottom);
 			}
@@ -136,6 +156,7 @@ void Triples::minTempVar()
 	for (int i = 0; i < triples.size(); ++i) {
 		//#define sett(p) if(triples[i]->p.type == TT.temp) triples[i]->p.value = var_merage[triples[i]->p.value]
 		//#undef sett
+		//printf("%d > cmd = %d\n", i, triples[i]->cmd);
 
 		sett(&triples[i]->e1);
 		sett(&triples[i]->e2);
@@ -156,6 +177,7 @@ void Triples::eliUnnecVar()
 	memset(imd_type, false, sizeof(bool) * temp_count);
 
 	auto sett = [f = [&imd_temp, &imd_type](auto&& self, TripleValue* e) -> void {
+		//printf("%d, %d\n", e->type, e->value);
 		if (e->type == TT.temp && imd_temp[e->value] != -1) {
 			if (imd_type[e->value]) {
 				e->type = TT.fimd;

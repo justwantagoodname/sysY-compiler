@@ -23,10 +23,15 @@ void Triples::pretreat()
 				element.add_attr("value", element[0].get_attr_int("value"));
 			}
 			ife("Dimension") {
-				element.add_attr("value", element[0].get_attr_int("value"));
-				Element replace = (ASTNode*)calloc(1, sizeof(ASTNode));
-				element.move_children_to(replace);
-				replace.free();
+				if (strcmp(element.get_attr_str("size"), "Unknown") == 0) {
+
+				}
+				else {
+					element.add_attr("value", element[0].get_attr_int("value"));
+					Element("")
+						.move_children_from(element)
+						.free();
+				}
 			}
 			ife("ArraySize") {
 				element.add_attr("size", element.size());
@@ -44,7 +49,10 @@ void Triples::pretreat()
 		adecl.add_attr("value", adecl[0].get_attr_int("value"));
 	}
 
-	Query ex_functions = root("//Call[@name='printf'|@name='getint'|@name='getfloat'|@name='starttime'|@name='stoptime']");
+	Query ex_functions = root("//Call[@name='printf'"
+		"|@name='getint'|@name='getfloat'|@name='getarray'"
+		"|@name='starttime'|@name='stoptime'"
+		"|@name='putint'|@name='putfloat'|@name='putch'|@name='putarray']");
 	for (auto ex_fun : ex_functions) {
 		ex_fun.add_attr("ex_fun", 1);
 	}
@@ -54,7 +62,7 @@ void Triples::pretreat()
 
 	Query cond_node = root("//And");
 	cond_node += root("//Or");
-	cond_node += root("//Cond");
+	cond_node += root("//Cond/Exp");
 
 	for (auto cond : cond_node) {
 		Element copy_cond_node = cond.clone();
@@ -71,6 +79,9 @@ void Triples::pretreat()
 				!item.id_is("LessEq") &&
 				!item.id_is("Greater") &&
 				!item.id_is("GreaterEq") &&
+				!item.id_is("And") &&
+				!item.id_is("Or") &&
+				!item.id_is("Not") &&
 				!item.id_is("NotZero"))
 
 			{
@@ -109,7 +120,8 @@ void Triples::make()
 	DFS_Element(root) {
 		Element element = *iter;
 
-		printf("--%s\n", element.id());
+		printf("--%p", element.unwrap());
+		printf("->%s\n", element.id());
 
 		ifb("Decl") {
 			cut;
@@ -153,22 +165,33 @@ void Triples::make()
 			}
 		}
 		ife("Address") {
+			element.print();
+			const char* s = element.get_attr_str("base");
+			Element value = element.table(s);
+			value.print();
 
+			// 直接传递数组
+			if (element.size() == 0) {
+				element.add_attr("addr", triples.find(value));
+				element.add_attr("type", "Array");
+			}
+			else {
+				if (value.get_attr("array")) { // is array
+					element.add_attr("array", 1);
+					element.add_attr("temp", element[0].get_attr_int("temp"));
+				}
+
+				element.add_attr("addr", triples.find(value));
+				element.add_attr("type", value.get_attr_str("type"));
+			}
+		}
+		ife("Locator") {
 			const char* s = element.get_attr_str("base");
 			Element value = element.table(s);
 
-			if (value.get_attr("array")) { // is array
-				element.add_attr("array", 1);
-				element.add_attr("temp", element[0].get_attr_int("temp"));
+			if (!value.id_is("ParamDecl")) {
+				value = value[0];
 			}
-
-			element.add_attr("addr", triples.find(value));
-			element.add_attr("type", value.get_attr_str("type"));
-		}
-		ife("Locator") {
-			element.print();
-			const char* s = element.get_attr_str("base");
-			Element value = element.table(s)[0];
 
 			int temp = temp_count++;
 
@@ -550,13 +573,12 @@ void Triples::make()
 			const char* name = element.get_attr_str("name");
 			element.add_attr("temp", temp_count);
 
-			if (!element.get_attr("ex_fun")) {
-				int fid = triples.findf(name);
+			int fid = triples.findf(name);
+			if (fid != -1)
 				triples.add(Cmd.call, { fid, TT.func }, parms, { temp_count });
-			}
-			else {
+			else
 				triples.add(Cmd.call, { element.get_attr_str("name"), this }, parms, { temp_count });
-			}
+
 			++temp_count;
 		}
 		ife("Param") {
@@ -580,11 +602,12 @@ void Triples::make()
 				triples.add(Cmd.rev, {}, {}, {});
 			}
 		}
-		ife("ParamDecl") {
+		ifb("ParamDecl") {
 			const char* s = element.get_attr_str("name");
 			Element value = element.qo("ancestor::Function/Scope/Decl").table(s);
 			int a = triples.find(value);
 			triples.add(Cmd.pop, {}, {}, { a, TT.value });
+			cut;
 		}
 		ifb("Var") {
 			Element init = element("/InitValue");

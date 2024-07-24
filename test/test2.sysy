@@ -1,3 +1,11 @@
+void func(){
+    int i = 0;
+    while(i < 10){
+        putint(10);
+        i = i + 1;
+    }
+}
+
 int main() {
     int a = 1, b = 2, c = 3, d = 5, f;
 
@@ -11,9 +19,11 @@ int main() {
     c = a + b;
 
     float g = 3.14;
-    if(1)g = 12.6;
+    if(e[0][c])g = 12.6;
     if(a % 2  && b % 2 )
         printf("no");
+
+    func();
 
     return 0;
 }
