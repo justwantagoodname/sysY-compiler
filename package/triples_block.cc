@@ -102,18 +102,12 @@ void Triples::minTempVar()
 
 		auto merage_temp_var = [&meraged, var_merage, var_begin, var_end, this](int a, int b) {
 
-			//assert(a >= 0 && b >= 0 && a < this->temp_count && b < this->temp_count);
-			printf("2> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
 			var_merage[b] = var_merage[a];
-			printf("2.1> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
 			var_end[a] = var_end[b];
-			printf("2.2> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
 
 			var_begin[b] = var_begin[a];
-			printf("2.3> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
 
 			meraged[b] = true;
-			printf("3> cmd = %d, a = %d, b = %d\n", triples[42]->cmd, a, b);
 
 			};
 
@@ -132,9 +126,7 @@ void Triples::minTempVar()
 					meraged[begint] = true;
 					begint = nextt;
 				}
-				printf("%d 1> cmd = %d\n", var_begin[nextt], triples[temp]->cmd);
 				merage_temp_var(begint, nextt);
-				printf("%d 4> cmd = %d\n", var_begin[nextt], triples[temp]->cmd);
 
 				bottom = var_end[nextt];
 				nextt = found_nearlest(bottom);

@@ -1869,7 +1869,7 @@ yyuserAction (yyRuleNum yyrule, int yyrhslen, yyGLRStackItem* yyvsp,
 
   case 84: /* PrimaryExp: LVal  */
 #line 301 "frontend/parser/sysY.y"
-                 { ((*yyvalp).astNode) = ASTNode_create("Fetch"); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
+                 { ((*yyvalp).astNode) = ASTNode_create("Fetch"); ASTNode_add_attr_int(((*yyvalp).astNode), "line", (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yyloc).first_line); ASTNode_add_child(((*yyvalp).astNode), (YY_CAST (yyGLRStackItem const *, yyvsp)[YYFILL (0)].yystate.yysemantics.yyval.astNode)); }
 #line 1874 "frontend/parser/sysY.tab.cc"
     break;
 
