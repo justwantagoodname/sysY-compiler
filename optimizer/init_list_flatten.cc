@@ -66,12 +66,20 @@ void ArrayInitNode_flattener(const std::string decl_type, const std::vector<int>
                     current_array_size -= dim_sizes[depth + 1]; // 已经填充了一部分
                 } else {
                     // 否则，那么已经到达需要填充的维度了，直接填充即可
-                    auto number = ASTNode_querySelectorOne(item->node, "/Number");
-                    int value;
-                    string type;
-                    ASTNode_get_attr_int(number, "value", &value);
-                    ASTNode_get_attr_str(number, "type", type);
-                    ASTNode_add_child(linear_init, ArrayInitItem_create(value, 1, type));
+                    auto inner = ASTNode_querySelectorOne(item->node, "*");
+                    When<void>(inner, {
+                        TagMatch<void>("Number", [&]() {
+                            int value;
+                            string type;
+                            ASTNode_get_attr_int(inner, "value", &value);
+                            ASTNode_get_attr_str(inner, "type", type);
+                            ASTNode_add_child(linear_init, ArrayInitItem_create(value, 1, type));
+                        })
+                    }, [&]() -> void {
+                        ASTNode* cloned_exp = ASTNode_clone(item->node);
+                        ASTNode_add_attr_int(cloned_exp, "repeat", 1);
+                        ASTNode_add_child(linear_init, cloned_exp);
+                    });
                     current_array_size--; // 已经填充了一个
                 }
             }),
