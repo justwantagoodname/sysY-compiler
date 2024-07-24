@@ -12,5 +12,7 @@ int main() {
 
     float g = 3.14;
 
+    printf("hello world! %f %f\n", 6.28, 3.14);
+
     return 0;
 }
