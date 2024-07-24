@@ -42,9 +42,13 @@ const auto SyInt = "Int";
 const auto SyVoid = "Void";
 const auto SyFloat = "Float";
 
+#ifndef NO_PANIC
+
 #define panic(str) do { \
     printf(str "\n"); \
     assert(false); \
 } while (0)
+
+#endif
 
 #endif

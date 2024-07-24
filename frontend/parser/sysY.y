@@ -298,7 +298,7 @@ UnaryExp: PrimaryExp { $$ = $1; }
         | UnaryOp UnaryExp { $$ = ASTNode_create($1); ASTNode_add_child($$, $2); }
         ; 
 
-PrimaryExp: LVal { $$ = ASTNode_create("Fetch"); ASTNode_add_child($$, $1); }
+PrimaryExp: LVal { $$ = ASTNode_create("Fetch"); ASTNode_add_attr_int($$, "line", @1.first_line); ASTNode_add_child($$, $1); }
           | Number { $$ = $1; }
           | LeftParent Exp RightParent { $$ = $2; }
           ;

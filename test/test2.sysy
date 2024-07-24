@@ -25,5 +25,7 @@ int main() {
 
     func();
 
+    printf("hello world! %f %f\n", 6.28, 3.14);
+
     return 0;
 }
