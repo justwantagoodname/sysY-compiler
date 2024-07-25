@@ -165,10 +165,8 @@ void Triples::make()
 			}
 		}
 		ife("Address") {
-			element.print();
 			const char* s = element.get_attr_str("base");
 			Element value = element.table(s);
-			value.print();
 
 			// 直接传递数组
 			if (element.size() == 0) {
