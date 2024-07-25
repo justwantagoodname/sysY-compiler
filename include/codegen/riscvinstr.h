@@ -97,6 +97,7 @@ enum class RVOp {
 
     // Load
     LW,
+    LI,
     FLW,
     // Store
     SW,
@@ -142,6 +143,7 @@ public:
     bool is_float;
     RVOperand dst, opr;
     RVMem(RVOp opt, const RVOperand& opr, uint16_t offset);
+    RVMem(RVOp opt, const RVOperand& opr, const RVOperand& value);
     virtual std::string toASM() override;
 };
 

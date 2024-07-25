@@ -1,17 +1,20 @@
 #include "codegen/generator.h"
 
-
 RiscVGenerator::RiscVGenerator() : simm_count(0), string_count(0) {
     instrs.clear();
     simm_table.clear();
     string_table.clear();
 }
 
-void RiscVGenerator::createTable(Triples& triples) {
+void RiscVGenerator::genArith(Triples::Triple &triple) {
+    panic("TODO!");
+}
+
+void RiscVGenerator::createTable(Triples &triples) {
     for (size_t index = 0; index < triples.size(); ++index) {
         Triples::Triple &triple = triples[index];
         if (triple.cmd == Triples::Cmd.call) continue;
-        
+
         if (triple.e1.type == Triples::TT.fimd) {
             int value = triple.e1.value;
             if (simm_table.find(value) == simm_table.end()) {
@@ -23,7 +26,6 @@ void RiscVGenerator::createTable(Triples& triples) {
                 string_table[str] = string_count++;
             }
         }
-
 
         if (triple.e2.type == Triples::TT.fimd) {
             int value = triple.e2.value;
@@ -59,7 +61,12 @@ void RiscVGenerator::createTable(Triples& triples) {
     }
 }
 
-void RiscVGenerator::generate(Triples& triples, bool optimize_flag) {
+void RiscVGenerator::genLoad(Triples::Triple& triple) {
+    panic("TODO!: Register allocation");
+    return;
+}
+
+void RiscVGenerator::generate(Triples &triples, bool optimize_flag) {
     if (optimize_flag) {
         panic("TODO: RiscVGenerator::generate: optimize");
     }
@@ -68,7 +75,24 @@ void RiscVGenerator::generate(Triples& triples, bool optimize_flag) {
     for (size_t index = 0; index < triples.size(); ++index) {
         Triples::Triple &triple = triples[index];
 
-        
+        switch (triple.cmd) {
+            case Triples::Cmd.add:
+            case Triples::Cmd.sub:
+            case Triples::Cmd.mul:
+            case Triples::Cmd.div:
+            case Triples::Cmd.mod:
+                genArith(triple);
+                break;
+
+            case Triples::Cmd.load:
+                genLoad(triple);
+                break;
+            
+
+            default:
+                panic("Error");
+                break;
+        }
     }
     panic("TODO!!!!!!!");
     return;

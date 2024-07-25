@@ -128,16 +128,33 @@ std::string RVArith::toASM() {
         result.push_back('i');
     }
     
-    result += " " + dst.toASM() + " " + opr1.toASM() + " " + opr2.toASM();
+    result += ", " + dst.toASM() + ", " + opr1.toASM() + ", " + opr2.toASM() + "\n";
     return result;
 }
 
 RVMem::RVMem(RVOp opt, const RVOperand& opr, uint16_t offset) 
     : RVInstr(opt), opr(opr), dst(make_stack(RVRegs::sp, offset)) {
-    assert(opt == RVOp::LW || opt == RVOp::FLW || opt == RVOp::SW || opt == RVOp::FSW);
+    assert(opt == RVOp::LW || opt == RVOp::FLW 
+        || opt == RVOp::SW || opt == RVOp::FSW);
+}
+RVMem::RVMem(RVOp opt, const RVOperand& opr, const RVOperand& value) 
+    : RVInstr(opt), opr(opr), dst(value) {
+    assert(opt == RVOp::LI);
+    assert(dst.tag == IMM);
 }
 std::string RVMem::toASM() {
-    panic("TODO!");
+    switch (opt) {
+        case RVOp::LI:
+            return "    li " + opr.toASM() + ", " + dst.toASM() + "\n";
+            break;
+        case RVOp::LW:
+        case RVOp::SW:
+        case RVOp::FLW:
+        case RVOp::FSW:
+        default:
+            panic("TODO!");
+            break;
+    }
     return "";
 }
 
