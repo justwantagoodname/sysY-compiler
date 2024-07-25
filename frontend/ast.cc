@@ -313,9 +313,10 @@ bool ASTNode_get_attr_number(const ASTNode *node, const char* key, double *value
 }
 
 bool ASTNode_id_is(const ASTNode *node, const char* id) {
-    assert(node != NULL && id != NULL);
+    // Update: 一个空的节点或者空指针一定不等于任何 id
+    assert(id != nullptr);
 
-    return strcmp(node->id, id) == 0;
+    return node && strcmp(node->id, id) == 0;
 }
 
 /**

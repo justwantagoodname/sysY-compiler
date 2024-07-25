@@ -1,0 +1,1027 @@
+g++ build-dev/codegen/const_inflater.o build-dev/codegen/generator.o build-dev/codegen/riscvinstr.o build-dev/codegen/stack_translator.o build-dev/frontend/ast.o build-dev/frontend/ast_query.o build-dev/frontend/parser/action.o build-dev/frontend/parser/query.lex.o build-dev/frontend/parser/query.tab.o build-dev/frontend/parser/query_action.o build-dev/frontend/parser/sysY.lex.o build-dev/frontend/parser/sysY.tab.o build-dev/main.o build-dev/optimizer/exp_sim.o build-dev/optimizer/init_list_flatten.o build-dev/package/element.o build-dev/package/query.o build-dev/package/triples.o build-dev/package/triples_block.o build-dev/package/truples_make.o build-dev/pass/const_fold.o build-dev/utils/flag.o build-dev/utils/utils.o  -o build-dev/compiler -lm
+[H[2J[3JWed Jul 24 06:37:16 CST 2024
+build-dev/compiler test/"testfile.sysy" -S -o test/output.s
+<?xml version="1.0"?>
+<CompUnit>
+  <Scope name="Global">
+    <Decl>
+      <Const name="N" type="Int">
+        <ConstInitValue>
+          <Exp>
+            <Number type="Int" value="1024"/>
+          </Exp>
+        </ConstInitValue>
+      </Const>
+      <Var name="A" array="true" type="Int" size="1048576">
+        <ArraySize>
+          <Dimension>
+            <Exp>
+              <Number type="Int" value="1024"/>
+            </Exp>
+          </Dimension>
+          <Dimension>
+            <Exp>
+              <Number type="Int" value="1024"/>
+            </Exp>
+          </Dimension>
+        </ArraySize>
+      </Var>
+      <Var name="B" array="true" type="Int" size="1048576">
+        <ArraySize>
+          <Dimension>
+            <Exp>
+              <Number type="Int" value="1024"/>
+            </Exp>
+          </Dimension>
+          <Dimension>
+            <Exp>
+              <Number type="Int" value="1024"/>
+            </Exp>
+          </Dimension>
+        </ArraySize>
+      </Var>
+      <Var name="C" array="true" type="Int" size="1048576">
+        <ArraySize>
+          <Dimension>
+            <Exp>
+              <Number type="Int" value="1024"/>
+            </Exp>
+          </Dimension>
+          <Dimension>
+            <Exp>
+              <Number type="Int" value="1024"/>
+            </Exp>
+          </Dimension>
+        </ArraySize>
+      </Var>
+    </Decl>
+    <FunctionDef>
+      <Function return="Void" name="mm">
+        <Params>
+          <ParamDecl type="Int" name="n"/>
+          <ParamDecl type="Int" name="A" array="true">
+            <Dimension size="Unknown"/>
+            <Dimension>
+              <Exp>
+                <Number type="Int" value="1024"/>
+              </Exp>
+            </Dimension>
+          </ParamDecl>
+          <ParamDecl type="Int" name="B" array="true">
+            <Dimension size="Unknown"/>
+            <Dimension>
+              <Exp>
+                <Number type="Int" value="1024"/>
+              </Exp>
+            </Dimension>
+          </ParamDecl>
+          <ParamDecl type="Int" name="C" array="true">
+            <Dimension size="Unknown"/>
+            <Dimension>
+              <Exp>
+                <Number type="Int" value="1024"/>
+              </Exp>
+            </Dimension>
+          </ParamDecl>
+        </Params>
+        <Scope name="mm">
+          <Decl>
+            <Var name="i" type="Int"/>
+            <Var name="j" type="Int"/>
+            <Var name="k" type="Int"/>
+            <ParamDecl type="Int" name="n"/>
+            <ParamDecl type="Int" name="A" array="true">
+              <Dimension size="Unknown"/>
+              <Dimension>
+                <Exp>
+                  <Number type="Int" value="1024"/>
+                </Exp>
+              </Dimension>
+            </ParamDecl>
+            <ParamDecl type="Int" name="B" array="true">
+              <Dimension size="Unknown"/>
+              <Dimension>
+                <Exp>
+                  <Number type="Int" value="1024"/>
+                </Exp>
+              </Dimension>
+            </ParamDecl>
+            <ParamDecl type="Int" name="C" array="true">
+              <Dimension size="Unknown"/>
+              <Dimension>
+                <Exp>
+                  <Number type="Int" value="1024"/>
+                </Exp>
+              </Dimension>
+            </ParamDecl>
+          </Decl>
+          <Block>
+            <Assign>
+              <Dest>
+                <Address base="i"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <Assign>
+              <Dest>
+                <Address base="j"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <While>
+              <Cond>
+                <Exp>
+                  <Less>
+                    <Fetch>
+                      <Address base="i"/>
+                    </Fetch>
+                    <Fetch>
+                      <Address base="n"/>
+                    </Fetch>
+                  </Less>
+                </Exp>
+              </Cond>
+              <Stmt>
+                <Scope name="unnamed_1">
+                  <Decl/>
+                  <Block>
+                    <Assign>
+                      <Dest>
+                        <Address base="j"/>
+                      </Dest>
+                      <Exp>
+                        <Number type="Int" value="0"/>
+                      </Exp>
+                    </Assign>
+                    <While>
+                      <Cond>
+                        <Exp>
+                          <Less>
+                            <Fetch>
+                              <Address base="j"/>
+                            </Fetch>
+                            <Fetch>
+                              <Address base="n"/>
+                            </Fetch>
+                          </Less>
+                        </Exp>
+                      </Cond>
+                      <Stmt>
+                        <Scope name="unnamed_2">
+                          <Decl/>
+                          <Block>
+                            <Assign>
+                              <Dest>
+                                <Address base="C">
+                                  <Locator>
+                                    <Dimension>
+                                      <Fetch>
+                                        <Address base="i"/>
+                                      </Fetch>
+                                    </Dimension>
+                                    <Dimension>
+                                      <Fetch>
+                                        <Address base="j"/>
+                                      </Fetch>
+                                    </Dimension>
+                                  </Locator>
+                                </Address>
+                              </Dest>
+                              <Exp>
+                                <Number type="Int" value="0"/>
+                              </Exp>
+                            </Assign>
+                            <Assign>
+                              <Dest>
+                                <Address base="j"/>
+                              </Dest>
+                              <Exp>
+                                <Plus>
+                                  <Fetch>
+                                    <Address base="j"/>
+                                  </Fetch>
+                                  <Number type="Int" value="1"/>
+                                </Plus>
+                              </Exp>
+                            </Assign>
+                          </Block>
+                        </Scope>
+                      </Stmt>
+                    </While>
+                    <Assign>
+                      <Dest>
+                        <Address base="i"/>
+                      </Dest>
+                      <Exp>
+                        <Plus>
+                          <Fetch>
+                            <Address base="i"/>
+                          </Fetch>
+                          <Number type="Int" value="1"/>
+                        </Plus>
+                      </Exp>
+                    </Assign>
+                  </Block>
+                </Scope>
+              </Stmt>
+            </While>
+            <Assign>
+              <Dest>
+                <Address base="i"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <Assign>
+              <Dest>
+                <Address base="j"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <Assign>
+              <Dest>
+                <Address base="k"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <While>
+              <Cond>
+                <Exp>
+                  <Less>
+                    <Fetch>
+                      <Address base="k"/>
+                    </Fetch>
+                    <Fetch>
+                      <Address base="n"/>
+                    </Fetch>
+                  </Less>
+                </Exp>
+              </Cond>
+              <Stmt>
+                <Scope name="unnamed_3">
+                  <Decl/>
+                  <Block>
+                    <Assign>
+                      <Dest>
+                        <Address base="i"/>
+                      </Dest>
+                      <Exp>
+                        <Number type="Int" value="0"/>
+                      </Exp>
+                    </Assign>
+                    <While>
+                      <Cond>
+                        <Exp>
+                          <Less>
+                            <Fetch>
+                              <Address base="i"/>
+                            </Fetch>
+                            <Fetch>
+                              <Address base="n"/>
+                            </Fetch>
+                          </Less>
+                        </Exp>
+                      </Cond>
+                      <Stmt>
+                        <Scope name="unnamed_4">
+                          <Decl/>
+                          <Block>
+                            <If>
+                              <Cond>
+                                <Exp>
+                                  <Equal>
+                                    <Fetch>
+                                      <Address base="A">
+                                        <Locator>
+                                          <Dimension>
+                                            <Fetch>
+                                              <Address base="i"/>
+                                            </Fetch>
+                                          </Dimension>
+                                          <Dimension>
+                                            <Fetch>
+                                              <Address base="k"/>
+                                            </Fetch>
+                                          </Dimension>
+                                        </Locator>
+                                      </Address>
+                                    </Fetch>
+                                    <Number type="Int" value="0"/>
+                                  </Equal>
+                                </Exp>
+                              </Cond>
+                              <Then>
+                                <Scope name="unnamed_5">
+                                  <Decl/>
+                                  <Block>
+                                    <Assign>
+                                      <Dest>
+                                        <Address base="i"/>
+                                      </Dest>
+                                      <Exp>
+                                        <Plus>
+                                          <Fetch>
+                                            <Address base="i"/>
+                                          </Fetch>
+                                          <Number type="Int" value="1"/>
+                                        </Plus>
+                                      </Exp>
+                                    </Assign>
+                                    <Continue/>
+                                  </Block>
+                                </Scope>
+                              </Then>
+                            </If>
+                            <Assign>
+                              <Dest>
+                                <Address base="j"/>
+                              </Dest>
+                              <Exp>
+                                <Number type="Int" value="0"/>
+                              </Exp>
+                            </Assign>
+                            <While>
+                              <Cond>
+                                <Exp>
+                                  <Less>
+                                    <Fetch>
+                                      <Address base="j"/>
+                                    </Fetch>
+                                    <Fetch>
+                                      <Address base="n"/>
+                                    </Fetch>
+                                  </Less>
+                                </Exp>
+                              </Cond>
+                              <Stmt>
+                                <Scope name="unnamed_6">
+                                  <Decl/>
+                                  <Block>
+                                    <Assign>
+                                      <Dest>
+                                        <Address base="C">
+                                          <Locator>
+                                            <Dimension>
+                                              <Fetch>
+                                                <Address base="i"/>
+                                              </Fetch>
+                                            </Dimension>
+                                            <Dimension>
+                                              <Fetch>
+                                                <Address base="j"/>
+                                              </Fetch>
+                                            </Dimension>
+                                          </Locator>
+                                        </Address>
+                                      </Dest>
+                                      <Exp>
+                                        <Plus>
+                                          <Fetch>
+                                            <Address base="C">
+                                              <Locator>
+                                                <Dimension>
+                                                  <Fetch>
+                                                    <Address base="i"/>
+                                                  </Fetch>
+                                                </Dimension>
+                                                <Dimension>
+                                                  <Fetch>
+                                                    <Address base="j"/>
+                                                  </Fetch>
+                                                </Dimension>
+                                              </Locator>
+                                            </Address>
+                                          </Fetch>
+                                          <Mult>
+                                            <Fetch>
+                                              <Address base="A">
+                                                <Locator>
+                                                  <Dimension>
+                                                    <Fetch>
+                                                      <Address base="i"/>
+                                                    </Fetch>
+                                                  </Dimension>
+                                                  <Dimension>
+                                                    <Fetch>
+                                                      <Address base="k"/>
+                                                    </Fetch>
+                                                  </Dimension>
+                                                </Locator>
+                                              </Address>
+                                            </Fetch>
+                                            <Fetch>
+                                              <Address base="B">
+                                                <Locator>
+                                                  <Dimension>
+                                                    <Fetch>
+                                                      <Address base="k"/>
+                                                    </Fetch>
+                                                  </Dimension>
+                                                  <Dimension>
+                                                    <Fetch>
+                                                      <Address base="j"/>
+                                                    </Fetch>
+                                                  </Dimension>
+                                                </Locator>
+                                              </Address>
+                                            </Fetch>
+                                          </Mult>
+                                        </Plus>
+                                      </Exp>
+                                    </Assign>
+                                    <Assign>
+                                      <Dest>
+                                        <Address base="j"/>
+                                      </Dest>
+                                      <Exp>
+                                        <Plus>
+                                          <Fetch>
+                                            <Address base="j"/>
+                                          </Fetch>
+                                          <Number type="Int" value="1"/>
+                                        </Plus>
+                                      </Exp>
+                                    </Assign>
+                                  </Block>
+                                </Scope>
+                              </Stmt>
+                            </While>
+                            <Assign>
+                              <Dest>
+                                <Address base="i"/>
+                              </Dest>
+                              <Exp>
+                                <Plus>
+                                  <Fetch>
+                                    <Address base="i"/>
+                                  </Fetch>
+                                  <Number type="Int" value="1"/>
+                                </Plus>
+                              </Exp>
+                            </Assign>
+                          </Block>
+                        </Scope>
+                      </Stmt>
+                    </While>
+                    <Assign>
+                      <Dest>
+                        <Address base="k"/>
+                      </Dest>
+                      <Exp>
+                        <Plus>
+                          <Fetch>
+                            <Address base="k"/>
+                          </Fetch>
+                          <Number type="Int" value="1"/>
+                        </Plus>
+                      </Exp>
+                    </Assign>
+                  </Block>
+                </Scope>
+              </Stmt>
+            </While>
+          </Block>
+        </Scope>
+      </Function>
+      <Function return="Int" name="main">
+        <Params/>
+        <Scope name="main">
+          <Decl>
+            <Var name="n" type="Int">
+              <InitValue>
+                <Exp>
+                  <Call line="41" name="getint"/>
+                </Exp>
+              </InitValue>
+            </Var>
+            <Var name="i" type="Int"/>
+            <Var name="j" type="Int"/>
+            <Var name="ans" type="Int">
+              <InitValue>
+                <Exp>
+                  <Number type="Int" value="0"/>
+                </Exp>
+              </InitValue>
+            </Var>
+          </Decl>
+          <Block>
+            <Var name="n" type="Int">
+              <InitValue>
+                <Exp>
+                  <Call line="41" name="getint"/>
+                </Exp>
+              </InitValue>
+            </Var>
+            <Assign>
+              <Dest>
+                <Address base="i"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <Assign>
+              <Dest>
+                <Address base="j"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <While>
+              <Cond>
+                <Exp>
+                  <Less>
+                    <Fetch>
+                      <Address base="i"/>
+                    </Fetch>
+                    <Fetch>
+                      <Address base="n"/>
+                    </Fetch>
+                  </Less>
+                </Exp>
+              </Cond>
+              <Stmt>
+                <Scope name="unnamed_8">
+                  <Decl/>
+                  <Block>
+                    <Assign>
+                      <Dest>
+                        <Address base="j"/>
+                      </Dest>
+                      <Exp>
+                        <Number type="Int" value="0"/>
+                      </Exp>
+                    </Assign>
+                    <While>
+                      <Cond>
+                        <Exp>
+                          <Less>
+                            <Fetch>
+                              <Address base="j"/>
+                            </Fetch>
+                            <Fetch>
+                              <Address base="n"/>
+                            </Fetch>
+                          </Less>
+                        </Exp>
+                      </Cond>
+                      <Stmt>
+                        <Scope name="unnamed_9">
+                          <Decl/>
+                          <Block>
+                            <Assign>
+                              <Dest>
+                                <Address base="A">
+                                  <Locator>
+                                    <Dimension>
+                                      <Fetch>
+                                        <Address base="i"/>
+                                      </Fetch>
+                                    </Dimension>
+                                    <Dimension>
+                                      <Fetch>
+                                        <Address base="j"/>
+                                      </Fetch>
+                                    </Dimension>
+                                  </Locator>
+                                </Address>
+                              </Dest>
+                              <Exp>
+                                <Call line="49" name="getint"/>
+                              </Exp>
+                            </Assign>
+                            <Assign>
+                              <Dest>
+                                <Address base="j"/>
+                              </Dest>
+                              <Exp>
+                                <Plus>
+                                  <Fetch>
+                                    <Address base="j"/>
+                                  </Fetch>
+                                  <Number type="Int" value="1"/>
+                                </Plus>
+                              </Exp>
+                            </Assign>
+                          </Block>
+                        </Scope>
+                      </Stmt>
+                    </While>
+                    <Assign>
+                      <Dest>
+                        <Address base="i"/>
+                      </Dest>
+                      <Exp>
+                        <Plus>
+                          <Fetch>
+                            <Address base="i"/>
+                          </Fetch>
+                          <Number type="Int" value="1"/>
+                        </Plus>
+                      </Exp>
+                    </Assign>
+                  </Block>
+                </Scope>
+              </Stmt>
+            </While>
+            <Assign>
+              <Dest>
+                <Address base="i"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <Assign>
+              <Dest>
+                <Address base="j"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <While>
+              <Cond>
+                <Exp>
+                  <Less>
+                    <Fetch>
+                      <Address base="i"/>
+                    </Fetch>
+                    <Fetch>
+                      <Address base="n"/>
+                    </Fetch>
+                  </Less>
+                </Exp>
+              </Cond>
+              <Stmt>
+                <Scope name="unnamed_10">
+                  <Decl/>
+                  <Block>
+                    <Assign>
+                      <Dest>
+                        <Address base="j"/>
+                      </Dest>
+                      <Exp>
+                        <Number type="Int" value="0"/>
+                      </Exp>
+                    </Assign>
+                    <While>
+                      <Cond>
+                        <Exp>
+                          <Less>
+                            <Fetch>
+                              <Address base="j"/>
+                            </Fetch>
+                            <Fetch>
+                              <Address base="n"/>
+                            </Fetch>
+                          </Less>
+                        </Exp>
+                      </Cond>
+                      <Stmt>
+                        <Scope name="unnamed_11">
+                          <Decl/>
+                          <Block>
+                            <Assign>
+                              <Dest>
+                                <Address base="B">
+                                  <Locator>
+                                    <Dimension>
+                                      <Fetch>
+                                        <Address base="i"/>
+                                      </Fetch>
+                                    </Dimension>
+                                    <Dimension>
+                                      <Fetch>
+                                        <Address base="j"/>
+                                      </Fetch>
+                                    </Dimension>
+                                  </Locator>
+                                </Address>
+                              </Dest>
+                              <Exp>
+                                <Call line="59" name="getint"/>
+                              </Exp>
+                            </Assign>
+                            <Assign>
+                              <Dest>
+                                <Address base="j"/>
+                              </Dest>
+                              <Exp>
+                                <Plus>
+                                  <Fetch>
+                                    <Address base="j"/>
+                                  </Fetch>
+                                  <Number type="Int" value="1"/>
+                                </Plus>
+                              </Exp>
+                            </Assign>
+                          </Block>
+                        </Scope>
+                      </Stmt>
+                    </While>
+                    <Assign>
+                      <Dest>
+                        <Address base="i"/>
+                      </Dest>
+                      <Exp>
+                        <Plus>
+                          <Fetch>
+                            <Address base="i"/>
+                          </Fetch>
+                          <Number type="Int" value="1"/>
+                        </Plus>
+                      </Exp>
+                    </Assign>
+                  </Block>
+                </Scope>
+              </Stmt>
+            </While>
+            <Exp>
+              <Call line="65" name="starttime"/>
+            </Exp>
+            <Assign>
+              <Dest>
+                <Address base="i"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <While>
+              <Cond>
+                <Exp>
+                  <Less>
+                    <Fetch>
+                      <Address base="i"/>
+                    </Fetch>
+                    <Number type="Int" value="5"/>
+                  </Less>
+                </Exp>
+              </Cond>
+              <Stmt>
+                <Scope name="unnamed_12">
+                  <Decl/>
+                  <Block>
+                    <Exp>
+                      <Call line="69" name="mm">
+                        <Param>
+                          <Fetch>
+                            <Address base="n"/>
+                          </Fetch>
+                        </Param>
+                        <Param>
+                          <Fetch>
+                            <Address base="A"/>
+                          </Fetch>
+                        </Param>
+                        <Param>
+                          <Fetch>
+                            <Address base="B"/>
+                          </Fetch>
+                        </Param>
+                        <Param>
+                          <Fetch>
+                            <Address base="C"/>
+                          </Fetch>
+                        </Param>
+                      </Call>
+                    </Exp>
+                    <Exp>
+                      <Call line="70" name="mm">
+                        <Param>
+                          <Fetch>
+                            <Address base="n"/>
+                          </Fetch>
+                        </Param>
+                        <Param>
+                          <Fetch>
+                            <Address base="A"/>
+                          </Fetch>
+                        </Param>
+                        <Param>
+                          <Fetch>
+                            <Address base="C"/>
+                          </Fetch>
+                        </Param>
+                        <Param>
+                          <Fetch>
+                            <Address base="B"/>
+                          </Fetch>
+                        </Param>
+                      </Call>
+                    </Exp>
+                    <Assign>
+                      <Dest>
+                        <Address base="i"/>
+                      </Dest>
+                      <Exp>
+                        <Plus>
+                          <Fetch>
+                            <Address base="i"/>
+                          </Fetch>
+                          <Number type="Int" value="1"/>
+                        </Plus>
+                      </Exp>
+                    </Assign>
+                  </Block>
+                </Scope>
+              </Stmt>
+            </While>
+            <Var name="ans" type="Int">
+              <InitValue>
+                <Exp>
+                  <Number type="Int" value="0"/>
+                </Exp>
+              </InitValue>
+            </Var>
+            <Assign>
+              <Dest>
+                <Address base="i"/>
+              </Dest>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Assign>
+            <While>
+              <Cond>
+                <Exp>
+                  <Less>
+                    <Fetch>
+                      <Address base="i"/>
+                    </Fetch>
+                    <Fetch>
+                      <Address base="n"/>
+                    </Fetch>
+                  </Less>
+                </Exp>
+              </Cond>
+              <Stmt>
+                <Scope name="unnamed_13">
+                  <Decl/>
+                  <Block>
+                    <Assign>
+                      <Dest>
+                        <Address base="j"/>
+                      </Dest>
+                      <Exp>
+                        <Number type="Int" value="0"/>
+                      </Exp>
+                    </Assign>
+                    <While>
+                      <Cond>
+                        <Exp>
+                          <Less>
+                            <Fetch>
+                              <Address base="j"/>
+                            </Fetch>
+                            <Fetch>
+                              <Address base="n"/>
+                            </Fetch>
+                          </Less>
+                        </Exp>
+                      </Cond>
+                      <Stmt>
+                        <Scope name="unnamed_14">
+                          <Decl/>
+                          <Block>
+                            <Assign>
+                              <Dest>
+                                <Address base="ans"/>
+                              </Dest>
+                              <Exp>
+                                <Plus>
+                                  <Fetch>
+                                    <Address base="ans"/>
+                                  </Fetch>
+                                  <Fetch>
+                                    <Address base="B">
+                                      <Locator>
+                                        <Dimension>
+                                          <Fetch>
+                                            <Address base="i"/>
+                                          </Fetch>
+                                        </Dimension>
+                                        <Dimension>
+                                          <Fetch>
+                                            <Address base="j"/>
+                                          </Fetch>
+                                        </Dimension>
+                                      </Locator>
+                                    </Address>
+                                  </Fetch>
+                                </Plus>
+                              </Exp>
+                            </Assign>
+                            <Assign>
+                              <Dest>
+                                <Address base="j"/>
+                              </Dest>
+                              <Exp>
+                                <Plus>
+                                  <Fetch>
+                                    <Address base="j"/>
+                                  </Fetch>
+                                  <Number type="Int" value="1"/>
+                                </Plus>
+                              </Exp>
+                            </Assign>
+                          </Block>
+                        </Scope>
+                      </Stmt>
+                    </While>
+                    <Assign>
+                      <Dest>
+                        <Address base="i"/>
+                      </Dest>
+                      <Exp>
+                        <Plus>
+                          <Fetch>
+                            <Address base="i"/>
+                          </Fetch>
+                          <Number type="Int" value="1"/>
+                        </Plus>
+                      </Exp>
+                    </Assign>
+                  </Block>
+                </Scope>
+              </Stmt>
+            </While>
+            <Exp>
+              <Call line="84" name="stoptime"/>
+            </Exp>
+            <Exp>
+              <Call line="85" name="putint">
+                <Param>
+                  <Fetch>
+                    <Address base="ans"/>
+                  </Fetch>
+                </Param>
+              </Call>
+            </Exp>
+            <Exp>
+              <Call line="86" name="putch">
+                <Param>
+                  <Number type="Int" value="10"/>
+                </Param>
+              </Call>
+            </Exp>
+            <Return>
+              <Exp>
+                <Number type="Int" value="0"/>
+              </Exp>
+            </Return>
+          </Block>
+        </Scope>
+      </Function>
+    </FunctionDef>
+  </Scope>
+</CompUnit>
+<?xml version="1.0"?>
+<Dimension>
+  <Exp value="1024">
+    <Number type="Int" value="1024"/>
+  </Exp>
+</Dimension>
+<?xml version="1.0"?>
+<Dimension>
+  <Exp value="1024">
+    <Number type="Int" value="1024"/>
+  </Exp>
+</Dimension>
+<?xml version="1.0"?>
+<Dimension>
+  <Exp value="1024">
+    <Number type="Int" value="1024"/>
+  </Exp>
+</Dimension>
+<?xml version="1.0"?>
+<Dimension>
+  <Exp value="1024">
+    <Number type="Int" value="1024"/>
+  </Exp>
+</Dimension>
+<?xml version="1.0"?>
+<Dimension>
+  <Exp value="1024">
+    <Number type="Int" value="1024"/>
+  </Exp>
+</Dimension>
+<?xml version="1.0"?>
+<Dimension>
+  <Exp value="1024">
+    <Number type="Int" value="1024"/>
+  </Exp>
+</Dimension>
+<?xml version="1.0"?>
+<Dimension size="Unknown"/>
