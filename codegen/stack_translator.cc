@@ -438,7 +438,24 @@ void StackTranslator::translateLVal(ASTNode *lval) {
     bool hasName = ASTNode_get_attr_str(address, "base", &name);
     assert(hasName);
 
-    auto decl = ASTNode_querySelectorfOne(address, "/ancestor::Scope/Decl/*[@name='%s']", name);
+    int access_line;
+    bool hasLine = ASTNode_get_attr_int(address, "line", &access_line);
+    assert(hasLine);
+
+    QueryResult *decl_list = ASTNode_querySelectorf(address, "/ancestor::Scope/Decl/*[@name='%s']", name), *cur;
+
+    ASTNode* decl = nullptr;
+    DL_FOREACH(decl_list, cur) {
+        int line;
+        hasLine = ASTNode_get_attr_int(cur->node, "line", &line);
+        assert(hasLine);
+
+        if (line < access_line) {
+            decl = cur->node;
+            break;
+        }
+    }
+
     assert(decl); // 使用的变量名必须声明过
 
     const char* label;
