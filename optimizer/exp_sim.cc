@@ -239,7 +239,7 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
 
     assert(base_name != nullptr);
 
-    QueryResult *const_list = ASTNode_querySelectorf(node, "/ancestor::Scope//Const[@name='%s'][0]", base_name), *cur;
+    QueryResult *const_list = ASTNode_querySelectorf(node, "/ancestor::Scope/Decl/Const[@name='%s'][0]", base_name), *cur;
 
     ASTNode* target = nullptr;
     DL_FOREACH(const_list, cur) {

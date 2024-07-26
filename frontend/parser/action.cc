@@ -84,7 +84,7 @@ ASTNode *collectDecl(ASTNode *scope_node, ASTNode *decls) {
     if (ASTNode_id_is(decls, "VarTemp")) {
         // 查询有InitValue的变量
         // TODO: 改回去都加到block里
-        QueryResult *init_vars = ASTNode_querySelector(decls, "/Var/InitValue/.."), *cur = nullptr;
+        QueryResult *init_vars = ASTNode_querySelector(decls, "/Var"), *cur = nullptr;
         DL_FOREACH(init_vars, cur) {
             auto init_var = cur->node;
             ASTNode *cloned = ASTNode_clone(init_var);
