@@ -14,7 +14,7 @@ using std::vector;
 
 void Triples::pretreat()
 {
-	Query array_decls_Unknown = root("//Decl/*[@array='true',@size='Unknown']");
+	Query array_decls_Unknown = root("//Decl/*[@array='true']/Dimension[@size='Unknown']");
 	for (auto adecl : array_decls_Unknown) {
 		adecl.add_attr("unknown-size", -1);
 	}
@@ -24,6 +24,7 @@ void Triples::pretreat()
 	for (auto adecl : array_decls) {
 		DFS_Element(adecl) {
 			DFS_Element_init;
+			element.print();
 			ife("Exp") {
 				element.add_attr("value", element[0].get_attr_int("value"));
 			}
@@ -171,19 +172,25 @@ void Triples::make()
 			const char* s = element.get_attr_str("base");
 			Element value = element.table(s);
 
-			// 直接传递数组
-			if (element.size() == 0) {
-				element.add_attr("addr", triples.find(value));
-				element.add_attr("type", "Array");
-			}
-			else {
-				if (value.get_attr("array")) { // is array
+			element.add_attr("addr", triples.find(value));
+			element.add_attr("type", value.get_attr_str("type"));
+
+			if (value.get_attr("array")) { // is array
+				if (element.size() == 0) {
+					element.add_attr("array", 1);
+					element.add_attr("is_addr", 1);
+					element.add_attr("temp", temp_count);
+					triples.add(Cmd.mov, { 0, TT.dimd }, {}, { temp_count++ });
+				}
+				else if (element[0].get_attr("is_addr")) {
+					element.add_attr("array", 1);
+					element.add_attr("is_addr", 1);
+					element.add_attr("temp", element[0].get_attr_int("temp"));
+				}
+				else {
 					element.add_attr("array", 1);
 					element.add_attr("temp", element[0].get_attr_int("temp"));
 				}
-
-				element.add_attr("addr", triples.find(value));
-				element.add_attr("type", value.get_attr_str("type"));
 			}
 		}
 		ife("Locator") {
@@ -210,7 +217,15 @@ void Triples::make()
 				++count;
 				triples.add(Cmd.add, { temp }, { t }, { temp });
 			}
-			element.add_attr("temp", temp);
+
+			if (element.size() < value.size()) {
+				element.add_attr("is_addr", 1);
+				element.add_attr("addr_base", triples.find(value));
+				element.add_attr("temp", temp);
+			}
+			else {
+				element.add_attr("temp", temp);
+			}
 		}
 		ife("Dimension") {
 			int t = element[0].get_attr_int("temp");
@@ -230,9 +245,14 @@ void Triples::make()
 		ife("Fetch") {
 			int a = element[0].get_attr_int("addr");
 			TripleValue d = {};
-			if (element[0].get_attr("array"))
+			TRIPLEVALUE::TRIPLEVALUE_ENUM tt = TT.value;
+			if (element[0].get_attr("array")) {
 				d = element[0].get_attr_int("temp");
-			triples.add(Cmd.load, { a, TT.value, d }, {}, { temp_count });
+				if (element[0].get_attr("is_addr")) {
+					tt = TT.addr;
+				}
+			}
+			triples.add(Cmd.load, { a, tt, d }, {}, { temp_count });
 			element.add_attr("temp", temp_count);
 			++temp_count;
 			element.add_attr("type", element[0].get_attr_str("type"));
@@ -250,7 +270,6 @@ void Triples::make()
 		}while(0)
 
 		ife("Assign") {
-			element.print();
 			int a = element[0].get_attr_int("addr");
 			int t = element[1].get_attr_int("temp");
 			TripleValue d = {};
@@ -597,6 +616,8 @@ void Triples::make()
 			}
 			else {
 				triples.add(Cmd.call, { element.get_attr_str("name"), this }, parms, { temp_count });
+
+				// TODO -> 在这里加载内置函数的类型
 				element.add_attr("type", "Unknown");
 
 			}
