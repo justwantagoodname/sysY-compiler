@@ -163,57 +163,98 @@ void Triples::minTempVar()
 void Triples::eliUnnecVar()
 {
 	// 消除到立即数的无用中间变量
-	std::vector<int> imd_temp(temp_count, -1);
-	//int* imd_temp = new int[temp_count + 5];
-	//memset(imd_temp, -1, sizeof(int) * temp_count);
-	std::vector<bool> imd_type(temp_count, false);
-	//bool* imd_type = new bool[temp_count + 5];
-	//memset(imd_type, 0, sizeof(bool) * temp_count);
+	std::vector<TripleValue> imd_temp(temp_count, TripleValue());
 
-	auto sett = [f = [&imd_temp, &imd_type](auto&& self, TripleValue* e) -> void {\
+	auto sett = [f = [&imd_temp](auto&& self, TripleValue* e) -> void {
 
-		if (e->type == TT.temp && imd_temp[e->value] != -1) {
-
-			if (imd_type[e->value]) {
-				e->type = TT.fimd;
-			}
-			else {
-				e->type = TT.dimd;
-			}
-			e->value = imd_temp[e->value];
+		if (e->type == TT.temp && imd_temp[e->value].type != TT.null) {
+			*e = imd_temp[e->value];
 
 		}
 		if (e->added != nullptr) {
 			self(self, e->added);
 		}
 		}]
-		(TripleValue* e) {\
-		f(f, e);
-	};
+		(TripleValue* e) -> void{ f(f, e); };
 
 	int i = 0;
 	for (auto it = triples.begin(); it != triples.end(); ++it) {
-		\
+
 		sett(&(*it)->e1);
 		sett(&(*it)->e2);
 
 		// 获取某个立即数并绑定到临时变量
-		if ((*it)->cmd == Cmd.mov && ((*it)->e1.type == TT.dimd || (*it)->e1.type == TT.fimd) && (*it)->to.type == TT.temp) {
-			imd_temp[(*it)->to.value] = (*it)->e1.value;
-			if ((*it)->e1.type == TT.fimd) {
-				imd_type[(*it)->to.value] = true;
-			}
+		if ((*it)->cmd == Cmd.mov &&
+			(
+				(*it)->e1.type == TT.dimd
+				|| (*it)->e1.type == TT.fimd
+				)
+			&& (*it)->to.type == TT.temp) {
+			imd_temp[(*it)->to.value] = (*it)->e1;
 			it = triples.erase(it);
 			--it;
 		}
 		// 当某个临时变量被重新赋值时取消绑定 (尽管可能不存在这样的情况）
 		else if ((*it)->to.type == TT.temp && imd_temp[(*it)->to.value] != -1) {
-			imd_temp[(*it)->to.value] = -1;
+			imd_temp[(*it)->to.value] = {};
 		}
 	}
 
 	//delete[] imd_temp;
 	//delete[] imd_type;
+
+//	// 消除到立即数的无用中间变量
+//	std::vector<int> imd_temp(temp_count, -1);
+//	//int* imd_temp = new int[temp_count + 5];
+//	//memset(imd_temp, -1, sizeof(int) * temp_count);
+//	std::vector<bool> imd_type(temp_count, false);
+//	//bool* imd_type = new bool[temp_count + 5];
+//	//memset(imd_type, 0, sizeof(bool) * temp_count);
+//
+//	auto sett = [f = [&imd_temp, &imd_type](auto&& self, TripleValue* e) -> void {\
+//
+//		if (e->type == TT.temp && imd_temp[e->value] != -1) {
+//
+//			if (imd_type[e->value]) {
+//				e->type = TT.fimd;
+//			}
+//			else {
+//				e->type = TT.dimd;
+//			}
+//			e->value = imd_temp[e->value];
+//
+//		}
+//		if (e->added != nullptr) {
+//			self(self, e->added);
+//		}
+//		}]
+//		(TripleValue* e) {\
+//		f(f, e);
+//	};
+//
+//	int i = 0;
+//	for (auto it = triples.begin(); it != triples.end(); ++it) {
+//		\
+//		sett(&(*it)->e1);
+//		sett(&(*it)->e2);
+//
+//		// 获取某个立即数并绑定到临时变量
+//		if ((*it)->cmd == Cmd.mov && ((*it)->e1.type == TT.dimd || (*it)->e1.type == TT.fimd) && (*it)->to.type == TT.temp) {
+//			imd_temp[(*it)->to.value] = (*it)->e1.value;
+//			if ((*it)->e1.type == TT.fimd) {
+//				imd_type[(*it)->to.value] = true;
+//			}
+//			it = triples.erase(it);
+//			--it;
+//		}
+//		// 当某个临时变量被重新赋值时取消绑定 (尽管可能不存在这样的情况）
+//		else if ((*it)->to.type == TT.temp && imd_temp[(*it)->to.value] != -1) {
+//			imd_temp[(*it)->to.value] = -1;
+//		}
+//	}
+//
+//	//delete[] imd_temp;
+//	//delete[] imd_type;
 }
 
 void Triples::resortTemp()

@@ -245,14 +245,15 @@ void Triples::make()
 		ife("Fetch") {
 			int a = element[0].get_attr_int("addr");
 			TripleValue d = {};
-			TRIPLEVALUE::TRIPLEVALUE_ENUM tt = TT.value;
+			bool flg = false;
+
 			if (element[0].get_attr("array")) {
 				d = element[0].get_attr_int("temp");
 				if (element[0].get_attr("is_addr")) {
-					tt = TT.addr;
+					flg = true;
 				}
 			}
-			triples.add(Cmd.load, { a, tt, d }, {}, { temp_count });
+			triples.add(flg ? Cmd.mov : Cmd.load, { a, flg ? TT.addr : TT.value, d }, {}, { temp_count });
 			element.add_attr("temp", temp_count);
 			++temp_count;
 			element.add_attr("type", element[0].get_attr_str("type"));
