@@ -46,6 +46,8 @@ const auto SyInt = "Int";
 const auto SyVoid = "Void";
 const auto SyFloat = "Float";
 
+#ifndef NO_PANIC
+
 #define panic(str) do { \
     fprintf(stderr, str "\n"); \
     assert(false); \
@@ -60,6 +62,8 @@ const auto SyFloat = "Float";
 } while (0)
 #else
 #define panic_on(cond, str) do { } while (0)
+#endif
+
 #endif
 
 #endif
