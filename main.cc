@@ -53,11 +53,13 @@ int main(int argc, const char** argv) {
 #endif
 
 #ifdef TRIPLE_DEBUG
+	root.print();
+
 	Triples triples(root);
 	triples.pretreat();
 	printf("===After pretreat===\n");
 
-	root.print();
+	//root.print();
 
 	printf("===After make===\n");
 	triples.make();

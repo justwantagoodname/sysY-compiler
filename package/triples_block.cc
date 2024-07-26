@@ -163,14 +163,17 @@ void Triples::minTempVar()
 void Triples::eliUnnecVar()
 {
 	// 消除到立即数的无用中间变量
-	int* imd_temp = new int[temp_count + 5];
-	memset(imd_temp, 0xFF, sizeof(int) * temp_count);
-	bool* imd_type = new bool[temp_count + 5];
-	memset(imd_type, false, sizeof(bool) * temp_count);
+	std::vector<int> imd_temp(temp_count, -1);
+	//int* imd_temp = new int[temp_count + 5];
+	//memset(imd_temp, -1, sizeof(int) * temp_count);
+	std::vector<bool> imd_type(temp_count, false);
+	//bool* imd_type = new bool[temp_count + 5];
+	//memset(imd_type, 0, sizeof(bool) * temp_count);
 
-	auto sett = [f = [&imd_temp, &imd_type](auto&& self, TripleValue* e) -> void {
-		//printf("%d, %d\n", e->type, e->value);
+	auto sett = [f = [&imd_temp, &imd_type](auto&& self, TripleValue* e) -> void {\
+
 		if (e->type == TT.temp && imd_temp[e->value] != -1) {
+
 			if (imd_type[e->value]) {
 				e->type = TT.fimd;
 			}
@@ -184,9 +187,13 @@ void Triples::eliUnnecVar()
 			self(self, e->added);
 		}
 		}]
-		(TripleValue* e) { f(f, e); };
+		(TripleValue* e) {\
+		f(f, e);
+	};
 
+	int i = 0;
 	for (auto it = triples.begin(); it != triples.end(); ++it) {
+		\
 		sett(&(*it)->e1);
 		sett(&(*it)->e2);
 
@@ -200,13 +207,13 @@ void Triples::eliUnnecVar()
 			--it;
 		}
 		// 当某个临时变量被重新赋值时取消绑定 (尽管可能不存在这样的情况）
-		else if ((*it)->to.type == TT.temp) {
+		else if ((*it)->to.type == TT.temp && imd_temp[(*it)->to.value] != -1) {
 			imd_temp[(*it)->to.value] = -1;
 		}
 	}
 
-	delete[] imd_temp;
-	delete[] imd_type;
+	//delete[] imd_temp;
+	//delete[] imd_type;
 }
 
 void Triples::resortTemp()
