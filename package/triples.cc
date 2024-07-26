@@ -268,6 +268,10 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 	case TT.blockno:
 		snprintf(s, 20, "b%d", value);
 		break;
+	case TT.addr:
+		added->toString(ts, triples);
+		snprintf(s, 20, "&%s + %s", triples.value_pointer[value].get_attr_str("name"), ts);
+		break;
 	default:
 		snprintf(s, 20, "unknow:%d", value);
 		break;
