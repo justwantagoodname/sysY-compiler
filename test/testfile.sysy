@@ -1,4 +1,6 @@
 
+int main(){
+
 int a = 7;
 
 int func() {
@@ -25,5 +27,4 @@ int main() {
 	else
 		putint(0);
 	return 0;
-
 }
