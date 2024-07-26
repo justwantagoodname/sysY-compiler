@@ -127,7 +127,7 @@ ConstDefList: ConstDef { $$ = ASTNode_create("ConstantTemp"); ASTNode_add_child(
 
 ConstDef: Identifier Assign InitValue {
                                         $$ = ASTNode_create_attr("Const", 1, "name", $1);
-
+                                        ASTNode_add_attr_int($$, "line", @1.first_line);
                                         auto value = ASTNode_create("InitValue");
                                         ASTNode_add_child(value, $3);
                                         ASTNode_add_child($$, value);
@@ -135,6 +135,7 @@ ConstDef: Identifier Assign InitValue {
         | Identifier ArrayDecl Assign InitValue { 
                                                   $$ = ASTNode_create_attr("Const", 2, "name", $1, "array", "true"); 
                                                   ASTNode* as = ASTNode_create("ArraySize");
+                                                  ASTNode_add_attr_int($$, "line", @1.first_line);
                                                   ASTNode_move_children($2, as);
                                                   ASTNode_add_nchild($$, 2, as, $4);
                                                 }
@@ -147,18 +148,21 @@ VarDefList: VarDef { $$ = ASTNode_create("VarTemp"); ASTNode_add_child($$, $1);}
           | VarDefList Comma VarDef { $$ = $1; ASTNode_add_child($$, $3); }
           ;
 
-VarDef: Identifier { $$ = ASTNode_create_attr("Var", 1, "name", $1); }
+VarDef: Identifier { $$ = ASTNode_create_attr("Var", 1, "name", $1); ASTNode_add_attr_int($$, "line", @1.first_line); }
       | Identifier Assign InitValue { $$ = ASTNode_create_attr("Var", 1, "name", $1);                                               
                                       auto value = ASTNode_create("InitValue");
+                                      ASTNode_add_attr_int($$, "line", @1.first_line);
                                       ASTNode_add_child(value, $3);
                                       ASTNode_add_child($$, value);
                                     }
       | Identifier ArrayDecl { $$ = ASTNode_create_attr("Var", 2, "name", $1, "array", "true"); 
                                ASTNode_add_child($$, $2);
+                               ASTNode_add_attr_int($$, "line", @1.first_line);
                               }
       | Identifier ArrayDecl Assign InitValue { $$ = ASTNode_create_attr("Var", 2, "name", $1, "array", "true"); 
                                                 ASTNode_add_child($$, $2);
                                                 ASTNode_add_child($$, $4);
+                                                ASTNode_add_attr_int($$, "line", @1.first_line);
                                               }
       ;
 
@@ -259,8 +263,8 @@ IfStmt: If LeftParent Cond RightParent Stmt { $$ = createIfNode($3, $5, NULL); }
       | If LeftParent Cond RightParent Stmt Else Stmt { $$ = createIfNode($3, $5, $7);} %dprec 1
       ;
 
-LVal: Identifier { $$ = ASTNode_create_attr("Address", 1, "base", $1); /*ASTNode_add_attr_str($$, "base", $1);*/ }
-    | Identifier ArrayLocatorList { $$ = ASTNode_create_attr("Address", 1, "base", $1); /*ASTNode_add_attr_str($$, "base", $1); */ASTNode_add_child($$, $2); /* TODO: calc base */ }
+LVal: Identifier { $$ = ASTNode_create_attr("Address", 1, "base", $1); ASTNode_add_attr_int($$, "line", @1.first_line); }
+    | Identifier ArrayLocatorList { $$ = ASTNode_create_attr("Address", 1, "base", $1); ASTNode_add_child($$, $2); ASTNode_add_attr_int($$, "line", @1.first_line);}
     ;
 
 ArrayLocator: LeftBrack Exp RightBrack { $$ = ASTNode_create("Dimension"); ASTNode_add_child($$, $2); }
@@ -298,7 +302,7 @@ UnaryExp: PrimaryExp { $$ = $1; }
         | UnaryOp UnaryExp { $$ = ASTNode_create($1); ASTNode_add_child($$, $2); }
         ; 
 
-PrimaryExp: LVal { $$ = ASTNode_create("Fetch"); ASTNode_add_attr_int($$, "line", @1.first_line); ASTNode_add_child($$, $1); }
+PrimaryExp: LVal { $$ = ASTNode_create("Fetch"); ASTNode_add_child($$, $1); }
           | Number { $$ = $1; }
           | LeftParent Exp RightParent { $$ = $2; }
           ;
