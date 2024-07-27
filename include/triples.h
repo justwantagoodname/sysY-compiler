@@ -68,6 +68,7 @@ public:
 			parms, // 参数组
 			blockno, // 块编号
 			typetag, // 类型标记，0为int， 1为float
+			addr, // 地址类型，用于向函数传递数组
 		};
 	}TT = TRIPLEVALUE(); // Triple Value Type Enum
 

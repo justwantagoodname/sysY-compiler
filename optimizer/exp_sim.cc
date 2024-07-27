@@ -233,12 +233,27 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
     ASTNode *base_node = ASTNode_querySelectorOne(node, "//*[@base][0]");
     const char *base_name = nullptr;
     ASTNode_get_attr_str(base_node, "base", &base_name);
+    int access_line;
+    bool hasLine = ASTNode_get_attr_int(base_node, "line", &access_line);
+    assert(hasLine);
 
     assert(base_name != nullptr);
 
-    ASTNode *target = ASTNode_querySelectorfOne(node, "/ancestor::Scope//*[@name='%s'][0]", base_name);
+    QueryResult *const_list = ASTNode_querySelectorf(node, "/ancestor::Scope//Const[@name='%s'][0]", base_name), *cur;
 
-    if (target == nullptr || !ASTNode_id_is(target, "Const")) {
+    ASTNode* target = nullptr;
+    DL_FOREACH(const_list, cur) {
+        int line;
+        hasLine = ASTNode_get_attr_int(cur->node, "line", &line);
+        assert(hasLine);
+
+        if (line < access_line) {
+            target = cur->node;
+            break;
+        }
+    }
+
+    if (target == nullptr) {
         return ASTNode_clone(node);
     }
 

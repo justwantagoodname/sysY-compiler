@@ -226,19 +226,22 @@ ASTAttribute* Element::get_attr(const char* key) const {
 
 int Element::get_attr_int(const char* key) const {
 	int value;
-	ASTNode_get_attr_int(node, key, &value);
+	bool flg = ASTNode_get_attr_int(node, key, &value);
+	assert(flg);
 	return value;
 }
 
 float Element::get_attr_float(const char* key) const {
 	float value;
-	ASTNode_get_attr_float(node, key, &value);
+	bool flg = ASTNode_get_attr_float(node, key, &value);
+	assert(flg);
 	return value;
 }
 
 const char* Element::get_attr_str(const char* key) const {
 	const char* value;
-	ASTNode_get_attr_str(node, key, &value);
+	bool flg = ASTNode_get_attr_str(node, key, &value);
+	assert(flg);
 	return value;
 }
 
