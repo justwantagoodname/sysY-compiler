@@ -4,6 +4,7 @@ using std::vector;
 
 void Triples::add(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, const TripleValue& to)
 {
+	assert(cmd != Cmd.mov || (cmd == Cmd.mov && e1.value < 20000) || e1.type != TT.temp);
 	triples.push_back(std::shared_ptr<Triple>(new Triple(cmd, e1, e2, to)));
 }
 
@@ -76,7 +77,7 @@ Triples::Triple::Triple(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleVa
 
 Triples::~Triples()
 {
-	root.free();
+	//root.free();
 }
 
 size_t Triples::size()
@@ -90,46 +91,47 @@ void Triples::print() const
 	char ts1[550], ts2[550], ts3[550];
 	int idx = 0;
 	printf("\n");
+	const char cmd_text[][10] = {
+		"mov",
+		"call",
+		"jmp",
+		"j!0",
+		"jeq",
+		"jne",
+		"jgt",
+		"jlt",
+		"jge",
+		"jle",
+		//"jeqf",
+		//"jnef",
+		//"jgtf",
+		//"jltf",
+		//"jgef",
+		//"jlef",
+		"ret",
+		"rev",
+		"pus",
+		"pop",
+		"add",
+		"sub",
+		"mul",
+		"div",
+		"mod",
+		//"fadd",
+		//"fsub",
+		//"fmul",
+		//"fdiv",
+		"tag",
+		//"d2f",
+		//"f2d",
+		"mset",
+		"load",
+		"store",
+		"{",
+		"}",
+		"var"
+	};
 	for (auto i : triples) {
-		const char cmd_text[][10] = {
-			"mov",
-			"call",
-			"jmp",
-			"jeq",
-			"jne",
-			"jgt",
-			"jlt",
-			"jge",
-			"jle",
-			//"jeqf",
-			//"jnef",
-			//"jgtf",
-			//"jltf",
-			//"jgef",
-			//"jlef",
-			"ret",
-			"rev",
-			"pus",
-			"pop",
-			"add",
-			"sub",
-			"mul",
-			"div",
-			"mod",
-			//"fadd",
-			//"fsub",
-			//"fmul",
-			//"fdiv",
-			"tag",
-			//"d2f",
-			//"f2d",
-			"mset",
-			"load",
-			"store",
-			"{",
-			"}",
-			"var"
-		};
 
 		if (i->cmd == Cmd.tag) {
 			i->e1.toString(ts1, *this);
@@ -214,7 +216,7 @@ Triples::TripleValue::~TripleValue()
 
 void Triples::TripleValue::toString(char s[], const Triples& triples)
 {
-	char ts[500], ts2[50];
+	char ts[500], ts2[500];
 	switch (type)
 	{
 	case TT.null:
@@ -239,7 +241,7 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		}
 		break;
 	case TT.func:
-		snprintf(s, 50, "%d@%s",
+		snprintf(s, 500, "%d@%s",
 			triples.function_pointer[value].get_attr_int("place"),
 			triples.function_pointer[value].get_attr_str("name")
 		);
@@ -266,8 +268,17 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 	case TT.blockno:
 		snprintf(s, 20, "b%d", value);
 		break;
+	case TT.addr:
+		added->toString(ts, triples);
+		snprintf(s, 20, "&%s + %s", triples.value_pointer[value].get_attr_str("name"), ts);
+		break;
 	default:
 		snprintf(s, 20, "unknow:%d", value);
 		break;
 	}
+}
+
+std::string Triples::getValueString(const TripleValue& tv) const {
+	assert(tv.type == TT.str);
+	return string_pointer[tv.value];
 }

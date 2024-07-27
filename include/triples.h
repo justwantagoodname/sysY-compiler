@@ -16,6 +16,7 @@ public:
 			mov,
 			call,
 			jmp,
+			jn0,
 			jeq,
 			jne,
 			jgt,
@@ -67,6 +68,7 @@ public:
 			parms, // 参数组
 			blockno, // 块编号
 			typetag, // 类型标记，0为int， 1为float
+			addr, // 地址类型，用于向函数传递数组
 		};
 	}TT = TRIPLEVALUE(); // Triple Value Type Enum
 
@@ -154,6 +156,7 @@ public:
 	Triple& operator[](int idx) {
 		return *triples[idx];
 	};
+
 	size_t size();
 
 	std::vector<std::shared_ptr<Triple>>::iterator begin() { return triples.begin(); }
@@ -161,6 +164,7 @@ public:
 
 	void print() const;
 
+	std::string getValueString(const TripleValue& triple_value) const;
 };
 
 #endif //TRIPLE_H
