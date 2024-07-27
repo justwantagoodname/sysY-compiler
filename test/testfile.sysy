@@ -1,7 +1,1 @@
-int main() {
-    {
-        const int a = 11;
-    }
-
-    putint(a);
-}
+int main() {int a; a = 1; { int a = 2; putint(a); } return a;}

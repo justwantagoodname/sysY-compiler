@@ -128,6 +128,7 @@ ConstDefList: ConstDef { $$ = ASTNode_create("ConstantTemp"); ASTNode_add_child(
 ConstDef: Identifier Assign InitValue {
                                         $$ = ASTNode_create_attr("Const", 1, "name", $1);
                                         ASTNode_add_attr_int($$, "line", @1.first_line);
+                                        ASTNode_add_attr_int($$, "column", @1.first_column);
                                         auto value = ASTNode_create("InitValue");
                                         ASTNode_add_child(value, $3);
                                         ASTNode_add_child($$, value);
@@ -136,6 +137,7 @@ ConstDef: Identifier Assign InitValue {
                                                   $$ = ASTNode_create_attr("Const", 2, "name", $1, "array", "true"); 
                                                   ASTNode* as = ASTNode_create("ArraySize");
                                                   ASTNode_add_attr_int($$, "line", @1.first_line);
+                                                  ASTNode_add_attr_int($$, "column", @1.first_column);
                                                   ASTNode_move_children($2, as);
                                                   ASTNode_add_nchild($$, 2, as, $4);
                                                 }
@@ -148,21 +150,24 @@ VarDefList: VarDef { $$ = ASTNode_create("VarTemp"); ASTNode_add_child($$, $1);}
           | VarDefList Comma VarDef { $$ = $1; ASTNode_add_child($$, $3); }
           ;
 
-VarDef: Identifier { $$ = ASTNode_create_attr("Var", 1, "name", $1); ASTNode_add_attr_int($$, "line", @1.first_line); }
+VarDef: Identifier { $$ = ASTNode_create_attr("Var", 1, "name", $1); ASTNode_add_attr_int($$, "line", @1.first_line); ASTNode_add_attr_int($$, "column", @1.first_column); }
       | Identifier Assign InitValue { $$ = ASTNode_create_attr("Var", 1, "name", $1);                                               
                                       auto value = ASTNode_create("InitValue");
                                       ASTNode_add_attr_int($$, "line", @1.first_line);
+                                      ASTNode_add_attr_int($$, "column", @1.first_column);
                                       ASTNode_add_child(value, $3);
                                       ASTNode_add_child($$, value);
                                     }
       | Identifier ArrayDecl { $$ = ASTNode_create_attr("Var", 2, "name", $1, "array", "true"); 
                                ASTNode_add_child($$, $2);
                                ASTNode_add_attr_int($$, "line", @1.first_line);
+                               ASTNode_add_attr_int($$, "column", @1.first_column);
                               }
       | Identifier ArrayDecl Assign InitValue { $$ = ASTNode_create_attr("Var", 2, "name", $1, "array", "true"); 
                                                 ASTNode_add_child($$, $2);
                                                 ASTNode_add_child($$, $4);
                                                 ASTNode_add_attr_int($$, "line", @1.first_line);
+                                                ASTNode_add_attr_int($$, "column", @1.first_column);
                                               }
       ;
 
@@ -211,15 +216,22 @@ FuncFParamList: FuncFParam { $$ = ASTNode_create("ParamList"); ASTNode_add_child
               | FuncFParamList Comma FuncFParam { $$ = $1; ASTNode_add_child($$, $3); }
               ;
 
-FuncFParam: PrimaryType Identifier  { $$ = ASTNode_create_attr("ParamDecl", 2, "type", $1, "name", $2); }
+FuncFParam: PrimaryType Identifier  { $$ = ASTNode_create_attr("ParamDecl", 2, "type", $1, "name", $2); 
+                                      ASTNode_add_attr_int($$, "line", @1.first_line);
+                                      ASTNode_add_attr_int($$, "column", @1.first_column);
+                                    }
           | PrimaryType Identifier LeftBrack RightBrack { 
                                                           $$ = ASTNode_create_attr("ParamDecl", 3, "type", $1, "name", $2, "array", "true"); 
                                                           ASTNode* dimension = ASTNode_create_attr("Dimension", 1, "size", "Unknown");
+                                                          ASTNode_add_attr_int($$, "line", @1.first_line);
+                                                          ASTNode_add_attr_int($$, "column", @1.first_column);
                                                           ASTNode_add_child($$, dimension);
                                                         } 
           | PrimaryType Identifier LeftBrack RightBrack ArrayDecl { 
                                                                     $$ = ASTNode_create_attr("ParamDecl", 3, "type", $1, "name", $2, "array", "true"); 
                                                                     ASTNode* dimension = ASTNode_create_attr("Dimension", 1, "size", "Unknown");
+                                                                    ASTNode_add_attr_int($$, "line", @1.first_line);
+                                                                    ASTNode_add_attr_int($$, "column", @1.first_column);
                                                                     ASTNode_add_child($$, dimension);
                                                                     ASTNode_move_children($5, $$);
                                                                   } 
@@ -263,8 +275,8 @@ IfStmt: If LeftParent Cond RightParent Stmt { $$ = createIfNode($3, $5, NULL); }
       | If LeftParent Cond RightParent Stmt Else Stmt { $$ = createIfNode($3, $5, $7);} %dprec 1
       ;
 
-LVal: Identifier { $$ = ASTNode_create_attr("Address", 1, "base", $1); ASTNode_add_attr_int($$, "line", @1.first_line); }
-    | Identifier ArrayLocatorList { $$ = ASTNode_create_attr("Address", 1, "base", $1); ASTNode_add_child($$, $2); ASTNode_add_attr_int($$, "line", @1.first_line);}
+LVal: Identifier { $$ = ASTNode_create_attr("Address", 1, "base", $1); ASTNode_add_attr_int($$, "line", @1.first_line); ASTNode_add_attr_int($$, "column", @1.first_column); }
+    | Identifier ArrayLocatorList { $$ = ASTNode_create_attr("Address", 1, "base", $1); ASTNode_add_child($$, $2); ASTNode_add_attr_int($$, "line", @1.first_line); ASTNode_add_attr_int($$, "column", @1.first_column);}
     ;
 
 ArrayLocator: LeftBrack Exp RightBrack { $$ = ASTNode_create("Dimension"); ASTNode_add_child($$, $2); }

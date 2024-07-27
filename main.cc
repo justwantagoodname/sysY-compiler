@@ -9,8 +9,8 @@
 #include "codegen/stack_translator.hpp"
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
-// #define ASM_GEN
-#define TRIPLE_DEBUG
+#define ASM_GEN
+// #define TRIPLE_DEBUG
 
 #ifdef TRIPLE_DEBUG
 #include "codegen/generator.h"
