@@ -452,7 +452,7 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         hasCol = ASTNode_get_attr_int(cur->node, "column", &col);
         assert(hasLine && hasCol);
 
-        if (line <= access_line && col < access_col) { // 不能访问自己
+        if (line < access_line || (line == access_line && col < access_col)) { // 不能访问自己
             decl = cur->node;
             break;
         }
