@@ -19,7 +19,6 @@ void Triples::pretreat()
 		adecl.add_attr("unknown-size", -1);
 	}
 
-
 	Query array_decls = root("//Decl/*[@array='true']");
 	for (auto adecl : array_decls) {
 		DFS_Element(adecl) {
@@ -110,6 +109,19 @@ void Triples::pretreat()
 				el = cutnode.unwrap();
 			}
 		}
+	}
+
+	Query call_time_node = root("//Call[@name='starttime'|@name='stoptime']");
+	for (auto call : call_time_node) {
+		int line = call.get_attr_int("line");
+		call.add_child(
+			Element("Param")
+			.add_child(
+				Element("Number")
+				.add_attr("value", call.get_attr_int("line"))
+				.add_attr("type", "Int")
+			)
+		);
 	}
 }
 
@@ -658,7 +670,8 @@ void Triples::make()
 				init.add_attr("name", element.get_attr_str("name"));
 				init.add_attr("type", element.get_attr_str("type"));
 			}
-
+		}
+		ife("Var") {
 			int size = 1;
 
 			const char* s = element.get_attr_str("name");
