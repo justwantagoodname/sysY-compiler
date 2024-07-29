@@ -2,6 +2,7 @@
 #define TRIPLE_H
 #include "element.h"
 
+#include <map>
 #include <vector>
 #include <memory>
 
@@ -103,6 +104,19 @@ public:
 
 		Triple(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 	};
+
+	struct ValueTableElement {
+		std::string name;
+		int type;
+		int block;
+	};
+
+	std::vector<ValueTableElement> value_table;
+	std::map<std::string, std::vector<int>> func_params;
+
+private:
+	void setValueTable();
+	void setFuncParams();
 private:
 	int temp_count = -1;
 

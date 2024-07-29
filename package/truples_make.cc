@@ -23,7 +23,6 @@ void Triples::pretreat()
 	for (auto adecl : array_decls) {
 		DFS_Element(adecl) {
 			DFS_Element_init;
-			element.print();
 			ife("Exp") {
 				element.add_attr("value", element[0].get_attr_int("value"));
 			}
@@ -737,9 +736,76 @@ void Triples::make()
 			element.add_attr("block", block_count++);
 		}
 		ife("Block") {
-			triples.add(Cmd.blke, { element.get_attr_int("block"), TT.blockno }, {}, {});
+			if (element.get_attr("block"))
+				triples.add(Cmd.blke, { element.get_attr_int("block"), TT.blockno }, {}, {});
 		}
 	}
 	this->temp_count = temp_count;
+	setValueTable();
+	setFuncParams();
+}
 
+void Triples::setValueTable() {
+	for (auto& e : value_pointer) {
+		assert(e);
+
+		ValueTableElement value;
+
+		value.name = e.get_attr_str("name");
+		value.type = strcmp(e.get_attr_str("type"), "Float") == 0; // set 0 int and 1 float;
+
+		value.type |= (e.get_attr("array") ? 1 : 0) << 1; // for array, set 2 int[] and 3 float[]
+
+		value.type += 1; // for void 0, type add 1.
+
+		Element block = e % ("ancestor::Scope/Block");
+		if (block) {
+			value.block = block.get_attr_int("block");
+		}
+		else {
+			value.block = -1;
+		}
+		printf("%s, %d, %d\n", value.name.c_str(), value.type, value.block);
+		value_table.push_back(value);
+
+	}
+}
+
+void Triples::setFuncParams()
+{
+	/*
+	0 = void
+	1 = int
+	2 = float
+	3 = int[]
+	4 = float[]
+	*/
+	// set lib functions
+	func_params = {
+		//name,   return , params...
+		{"putch", {0,	1} },
+		{"putint", {0,	1} },
+		{"putfloat", {0,	2} },
+	};
+
+	for (auto& e : function_pointer) {
+		assert(e);
+		std::vector<int> param_types;
+
+		// float: -(-1) + 1 = 2; int: (0) + 1 = 1; void: -(1) + 1 = 1 
+		int ret = -strcmp(e.get_attr_str("return"), "Int") + 1;
+		param_types.push_back(ret);
+
+		auto params = e("/Params/*");
+		for (auto param : params) {
+			// 同setValueTable
+			int type = strcmp(param.get_attr_str("type"), "Float") == 0;
+			type |= (param.get_attr("array") ? 1 : 0) << 1;
+			type += 1;
+
+			param_types.push_back(type);
+		}
+
+		func_params.emplace(e.get_attr_str("name"), param_types);
+	}
 }
