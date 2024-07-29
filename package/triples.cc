@@ -4,6 +4,7 @@ using std::vector;
 
 void Triples::add(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, const TripleValue& to)
 {
+	assert(cmd != Cmd.mov || (cmd == Cmd.mov && e1.value < 20000) || e1.type != TT.temp);
 	triples.push_back(std::shared_ptr<Triple>(new Triple(cmd, e1, e2, to)));
 }
 
@@ -266,6 +267,10 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		break;
 	case TT.blockno:
 		snprintf(s, 20, "b%d", value);
+		break;
+	case TT.addr:
+		added->toString(ts, triples);
+		snprintf(s, 20, "&%s + %s", triples.value_pointer[value].get_attr_str("name"), ts);
 		break;
 	default:
 		snprintf(s, 20, "unknow:%d", value);

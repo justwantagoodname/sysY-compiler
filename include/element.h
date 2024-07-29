@@ -36,9 +36,8 @@ public:
 	Query q(const char* key, ...) const;
 	Element qo(const char* key, ...) const;
 	Element at(int index) const;
-	Element& add_child(int n, ...);
+	Element& add_childn(int n, ...);
 	Element& add_child(ASTNode* child);
-	Element& add_child(const Element&& child);
 	Element& lpush_child(ASTNode* child);
 	Element& lpush_child(const Element&& child);
 	Element& add_attr(const char* key, size_t value);

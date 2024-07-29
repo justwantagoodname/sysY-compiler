@@ -149,7 +149,7 @@ Element Element::at(int index) const {
 	return child;
 }
 
-Element& Element::add_child(int n, ...) {
+Element& Element::add_childn(int n, ...) {
 	assert(node != nullptr);
 	va_list args;
 	va_start(args, n);
@@ -164,11 +164,6 @@ Element& Element::add_child(int n, ...) {
 
 Element& Element::add_child(ASTNode* child) {
 	ASTNode_add_child(node, child);
-	return *this;
-}
-
-Element& Element::add_child(const Element&& child) {
-	ASTNode_add_child(node, child.node);
 	return *this;
 }
 
@@ -226,19 +221,22 @@ ASTAttribute* Element::get_attr(const char* key) const {
 
 int Element::get_attr_int(const char* key) const {
 	int value;
-	ASTNode_get_attr_int(node, key, &value);
+	bool flg = ASTNode_get_attr_int(node, key, &value);
+	assert(flg);
 	return value;
 }
 
 float Element::get_attr_float(const char* key) const {
 	float value;
-	ASTNode_get_attr_float(node, key, &value);
+	bool flg = ASTNode_get_attr_float(node, key, &value);
+	assert(flg);
 	return value;
 }
 
 const char* Element::get_attr_str(const char* key) const {
 	const char* value;
-	ASTNode_get_attr_str(node, key, &value);
+	bool flg = ASTNode_get_attr_str(node, key, &value);
+	assert(flg);
 	return value;
 }
 
