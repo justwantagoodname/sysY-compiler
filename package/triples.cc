@@ -278,6 +278,11 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 	}
 }
 
+std::string Triples::getFuncName(const TripleValue& tv) const {
+	assert(tv.type == TT.func);
+	return function_pointer[tv.value].get_attr_str("name");
+}
+
 std::string Triples::getValueString(const TripleValue& tv) const {
 	assert(tv.type == TT.str);
 	return string_pointer[tv.value];

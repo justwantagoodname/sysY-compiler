@@ -165,6 +165,7 @@ public:
 	void print() const;
 
 	std::string getValueString(const TripleValue& triple_value) const;
+	std::string getFuncName(const TripleValue& triple_value) const;
 };
 
 #endif //TRIPLE_H

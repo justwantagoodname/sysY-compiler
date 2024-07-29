@@ -13,7 +13,7 @@
 #define TRIPLE_DEBUG
 
 #ifdef TRIPLE_DEBUG
-#include "codegen/generator.h"
+#include "codegen/stack_rv_generator.h"
 #endif
 
 
@@ -78,7 +78,7 @@ int main(int argc, const char** argv) {
 	triples.resortTemp();
 	triples.print();
 
-	RiscVGenerator g;
+	StackRiscVGenerator g;
 	g.generate(triples, false);
 #endif
 
