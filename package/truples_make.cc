@@ -661,7 +661,7 @@ void Triples::make()
 			const char* s = element.get_attr_str("name");
 			Element value = element.qo("ancestor::Function/Scope/Decl").table(s);
 			int a = triples.find(value);
-			triples.add(Cmd.pop, {}, {}, { a, TT.value });
+			// triples.add(Cmd.pop, {}, {}, { a, TT.value });
 			cut;
 		}
 		ifb("Var") {
