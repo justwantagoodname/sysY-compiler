@@ -113,6 +113,11 @@ void StackRiscVGenerator::genLoad(Triples::Triple& triple) {
     return;
 }
 
+void StackRiscVGenerator::genCall(Triples::Triple& triple) {
+    panic("TODO!: waiting for args list...");
+    return;
+}
+
 void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
     if (optimize_flag) {
         panic("TODO: StackRiscVGenerator::generate: optimize");
@@ -140,6 +145,9 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
                 genLoad(triple);
                 break;
             
+            case Triples::Cmd.call:
+                genCall(triple);
+                break;
 
             default:
                 panic("Error");

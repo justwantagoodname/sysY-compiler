@@ -46,6 +46,7 @@ private:
     void calculateSize(Triples& triples);
     void genArith(Triples::Triple& triple);
     void genLoad(Triples::Triple& triple);
+    void genCall(Triples::Triple& triple);
 public:
     StackRiscVGenerator();
     void generate(Triples& triples, bool optimize_flag);
