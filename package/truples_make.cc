@@ -758,14 +758,14 @@ void Triples::setValueTable() {
 
 		value.type += 1; // for void 0, type add 1.
 
-		Element block = e % ("ancestor::Scope/Block");
-		if (block) {
-			value.block = block.get_attr_int("block");
+		Element scope = e % ("ancestor::Scope/Block");
+		if (scope) {
+			value.scope = scope.get_attr_int("block");
 		}
 		else {
-			value.block = -1;
+			value.scope = -1;
 		}
-		printf("%s, %d, %d\n", value.name.c_str(), value.type, value.block);
+		printf("%s, %d, %d\n", value.name.c_str(), value.type, value.scope);
 		value_table.push_back(value);
 
 	}
@@ -783,18 +783,18 @@ void Triples::setFuncParams()
 	// set lib functions
 	func_params = {
 		//name,   return , params...
-		{"putch", {0,	1} },
-		{"putint", {0,	1} },
-		{"putfloat", {0,	2} },
+		{"putch", {{"", 0},	{"", 1}}},
+		{"putint", {{"", 0},	{"", 1}}  },
+		{"putfloat", {{"", 0},	{"", 2}} },
 	};
 
 	for (auto& e : function_pointer) {
 		assert(e);
-		std::vector<int> param_types;
+		std::vector<std::pair<string, int>> param_types;
 
 		// float: -(-1) + 1 = 2; int: (0) + 1 = 1; void: -(1) + 1 = 1 
 		int ret = -strcmp(e.get_attr_str("return"), "Int") + 1;
-		param_types.push_back(ret);
+		param_types.push_back({ "" , ret });
 
 		auto params = e("/Params/*");
 		for (auto param : params) {
@@ -803,7 +803,7 @@ void Triples::setFuncParams()
 			type |= (param.get_attr("array") ? 1 : 0) << 1;
 			type += 1;
 
-			param_types.push_back(type);
+			param_types.push_back({ param.get_attr_str("name")  , type});
 		}
 
 		func_params.emplace(e.get_attr_str("name"), param_types);
