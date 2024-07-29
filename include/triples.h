@@ -6,6 +6,12 @@
 #include <vector>
 #include <memory>
 
+struct ValueTableElement {
+	std::string name;
+	int type;
+	int scope;
+};
+
 class Triples {
 private:
 	Element root;
@@ -105,14 +111,8 @@ public:
 		Triple(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 	};
 
-	struct ValueTableElement {
-		std::string name;
-		int type;
-		int block;
-	};
-
 	std::vector<ValueTableElement> value_table;
-	std::map<std::string, std::vector<int>> func_params;
+	std::map<std::string, std::vector<std::pair<std::string, int>>> func_params;
 
 private:
 	void setValueTable();
