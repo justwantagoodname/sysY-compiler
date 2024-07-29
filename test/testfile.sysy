@@ -1,5 +1,10 @@
 
 int all =1;
+int x[100];
+
+int foo(int a, int b, int c[]){
+	return 0;
+}
 
 int main(){
 
@@ -7,9 +12,9 @@ starttime();
 
 int a = 0;
 a = 1;
-int b;
+int b = x[0];
 
-print(0);
+print(0, all);
 
 stoptime();
 
