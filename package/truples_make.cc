@@ -14,6 +14,200 @@ using std::vector;
 
 void Triples::pretreat()
 {
+	// 预载库函数
+	Element function_decls = root % ("//FunctionDef");
+
+	function_decls
+		.add_child(
+			Element("Function")
+			.add_attr("name", "putf")
+			.add_attr("return", "Void")
+			.add_attr("ex_func", "true")
+			.add_child(Element("Params"))
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "getint")
+			.add_attr("return", "Int")
+			.add_attr("ex_func", "true")
+			.add_child(Element("Params"))
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "getch")
+			.add_attr("return", "Int")
+			.add_attr("ex_func", "true")
+			.add_child(Element("Params"))
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "getfloat")
+			.add_attr("return", "Float")
+			.add_attr("ex_func", "true")
+			.add_child(Element("Params"))
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "getarray")
+			.add_attr("return", "Int")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "a")
+					.add_attr("type", "Int")
+					.add_attr("array", "true")
+				)
+			)
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "getfarray")
+			.add_attr("return", "Int")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "a")
+					.add_attr("type", "Float")
+					.add_attr("array", "true"))
+			)
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "putint")
+			.add_attr("return", "Void")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "a")
+					.add_attr("type", "Int")
+				)
+			)
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "putch")
+			.add_attr("return", "Void")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "a")
+					.add_attr("type", "Int")
+				)
+			)
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "putint")
+			.add_attr("return", "Void")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "a")
+					.add_attr("type", "Int")
+				)
+			)
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "putfloat")
+			.add_attr("return", "Void")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "a")
+					.add_attr("type", "Float")
+				)
+			)
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "putarray")
+			.add_attr("return", "Void")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "n")
+					.add_attr("type", "Int")
+				)
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "a")
+					.add_attr("type", "Int")
+					.add_attr("array", "true")
+				)
+			)
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "putfarray")
+			.add_attr("return", "Void")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "n")
+					.add_attr("type", "Int")
+				)
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "a")
+					.add_attr("type", "Float")
+					.add_attr("array", "true")
+				)
+			)
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "starttime")
+			.add_attr("return", "Void")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "line")
+					.add_attr("type", "Int")
+				)
+			)
+		)
+		.add_child(
+			Element("Function")
+			.add_attr("name", "stoptime")
+			.add_attr("return", "Void")
+			.add_attr("ex_func", "true")
+			.add_child(
+				Element("Params")
+				.add_child(
+					Element("ParamDecl")
+					.add_attr("name", "line")
+					.add_attr("type", "Int")
+				)
+			)
+		)
+		;
+
+
+	// 预处理
+	Query functions = root("//Function");
+	for (auto e : functions) {
+		this->pushf(e);
+	}
+
 	Query array_decls_Unknown = root("//Decl/*[@array='true']/Dimension[@size='Unknown']");
 	for (auto adecl : array_decls_Unknown) {
 		adecl.add_attr("unknown-size", -1);
@@ -645,7 +839,10 @@ void Triples::make()
 			}
 		}
 		ifb("Function") {
-			int fid = triples.pushf(element);
+			if (element.get_attr("ex_func"))
+				cut;
+
+			int fid = triples.findf(element);
 			element.add_attr("fid", fid);
 			element.add_attr("place", triples.size());
 
@@ -798,12 +995,17 @@ void Triples::setFuncParams()
 
 		auto params = e("/Params/*");
 		for (auto param : params) {
-			// 同setValueTable
-			int type = strcmp(param.get_attr_str("type"), "Float") == 0;
-			type |= (param.get_attr("array") ? 1 : 0) << 1;
-			type += 1;
-
-			param_types.push_back({ param.get_attr_str("name")  , type});
+			int type;
+			if (strcmp(param.get_attr_str("type"), "StringConst") == 0) {
+				type = 6;
+			}
+			else {
+				// 同setValueTable
+				type = strcmp(param.get_attr_str("type"), "Float") == 0;
+				type |= (param.get_attr("array") ? 1 : 0) << 1;
+				type += 1;
+			}
+			param_types.push_back({ param.get_attr_str("name")  , type });
 		}
 
 		func_params.emplace(e.get_attr_str("name"), param_types);
