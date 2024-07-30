@@ -2,8 +2,15 @@
 #define TRIPLE_H
 #include "element.h"
 
+#include <map>
 #include <vector>
 #include <memory>
+
+struct ValueTableElement {
+	std::string name;
+	int type;
+	int scope;
+};
 
 class Triples {
 private:
@@ -103,6 +110,13 @@ public:
 
 		Triple(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 	};
+
+	std::vector<ValueTableElement> value_table;
+	std::map<std::string, std::vector<std::pair<std::string, int>>> func_params;
+
+private:
+	void setValueTable();
+	void setFuncParams();
 private:
 	int temp_count = -1;
 
