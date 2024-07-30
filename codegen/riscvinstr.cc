@@ -92,6 +92,18 @@ RVTag::RVTag(const std::string& cont) : RVInstr(RVOp::NOP), cont(cont) {
 std::string RVTag::toASM() {
     return cont + ":\n";
 }
+RVword::RVword(int value) : value(value) {
+    return;
+}
+std::string RVword::toASM() {
+    return "    .word " + std::to_string(value) + "\n";
+}
+RVstring::RVstring(const std::string& str) : str(str) {
+    return;
+}
+std::string RVstring::toASM() {
+    return "    .string \"" + str + "\"\n";
+}
 
 
 RVArith::RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RVOperand& opr2)

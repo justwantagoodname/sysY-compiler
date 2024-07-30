@@ -152,6 +152,10 @@ void StackRiscVGenerator::genAllStrsFloats() {
         instrs.push_back(new RVTag(".LC" + std::to_string(index)));
         instrs.push_back(new RVword(value));
     }
+    for (auto [value, index] : string_table) {
+        instrs.push_back(new RVTag("STR" + std::to_string(index)));
+        instrs.push_back(new RVstring(value));
+    }
 }
 
 void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
