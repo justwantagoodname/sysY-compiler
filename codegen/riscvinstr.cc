@@ -86,6 +86,25 @@ RVInstr::RVInstr(RVOp opt) : opt(opt) {
     return;
 }
 
+RVTag::RVTag(const std::string& cont) : RVInstr(RVOp::NOP), cont(cont) {
+    return;
+}
+std::string RVTag::toASM() {
+    return cont + ":\n";
+}
+RVword::RVword(uint32_t value) : value(value) {
+    return;
+}
+std::string RVword::toASM() {
+    return "    .word " + std::to_string(value) + "\n";
+}
+RVstring::RVstring(const std::string& str) : str(str) {
+    return;
+}
+std::string RVstring::toASM() {
+    return "    .string \"" + str + "\"\n";
+}
+
 
 RVArith::RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RVOperand& opr2)
     : RVInstr(opt), dst(dst), opr1(opr1), opr2(opr2) {
@@ -128,16 +147,33 @@ std::string RVArith::toASM() {
         result.push_back('i');
     }
     
-    result += " " + dst.toASM() + " " + opr1.toASM() + " " + opr2.toASM();
+    result += ", " + dst.toASM() + ", " + opr1.toASM() + ", " + opr2.toASM() + "\n";
     return result;
 }
 
 RVMem::RVMem(RVOp opt, const RVOperand& opr, uint16_t offset) 
     : RVInstr(opt), opr(opr), dst(make_stack(RVRegs::sp, offset)) {
-    assert(opt == RVOp::LW || opt == RVOp::FLW || opt == RVOp::SW || opt == RVOp::FSW);
+    assert(opt == RVOp::LW || opt == RVOp::FLW 
+        || opt == RVOp::SW || opt == RVOp::FSW);
+}
+RVMem::RVMem(RVOp opt, const RVOperand& opr, const RVOperand& value) 
+    : RVInstr(opt), opr(opr), dst(value) {
+    assert(opt == RVOp::LI);
+    assert(dst.tag == IMM);
 }
 std::string RVMem::toASM() {
-    panic("TODO!");
+    switch (opt) {
+        case RVOp::LI:
+            return "    li " + opr.toASM() + ", " + dst.toASM() + "\n";
+            break;
+        case RVOp::LW:
+        case RVOp::SW:
+        case RVOp::FLW:
+        case RVOp::FSW:
+        default:
+            panic("TODO!");
+            break;
+    }
     return "";
 }
 

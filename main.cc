@@ -13,7 +13,7 @@
 #define TRIPLE_DEBUG
 
 #ifdef TRIPLE_DEBUG
-#include "codegen/generator.h"
+#include "codegen/stack_rv_generator.h"
 #endif
 
 
@@ -24,7 +24,7 @@ int main(int argc, const char** argv) {
 	Element root = Element::CreateByFile(Flag::getFlag().by<std::string>("input").c_str());
 
 	if (Flag::getFlag().by<bool>("dump-raw")) {
-  		root.print();
+  		// root.print();
 	}
 
 #ifdef UNI_OPTIMIZTION
@@ -32,7 +32,7 @@ int main(int argc, const char** argv) {
 	
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
-  		root.print();
+  		// root.print();
 	}
 #endif
 	
@@ -53,7 +53,7 @@ int main(int argc, const char** argv) {
 #endif
 
 #ifdef TRIPLE_DEBUG
-	root.print();
+	// root.print();
 
 	Triples triples(root);
 	triples.pretreat();
@@ -64,7 +64,7 @@ int main(int argc, const char** argv) {
 	printf("===After make===\n");
 	triples.make();
 	root.print();
-	 triples.print();
+	// triples.print();
 
 	printf("===After eliUnnecVar===\n");
 	triples.eliUnnecVar();
@@ -78,7 +78,7 @@ int main(int argc, const char** argv) {
 	triples.resortTemp();
 	triples.print();
 
-	RiscVGenerator g;
+	StackRiscVGenerator g;
 	g.generate(triples, false);
 #endif
 

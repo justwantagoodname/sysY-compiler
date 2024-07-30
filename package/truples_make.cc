@@ -857,7 +857,7 @@ void Triples::make()
 			const char* s = element.get_attr_str("name");
 			Element value = element.qo("ancestor::Function/Scope/Decl").table(s);
 			int a = triples.find(value);
-			triples.add(Cmd.pop, {}, {}, { a, TT.value });
+			// triples.add(Cmd.pop, {}, {}, { a, TT.value });
 			cut;
 		}
 		ifb("Var") {
@@ -984,7 +984,7 @@ void Triples::setFuncParams()
 		assert(e);
 		std::vector<std::pair<string, int>> param_types;
 
-		// float: -(-1) + 1 = 2; int: (0) + 1 = 1; void: -(1) + 1 = 1 
+		// float: -(-1) + 1 = 2; int: (0) + 1 = 1; void: -(1) + 1 = 0 
 		int ret = -strcmp(e.get_attr_str("return"), "Int") + 1;
 		param_types.push_back({ "" , ret });
 

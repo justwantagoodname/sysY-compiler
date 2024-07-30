@@ -112,6 +112,10 @@ public:
 	};
 
 	std::vector<ValueTableElement> value_table;
+	
+	// func name -> [<param name, type>, ...]
+	// 0,    1,   2,     3,     4
+	// void, int, float, int[], float[]
 	std::map<std::string, std::vector<std::pair<std::string, int>>> func_params;
 
 private:
@@ -179,6 +183,8 @@ public:
 	void print() const;
 
 	std::string getValueString(const TripleValue& triple_value) const;
+	std::string getFuncName(const TripleValue& triple_value) const;
+	std::string getLabelName(const TripleValue& triple_value) const;
 };
 
 #endif //TRIPLE_H

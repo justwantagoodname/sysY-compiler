@@ -23,6 +23,8 @@ private:
     size_t simm_count;
     size_t string_count;
     void createTable(Triples& triples);
+    void genArith(Triples::Triple& triple);
+    void genLoad(Triples::Triple& triple);
 public:
     RiscVGenerator();
     void generate(Triples& triples, bool optimize_flag);

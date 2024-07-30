@@ -97,6 +97,7 @@ enum class RVOp {
 
     // Load
     LW,
+    LI,
     FLW,
     // Store
     SW,
@@ -127,6 +128,25 @@ public:
     virtual std::string toASM() = 0;
 };
 
+class RVTag : public RVInstr {
+public:
+    std::string cont;
+    RVTag(const std::string& cont);
+    virtual std::string toASM() override;
+};
+class RVword : public RVInstr {
+public:
+    uint32_t value;
+    RVword(uint32_t value);
+    virtual std::string toASM() override;
+};
+class RVstring : public RVInstr {
+public:
+    std::string str;
+    RVstring(const std::string& str);
+    virtual std::string toASM() override;
+};
+
 
 class RVArith : public RVInstr {
 public:
@@ -142,6 +162,7 @@ public:
     bool is_float;
     RVOperand dst, opr;
     RVMem(RVOp opt, const RVOperand& opr, uint16_t offset);
+    RVMem(RVOp opt, const RVOperand& opr, const RVOperand& value);
     virtual std::string toASM() override;
 };
 
