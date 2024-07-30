@@ -46,13 +46,17 @@ void StackRiscVGenerator::createTable(Triples &triples) {
     for (size_t index = 0; index < triples.size(); ++index) {
         Triples::Triple &triple = triples[index];
         if (triple.cmd != Triples::Cmd.call) continue;
+        bool is_putf = (triples.getFuncName(triple.e1) == "putf");
 
         // WTF is this genius design...
         for (auto t = triple.e2.added; t; t = t->added) {
             if (t->type == Triples::TT.fimd) {
                 int value = t->value;
-                if (simm_table.find(value) == simm_table.end()) {
+                if (!is_putf && simm_table.find(value) == simm_table.end()) {
                     simm_table[value] = simm_count++;
+                }
+                if (is_putf && putf_simm_table.find(value) == putf_simm_table.end()) {
+                    putf_simm_table[value] = simm_count++;
                 }
             } else if (t->type == Triples::TT.str) {
                 const std::string &str = triples.getValueString(*t);
@@ -148,13 +152,21 @@ void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple) {
 }
 void StackRiscVGenerator::genAllStrsFloats() {
     for (auto [value, index] : simm_table) {
-        panic("TODO: float for putf");
         instrs.push_back(new RVTag(".LC" + std::to_string(index)));
         instrs.push_back(new RVword(value));
     }
     for (auto [value, index] : string_table) {
         instrs.push_back(new RVTag("STR" + std::to_string(index)));
         instrs.push_back(new RVstring(value));
+    }
+    for (auto [value, index] : putf_simm_table) {
+        instrs.push_back(new RVTag(".LC" + std::to_string(index)));
+        float v32 = *(float*)(&value);
+        double v64 = v32;
+        long long i64 = *(long long*)(&v64);
+        int lo = i64 & 0xFFFF, hi = i64 >> 32;
+        instrs.push_back(new RVword(hi));
+        instrs.push_back(new RVword(lo));
     }
 }
 

@@ -37,7 +37,10 @@ private:
         
     };
     std::vector<RVInstr*> instrs;
+
+    // float value (in integer) -> [index, is 64bit?]
     std::map<int, size_t> simm_table;
+    std::map<int, size_t> putf_simm_table;
     std::map<std::string, size_t> string_table;
     std::map<std::string, size_t> func_size;
 
