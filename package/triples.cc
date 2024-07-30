@@ -241,10 +241,15 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		}
 		break;
 	case TT.func:
-		snprintf(s, 500, "%d@%s",
-			triples.function_pointer[value].get_attr_int("place"),
-			triples.function_pointer[value].get_attr_str("name")
-		);
+		if (triples.function_pointer[value].get_attr("ex_func"))
+			snprintf(s, 500, "lib@%s",
+				triples.function_pointer[value].get_attr_str("name")
+			);
+		else
+			snprintf(s, 500, "%d@%s",
+				triples.function_pointer[value].get_attr_int("place"),
+				triples.function_pointer[value].get_attr_str("name")
+			);
 		break;
 	case TT.lamb:
 		snprintf(s, 20, ".l%d", value);
