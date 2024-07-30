@@ -792,7 +792,7 @@ void Triples::setFuncParams()
 		assert(e);
 		std::vector<std::pair<string, int>> param_types;
 
-		// float: -(-1) + 1 = 2; int: (0) + 1 = 1; void: -(1) + 1 = 1 
+		// float: -(-1) + 1 = 2; int: (0) + 1 = 1; void: -(1) + 1 = 0 
 		int ret = -strcmp(e.get_attr_str("return"), "Int") + 1;
 		param_types.push_back({ "" , ret });
 

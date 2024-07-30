@@ -4,9 +4,12 @@ StackRiscVGenerator::StackRiscVGenerator() : simm_count(0), string_count(0) {
     instrs.clear();
     simm_table.clear();
     string_table.clear();
+    func_size.clear();
+
+    tempvar_type.clear();
 }
 
-void StackRiscVGenerator::genArith(Triples::Triple &triple) {
+void StackRiscVGenerator::genArith(Triples& triples, Triples::Triple& triple) {
     panic("TODO!");
 }
 
@@ -63,7 +66,6 @@ void StackRiscVGenerator::createTable(Triples &triples) {
 void StackRiscVGenerator::calculateSize(Triples& triples) {
     size_t cur_line = 0;
     while (cur_line < triples.size()) {
-        printf("Now: %d\n", cur_line);
         Triples::Triple &triple = triples[cur_line];
         if (triple.cmd == Triples::Cmd.tag && triple.e1.type == Triples::TT.func) {
             ++cur_line;
@@ -107,15 +109,49 @@ void StackRiscVGenerator::calculateSize(Triples& triples) {
         ++cur_line;
     }
 }
+void StackRiscVGenerator::getTempVarType(Triples& triples) {
+    size_t cur_line = 0;
+    while (cur_line < triples.size()) {
+        ++cur_line;
+    }
+}
 
-void StackRiscVGenerator::genLoad(Triples::Triple& triple) {
+void StackRiscVGenerator::genLoad(Triples& triples, Triples::Triple& triple) {
     panic("TODO!: Register allocation");
     return;
 }
 
-void StackRiscVGenerator::genCall(Triples::Triple& triple) {
-    panic("TODO!: waiting for args list...");
+void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) {
+    if (triple.e1.type == Triples::TT.str) {
+        printf("why...");
+        return;
+    }
+
+    std::string func_name = triples.getFuncName(triple.e1);
+    
+    int int_count = 0, float_count = 0;
+    for (auto cur_arg = triple.e2.added; cur_arg; cur_arg = cur_arg->added) {
+        
+    }
     return;
+}
+void StackRiscVGenerator::genTag(Triples& triples, Triples::Triple& triple) {
+    if (triple.e1.type == Triples::TT.func) {
+        instrs.push_back(new RVTag(triples.getFuncName(triple.e1)));
+    } else {
+        instrs.push_back(new RVTag(triples.getLabelName(triple.e1)));
+    }
+}
+void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple) {
+    panic("TODO");
+    return;
+}
+void StackRiscVGenerator::genAllStrsFloats() {
+    for (auto [value, index] : simm_table) {
+        panic("TODO: float for putf");
+        instrs.push_back(new RVTag(".LC" + std::to_string(index)));
+        instrs.push_back(new RVword(value));
+    }
 }
 
 void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
@@ -125,34 +161,48 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
 
     createTable(triples);
     calculateSize(triples);
+    getTempVarType(triples);
 
     for (auto [key, value] : func_size) {
         printf("%s: %u\n", key.c_str(), value);
     }
     for (size_t index = 0; index < triples.size(); ++index) {
-        Triples::Triple &triple = triples[index];
+        Triples::Triple &cur_triple = triples[index];
 
-        switch (triple.cmd) {
+        switch (cur_triple.cmd) {
             case Triples::Cmd.add:
             case Triples::Cmd.sub:
             case Triples::Cmd.mul:
             case Triples::Cmd.div:
             case Triples::Cmd.mod:
-                genArith(triple);
+                // genArith(triples, cur_triple);
                 break;
 
             case Triples::Cmd.load:
-                genLoad(triple);
+                // genLoad(triples, cur_triple);
                 break;
             
             case Triples::Cmd.call:
-                genCall(triple);
+                // genCall(triples, cur_triple);
+                break;
+            
+            case Triples::Cmd.tag:
+                genTag(triples, cur_triple);
+                if (cur_triple.e1.type == Triples::TT.func) {
+                    // genStack(triples, cur_triple);
+                }
                 break;
 
             default:
-                panic("Error");
+                // panic("Error");
                 break;
         }
+    }
+
+    genAllStrsFloats();
+
+    for (auto e : instrs) {
+        std::cout << e->toASM();
     }
     panic("TODO!!!!!!!");
     return;

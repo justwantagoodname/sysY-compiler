@@ -86,6 +86,13 @@ RVInstr::RVInstr(RVOp opt) : opt(opt) {
     return;
 }
 
+RVTag::RVTag(const std::string& cont) : RVInstr(RVOp::NOP), cont(cont) {
+    return;
+}
+std::string RVTag::toASM() {
+    return cont + ":\n";
+}
+
 
 RVArith::RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RVOperand& opr2)
     : RVInstr(opt), dst(dst), opr1(opr1), opr2(opr2) {

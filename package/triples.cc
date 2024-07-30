@@ -287,3 +287,8 @@ std::string Triples::getValueString(const TripleValue& tv) const {
 	assert(tv.type == TT.str);
 	return string_pointer[tv.value];
 }
+
+std::string Triples::getLabelName(const TripleValue& tv) const {
+	assert(tv.type == TT.lamb);
+	return ".l" + std::to_string(tv.value);
+}

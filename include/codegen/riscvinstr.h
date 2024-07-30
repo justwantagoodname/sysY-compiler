@@ -128,6 +128,25 @@ public:
     virtual std::string toASM() = 0;
 };
 
+class RVTag : public RVInstr {
+public:
+    std::string cont;
+    RVTag(const std::string& cont);
+    virtual std::string toASM() override;
+};
+class RVword : public RVInstr {
+public:
+    int value;
+    RVword(int value);
+    virtual std::string toASM() override;
+};
+class RVstring : public RVInstr {
+public:
+    std::string str;
+    RVstring(const std::string& str);
+    virtual std::string toASM() override;
+}
+
 
 class RVArith : public RVInstr {
 public:
