@@ -145,7 +145,7 @@ public:
     std::string str;
     RVstring(const std::string& str);
     virtual std::string toASM() override;
-}
+};
 
 
 class RVArith : public RVInstr {
