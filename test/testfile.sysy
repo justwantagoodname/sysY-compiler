@@ -14,7 +14,7 @@ int a = 0;
 a = 1;
 int b = x[0];
 
-putf("intr");
+putf("intr", 1, 2, 3.4);
 
 stoptime();
 

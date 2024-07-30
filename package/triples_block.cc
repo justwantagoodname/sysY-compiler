@@ -168,8 +168,9 @@ void Triples::eliUnnecVar()
 	auto sett = [f = [&imd_temp](auto&& self, TripleValue* e) -> void {
 
 		if (e->type == TT.temp && imd_temp[e->value].type != TT.null) {
+			auto added = e->added;
 			*e = imd_temp[e->value];
-
+			e->added = added;
 		}
 		if (e->added != nullptr) {
 			self(self, e->added);
