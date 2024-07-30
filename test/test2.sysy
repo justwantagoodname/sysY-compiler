@@ -38,11 +38,11 @@ int main() {
     float g = 3.14;
     if(e[0][c])g = 12.6;
     if(a % 2  && b % 2 )
-        printf("no");
+        putf("no");
 
     func();
 
-    printf("hello world! %f %f\n", 6.28, 3.14);
+    putf("hello world! %f %f\n", 6.28, 3.14);
 
     int a[3] = {0, 1, 2};
     func3(a);
