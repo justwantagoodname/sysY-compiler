@@ -978,12 +978,7 @@ void Triples::setFuncParams()
 	4 = float[]
 	*/
 	// set lib functions
-	func_params = {
-		//name,   return , params...
-		{"putch", {{"", 0},	{"", 1}}},
-		{"putint", {{"", 0},	{"", 1}}  },
-		{"putfloat", {{"", 0},	{"", 2}} },
-	};
+	func_params = {};
 
 	for (auto& e : function_pointer) {
 		assert(e);
