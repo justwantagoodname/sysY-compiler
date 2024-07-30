@@ -162,9 +162,14 @@ void StackRiscVGenerator::genAllStrsFloats() {
     for (auto [value, index] : putf_simm_table) {
         instrs.push_back(new RVTag(".LC" + std::to_string(index)));
         float v32 = *(float*)(&value);
-        double v64 = v32;
-        long long i64 = *(long long*)(&v64);
-        int lo = i64 & 0xFFFF, hi = i64 >> 32;
+        double v64 = (double)v32;
+        union {
+            double d;
+            uint64_t u64;
+        } v;
+        v.d = v64;
+        uint32_t lo = (uint32_t)(v.u64 >> 32);
+        uint32_t hi = (uint32_t)(v.u64 & 0xFFFFFFFF);
         instrs.push_back(new RVword(hi));
         instrs.push_back(new RVword(lo));
     }

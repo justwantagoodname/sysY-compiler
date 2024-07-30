@@ -136,8 +136,8 @@ public:
 };
 class RVword : public RVInstr {
 public:
-    int value;
-    RVword(int value);
+    uint32_t value;
+    RVword(uint32_t value);
     virtual std::string toASM() override;
 };
 class RVstring : public RVInstr {

@@ -92,7 +92,7 @@ RVTag::RVTag(const std::string& cont) : RVInstr(RVOp::NOP), cont(cont) {
 std::string RVTag::toASM() {
     return cont + ":\n";
 }
-RVword::RVword(int value) : value(value) {
+RVword::RVword(uint32_t value) : value(value) {
     return;
 }
 std::string RVword::toASM() {
