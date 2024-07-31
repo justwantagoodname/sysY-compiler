@@ -35,7 +35,11 @@ std::string RVOperand::toASM() const {
     if (tag == SIMM) panic("SIMM");
     if (tag == REG) return getRegName();
     if (tag == SREG) panic("SREG");
-    if (tag == ADDR) return addr;
+    if (tag == ADDR) {
+        if (nhl == 0) return addr;
+        if (nhl == 1) return "%hi(" + addr + ")";
+        if (nhl == 2) return "%lo(" + addr + ")";
+    }
     if (tag == STACK) return std::to_string(offset) + "(" + getRegName() + ")";
     return "ERROR!";
 }
@@ -47,11 +51,15 @@ RVOperand make_reg(RVRegs reg) {
     opr.reg = reg;
     return opr;
 }
-RVOperand make_sreg(RVRegs sreg) {
-    RVOperand opr;
-    opr.tag = SREG;
-    opr.reg = sreg;
-    return opr;
+RVOperand make_areg(int offset) {
+    assert(offset < 8);
+    RVRegs reg = RVRegs(10 + offset);
+    return make_reg(reg);
+}
+RVOperand make_sreg(int offset) {
+    assert(offset < 8);
+    RVRegs reg = RVRegs(28 + offset);
+    return make_reg(reg);
 }
 RVOperand make_imm(int value) {
     RVOperand opr;
@@ -72,10 +80,11 @@ RVOperand make_stack(RVRegs reg, uint16_t offset) {
     opr.offset = offset;
     return opr;
 }
-RVOperand make_addr(const std::string& label) {
+RVOperand make_addr(const std::string& label, uint8_t normal_hi_lo) {
     RVOperand opr;
     opr.tag = ADDR;
     opr.addr = label;
+    opr.nhl = normal_hi_lo;
     return opr;
 }
 
@@ -153,63 +162,84 @@ std::string RVArith::toASM() {
 
 RVMem::RVMem(RVOp opt, const RVOperand& opr, uint16_t offset) 
     : RVInstr(opt), opr(opr), dst(make_stack(RVRegs::sp, offset)) {
-    assert(opt == RVOp::LW || opt == RVOp::FLW 
-        || opt == RVOp::SW || opt == RVOp::FSW);
+    assert(opt == RVOp::LW || opt == RVOp::SW);
 }
-RVMem::RVMem(RVOp opt, const RVOperand& opr, const RVOperand& value) 
-    : RVInstr(opt), opr(opr), dst(value) {
-    assert(opt == RVOp::LI);
-    assert(dst.tag == IMM);
+RVMem::RVMem(RVOp opt, const RVOperand& dst, const RVOperand& addr)
+    : RVInstr(opt), dst(dst), opr(addr) {
+    assert(opt == RVOp::FLW || opt == RVOp::FSW || opt == RVOp::LSTR || opt == RVOp::LI);
 }
+// RVMem::RVMem(RVOp opt, const RVOperand& dst, const RVOperand& value) 
+//     : RVInstr(opt), dst(dst), opr(value) {
+//     assert(opt == RVOp::LI);
+//     assert(dst.tag == IMM);
+// }
 std::string RVMem::toASM() {
+    string result;
     switch (opt) {
         case RVOp::LI:
-            return "    li " + opr.toASM() + ", " + dst.toASM() + "\n";
+            result = "    li " + dst.toASM() + ", " + opr.toASM() + "\n";
             break;
         case RVOp::LW:
+            break;
         case RVOp::SW:
+            break;
         case RVOp::FLW:
+            result  = "    lui " + dst.toASM().substr(1) + ", %" + "hi(" + opr.toASM() + ")\n";
+            result += "    flw " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")\n";
+            break;
         case RVOp::FSW:
+            break;
+        case RVOp::LSTR:
+            result  = "    lui " + make_areg(5).toASM() + ", %hi(" + opr.toASM() + ")\n";
+            result += "    addi " + dst.toASM() + ", " + make_areg(5).toASM() + ", %lo(" + opr.toASM() + ")\n";
+            break;
         default:
             panic("TODO!");
             break;
     }
-    return "";
+    return result;
 }
 
-std::string RVCall::intPutOnReg(const RVOperand& opr, uint8_t reg) {
-    if (opr.isimm()) {
-        return "    li " + std::to_string(reg) + ", " + opr.toASM() + "\n";
-    } else if (opr.isreg()) {
-        return "    mv " + std::to_string(reg) + ", " + opr.toASM() + "\n";
+RVConvert::RVConvert(RVOp opt, const RVOperand& dst, const RVOperand& opr)
+    : RVInstr(opt), dst(dst), opr(opr) {
+    assert(opt == RVOp::FCVTDS);
+}
+std::string RVConvert::toASM() {
+    string result;
+    switch (opt) {
+        case RVOp::FCVTDS:
+            result = "    fcvt.d.s " + dst.toASM() + ", " + opr.toASM() + "\n";
+            break;
+        default:
+            panic("Error on RVConvert");
+            break;
     }
+    return result;
+}
+
+RVMov::RVMov(RVOp opt, const RVOperand& dst, const RVOperand& opr) 
+    : RVInstr(opt), dst(dst), opr(opr) {
+    assert(opt == RVOp::MV || opt == RVOp::FMVXD);
+}
+std::string RVMov::toASM() {
+    string result;
+    switch (opt) {
+        case RVOp::FMVXD:
+            result = "    fmv.x.d " + dst.toASM() + ", " + opr.toASM() + "\n";
+            break;
+        default:
+            panic("Error on RVMov");
+            break;
+    }
+    return result;
+}
+
+RVCall::RVCall(const std::string& func_name)
+    : func_name(func_name) {
+    return;
 }
 std::string RVCall::toASM() {
-    std::string result = "";
-    std::string put_stack = "", put_regs = "";
-
-    // deal with args
-    uint8_t int_count = 0, float_count = 0;
-    for (size_t i = 0; i < args.size(); ++i) {
-        if (args[i].isfloat()) {
-            panic("TODO: isfloat");
-            if (float_count >= 8) {
-                panic("TODO: put on stack");
-            } else {
-                panic("TODO: put in reg");
-            }
-            ++float_count;
-        } else {
-            if (int_count >= 8) {
-                panic("TODO: put on stack");
-            } else {
-                put_regs += intPutOnReg(args[i], int_count);
-            }
-        }
-    }
-
-    panic("TODO: call");
-    return result;
+    return "    call " + func_name + "\n";
 }
 
 std::string RVPutf::toASM() {

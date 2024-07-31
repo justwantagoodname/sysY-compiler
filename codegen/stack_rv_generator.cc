@@ -125,19 +125,52 @@ void StackRiscVGenerator::genLoad(Triples& triples, Triples::Triple& triple) {
     return;
 }
 
-void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) {
-    if (triple.e1.type == Triples::TT.str) {
-        printf("why...");
+void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) { 
+    std::string func_name = triples.getFuncName(triple.e1);
+    
+    if (func_name == "putf") {
+        genPutf(triples, triple);
         return;
     }
 
-    std::string func_name = triples.getFuncName(triple.e1);
-    
     int int_count = 0, float_count = 0;
     for (auto cur_arg = triple.e2.added; cur_arg; cur_arg = cur_arg->added) {
         
     }
-    return;
+}
+void StackRiscVGenerator::genPutf(Triples& triples, Triples::Triple& triple) {
+    int args_count = 0;
+    for (auto cur_arg = triple.e2.added; cur_arg; cur_arg = cur_arg->added) {
+        if (cur_arg->type == Triples::TT.dimd) {
+            if (args_count < 8)
+                instrs.push_back(new RVMem(RVOp::LI, make_areg(args_count), make_imm(cur_arg->value)));
+            else
+                panic("Push");
+        } else if (cur_arg->type == Triples::TT.fimd) {
+            size_t label = putf_simm_table[cur_arg->value];
+            if (args_count < 8) {
+                instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), make_simm(cur_arg->value)));
+                instrs.push_back(new RVMem(RVOp::FCVTDS, make_sreg(5), make_sreg(5)));
+                instrs.push_back(new RVMov(RVOp::FMVXD, make_areg(args_count), make_sreg(5)));
+            }
+            else
+                panic("Push");
+        } else if (cur_arg->type == Triples::TT.str) {
+            size_t str_label = string_table[triples.getValueString(*cur_arg)];
+            if (args_count < 8) {
+                instrs.push_back(new RVMem(RVOp::LSTR, make_areg(args_count), make_addr("STR" + std::to_string(str_label))));
+            }
+            else
+                panic("Push");
+        } else if (cur_arg->type == Triples::TT.temp) {
+            panic("TODO!!!");
+        } else {
+            panic("Error on putf's args");
+        }
+    }
+    instrs.push_back(new RVCall("putf"));
+
+    // panic("Pop");
 }
 void StackRiscVGenerator::genTag(Triples& triples, Triples::Triple& triple) {
     if (triple.e1.type == Triples::TT.func) {
@@ -204,7 +237,7 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
                 break;
             
             case Triples::Cmd.call:
-                // genCall(triples, cur_triple);
+                genCall(triples, cur_triple);
                 break;
             
             case Triples::Cmd.tag:
