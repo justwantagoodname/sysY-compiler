@@ -209,8 +209,21 @@ void StackRiscVGenerator::genTag(Triples& triples, Triples::Triple& triple) {
         instrs.push_back(new RVTag(triples.getLabelName(triple.e1)));
     }
 }
-void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple) {
-    panic("TODO");
+void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple, const std::string& func_name) {
+    int stack_size = func_size[func_name];
+    instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::sp), make_reg(RVRegs::sp), make_imm(0 - stack_size)));
+    instrs.push_back(new RVMem(RVOp::SD, make_reg(RVRegs::ra), stack_size - 8));
+    instrs.push_back(new RVMem(RVOp::SD, make_reg(RVRegs::s0), stack_size - 16));
+    instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::s0), make_reg(RVRegs::sp), make_imm(stack_size)));
+    return;
+}
+void StackRiscVGenerator::genReturn(Triples& triples, Triples::Triple& triple) {
+    int stack_size = func_size[cur_func_name];
+    instrs.push_back(new RVMov(RVOp::MV, make_areg(0), make_areg(5)));
+    instrs.push_back(new RVMem(RVOp::LD, make_reg(RVRegs::ra), stack_size - 8));
+    instrs.push_back(new RVMem(RVOp::LD, make_reg(RVRegs::s0), stack_size - 16));
+    instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::sp), make_reg(RVRegs::sp), make_imm(stack_size)));
+    instrs.push_back(new RVJump(RVOp::JR, make_reg(RVRegs::ra)));
     return;
 }
 /// <summary>   
@@ -279,7 +292,22 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
             case TCmd.tag:
                 genTag(triples, cur_triple);
                 if (cur_triple.e1.type == TTT.func) {
-                    // genStack(triples, cur_triple);
+                    cur_func_name = triples.getFuncName(cur_triple.e1);
+                }
+                break;
+            
+            case TCmd.blkb:
+                cur_blocks.push(cur_triple.e1.value);
+                if (cur_blocks.size() == 1) {
+                    // create new stack
+                    genStack(triples, cur_triple, cur_func_name);
+                }
+                break;
+            case TCmd.blke:
+                cur_blocks.pop();
+                if (cur_blocks.size() == 0) {
+                    // cur_stacks.pop();
+                    genReturn(triples, cur_triple);
                 }
                 break;
 
