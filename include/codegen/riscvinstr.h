@@ -75,6 +75,7 @@ enum class RVOp {
 
     MV,
     FMVXD,
+    FMVS,
     // Float move
     // from integer
     FMVF,

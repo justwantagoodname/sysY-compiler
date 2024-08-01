@@ -70,6 +70,7 @@ private:
     void genAllStrsFloats();
 public:
     StackRiscVGenerator();
+    ~StackRiscVGenerator();
     void generate(Triples& triples, bool optimize_flag);
 };
 

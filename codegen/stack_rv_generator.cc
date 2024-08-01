@@ -12,6 +12,9 @@ StackRiscVGenerator::StackRiscVGenerator() : simm_count(0), string_count(0) {
 
     tempvar_type.clear();
 }
+StackRiscVGenerator::~StackRiscVGenerator() {
+    for (auto p : instrs) delete p;
+}
 
 void StackRiscVGenerator::genArith(Triples& triples, Triples::Triple& triple) {
     panic("TODO!");
@@ -159,8 +162,31 @@ void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) {
     // 处理非putf的一般函数     TODO---
     int int_count = 0, float_count = 0;
     for (auto cur_arg = triple.e2.added; cur_arg; cur_arg = cur_arg->added) {
-        
+        if (cur_arg->type == TTT.dimd) {
+            if (int_count < 8) {
+                instrs.push_back(new RVMem(RVOp::LI, make_areg(int_count), make_imm(cur_arg->value)));
+            } else {
+                panic("Push");
+            }
+            ++int_count;
+        } else if (cur_arg->type == TTT.fimd) {
+            size_t label = simm_table[cur_arg->value];
+            if (float_count < 8) {
+                instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), make_addr(".LC" + std::to_string(label))));
+                // instrs.push_back(new RVConvert(RVOp::FCVTDS, make_sreg(5), make_sreg(5)));
+                instrs.push_back(new RVMov(RVOp::FMVS, make_sreg(float_count), make_sreg(5)));
+            } else {
+                panic("Push");
+            }
+            ++float_count;
+        } else if (cur_arg->type == TTT.temp) {
+            panic("TODO!!!!!");
+        } else {
+            panic("Error on call's args");
+        }
     }
+
+    instrs.push_back(new RVCall(func_name));
 }
 
 /// <summary>

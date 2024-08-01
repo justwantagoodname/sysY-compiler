@@ -237,13 +237,16 @@ std::string RVConvert::toASM() {
 
 RVMov::RVMov(RVOp opt, const RVOperand& dst, const RVOperand& opr) 
     : RVInstr(opt), dst(dst), opr(opr) {
-    assert(opt == RVOp::MV || opt == RVOp::FMVXD);
+    assert(opt == RVOp::MV || opt == RVOp::FMVXD || opt == RVOp::FMVS);
 }
 std::string RVMov::toASM() {
     string result;
     switch (opt) {
         case RVOp::FMVXD:
             result = "    fmv.x.d " + dst.toASM() + ", " + opr.toASM() + "\n";
+            break;
+        case RVOp::FMVS:
+            result = "    fmv.s " + dst.toASM() + ", " + opr.toASM() + "\n";
             break;
         case RVOp::MV:
             result = "    mv " + dst.toASM() + ", " + opr.toASM() + "\n";
