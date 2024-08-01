@@ -210,8 +210,8 @@ void StackRiscVGenerator::genTag(Triples& triples, Triples::Triple& triple) {
         instrs.push_back(new RVTag(triples.getLabelName(triple.e1)));
     }
 }
-void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple, const std::string& func_name) {
-    int stack_size = func_size[func_name];
+void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple) {
+    int stack_size = func_size[cur_func_name];
     instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::sp), make_reg(RVRegs::sp), make_imm(0 - stack_size)));
     instrs.push_back(new RVMem(RVOp::SD, make_reg(RVRegs::ra), stack_size - 8));
     instrs.push_back(new RVMem(RVOp::SD, make_reg(RVRegs::s0), stack_size - 16));
@@ -301,7 +301,7 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
                 cur_blocks.push(cur_triple.e1.value);
                 if (cur_blocks.size() == 1) {
                     // create new stack
-                    genStack(triples, cur_triple, cur_func_name);
+                    genStack(triples, cur_triple);
                 }
                 break;
             case TCmd.blke:

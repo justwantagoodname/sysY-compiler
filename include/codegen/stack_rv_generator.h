@@ -65,7 +65,7 @@ private:
     void genCall(Triples& triples, Triples::Triple& triple);
     void genPutf(Triples& triples, Triples::Triple& triple);
     void genTag(Triples& triples, Triples::Triple& triple);
-    void genStack(Triples& triples, Triples::Triple& triple, const std::string& cur_func_name);
+    void genStack(Triples& triples, Triples::Triple& triple);
     void genReturn(Triples& triples, Triples::Triple& triple);
     void genAllStrsFloats();
 public:
