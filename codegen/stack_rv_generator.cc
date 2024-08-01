@@ -179,8 +179,8 @@ void StackRiscVGenerator::genPutf(Triples& triples, Triples::Triple& triple) {
         } else if (cur_arg->type == TTT.fimd) {
             size_t label = putf_simm_table[cur_arg->value];
             if (args_count < 8) {
-                instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), make_simm(cur_arg->value)));
-                instrs.push_back(new RVMem(RVOp::FCVTDS, make_sreg(5), make_sreg(5)));
+                instrs.push_back(new RVMem(RVOp::FLD, make_sreg(5), make_addr(".LC" + std::to_string(label))));
+                // instrs.push_back(new RVConvert(RVOp::FCVTDS, make_sreg(5), make_sreg(5)));
                 instrs.push_back(new RVMov(RVOp::FMVXD, make_areg(args_count), make_sreg(5)));
             }
             else
@@ -197,6 +197,7 @@ void StackRiscVGenerator::genPutf(Triples& triples, Triples::Triple& triple) {
         } else {
             panic("Error on putf's args");
         }
+        ++args_count;
     }
     instrs.push_back(new RVCall("putf"));
 

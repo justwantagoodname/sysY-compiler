@@ -11,6 +11,7 @@ std::string RVOperand::getRegName() const {
     if (10 <= reg && reg <= 17) return "a" + std::to_string(reg - 10);
     if (18 <= reg && reg <= 27) return "s" + std::to_string(reg - 16);
     if (0 <= reg && reg <= 27) return "x" + std::to_string(reg);
+    if (28 <= reg && reg <= 35) return "fa" + std::to_string(reg - 28);
 
     panic("Error: getRegName()");
     return "";
@@ -35,7 +36,7 @@ std::string RVOperand::toASM() const {
     if (tag == IMM) return std::to_string(value);
     if (tag == SIMM) panic("SIMM");
     if (tag == REG) return getRegName();
-    if (tag == SREG) panic("SREG");
+    if (tag == SREG) return getRegName();
     if (tag == ADDR) {
         if (nhl == 0) return addr;
         if (nhl == 1) return "%hi(" + addr + ")";
@@ -60,7 +61,9 @@ RVOperand make_areg(int offset) {
 RVOperand make_sreg(int offset) {
     assert(offset < 8);
     RVRegs reg = RVRegs(28 + offset);
-    return make_reg(reg);
+    RVOperand res = make_reg(reg);
+    res.tag = SREG;
+    return res;
 }
 RVOperand make_imm(int value) {
     RVOperand opr;
@@ -171,7 +174,7 @@ RVMem::RVMem(RVOp opt, const RVOperand& opr, uint16_t offset, bool base_on_sp)
 }
 RVMem::RVMem(RVOp opt, const RVOperand& dst, const RVOperand& addr)
     : RVInstr(opt), dst(dst), opr(addr) {
-    assert(opt == RVOp::FLW || opt == RVOp::FSW || opt == RVOp::LSTR || opt == RVOp::LI);
+    assert(opt == RVOp::FLW || opt == RVOp::FLD || opt == RVOp::FSW || opt == RVOp::LSTR || opt == RVOp::LI);
 }
 // RVMem::RVMem(RVOp opt, const RVOperand& dst, const RVOperand& value) 
 //     : RVInstr(opt), dst(dst), opr(value) {
@@ -182,7 +185,7 @@ std::string RVMem::toASM() {
     string result;
     switch (opt) {
         case RVOp::LI:
-            result = "    li " + opr.toASM() + ", " + dst.toASM() + "\n";
+            result = "    li " + dst.toASM() + ", " + opr.toASM() + "\n";
             break;
         case RVOp::LW:
             break;
@@ -196,7 +199,11 @@ std::string RVMem::toASM() {
             break;
         case RVOp::FLW:
             result  = "    lui " + dst.toASM().substr(1) + ", %" + "hi(" + opr.toASM() + ")\n";
-            result += "    flw " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")\n";
+            result += "    flw " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")(" + dst.toASM().substr(1) + ")\n";
+            break;
+        case RVOp::FLD:
+            result  = "    lui " + dst.toASM().substr(1) + ", %" + "hi(" + opr.toASM() + ")\n";
+            result += "    fld " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")(" + dst.toASM().substr(1) + ")\n";
             break;
         case RVOp::FSW:
             break;

@@ -113,6 +113,7 @@ enum class RVOp {
     LI,
     LD,
     FLW,
+    FLD,
     // Load string
     LSTR,
     // Store

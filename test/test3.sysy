@@ -1,0 +1,7 @@
+int main() {
+    putf("%f\n", 3.14);
+    putf("%f\n", 6.28);
+    putf("Complex string: %d, %f\n", 12345, 3.14);
+    putf("Goodbye, world!\n");
+    return 0;
+}
