@@ -1,6 +1,5 @@
 
 int all =1;
-int x[100];
 
 int foo(int a, int b, int c[]){
 	return 0;
@@ -12,9 +11,8 @@ starttime();
 
 int a = 0;
 a = 1;
-int b = x[0];
 
-putf("intr", 1, 2, 3.4);
+putf("intr", 1, 2);
 
 stoptime();
 

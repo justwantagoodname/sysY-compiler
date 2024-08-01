@@ -848,11 +848,11 @@ void Triples::make()
 
 			triples.add(Cmd.tag, { fid, TT.func }, {}, {});
 		}
-		ife("Function") {
-			if (strcmp(element.get_attr_str("return"), "Void") == 0) {
-				triples.add(Cmd.rev, {}, {}, {});
-			}
-		}
+		//ife("Function") {
+		//	if (strcmp(element.get_attr_str("return"), "Void") == 0) {
+		//		triples.add(Cmd.rev, {}, {}, {});
+		//	}
+		//}
 		ifb("ParamDecl") {
 			const char* s = element.get_attr_str("name");
 			Element value = element.qo("ancestor::Function/Scope/Decl").table(s);
