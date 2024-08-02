@@ -363,7 +363,7 @@ void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
 		case TCmd.mul:
 		case TCmd.div:
 		case TCmd.mod:
-			genArith(triples, cur_triple);
+			// genArith(triples, cur_triple);
 			break;
 
 		case TCmd.load:
