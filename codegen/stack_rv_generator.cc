@@ -11,6 +11,8 @@ StackRiscVGenerator::StackRiscVGenerator() : simm_count(0), string_count(0) {
     func_size.clear();
 
     tempvar_type.clear();
+
+    cur_smallest_temp = -1;
 }
 StackRiscVGenerator::~StackRiscVGenerator() {
     for (auto p : instrs) delete p;
@@ -144,6 +146,48 @@ void StackRiscVGenerator::getTempVarType(Triples& triples) {
         ++cur_line;
     }
 }
+RVOperand StackRiscVGenerator::getTempOffset(Triples& triples, int temp_id) {
+    return make_stack(RVRegs::s0, -((cur_stacks.top().size() + cur_smallest_temp - temp_id) * 4));
+}
+RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, const std::string& var_name) {
+    auto &cur_stack = cur_stacks.top();
+
+    int count = 0;
+    for (auto &[name, num] : cur_stack) {
+        if (name == var_name) {
+            return make_stack(RVRegs::s0, -(count * 4 + 16));
+        }
+        count += num;
+    }
+    
+    auto &cur_args = triples.func_params[cur_func_name];
+    int int_count = 0, float_count = 0;
+    for (auto &[name, type] : cur_args) {
+        if (type == 1 || type == 3 || type == 4) ++int_count;
+        else if (type == 2) ++float_count;
+    }
+    
+    for (size_t i = cur_args.size() - 1; i >= 0; --i) {
+        std::string& name = cur_args[i].first;
+        int type = cur_args[i].second;
+
+        if (type == 1 || type == 3 || type == 4) {
+            if (name == var_name) {
+                if (int_count <= 6) return make_areg(int_count - 1);
+                else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
+            }
+            --int_count;
+        } else if (type == 2) {
+            if (name == var_name) {
+                if (float_count <= 6) return make_sreg(float_count - 1);
+                else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
+            }
+        }
+    }
+
+    panic("Bad var name");
+    return make_imm(0);
+}
 
 void StackRiscVGenerator::genLoad(Triples& triples, Triples::Triple& triple) {
     panic("TODO!: Register allocation");
@@ -236,13 +280,29 @@ void StackRiscVGenerator::genTag(Triples& triples, Triples::Triple& triple) {
         instrs.push_back(new RVTag(triples.getLabelName(triple.e1)));
     }
 }
-void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple) {
+void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple, size_t index) {
     int stack_size = func_size[cur_func_name];
     instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::sp), make_reg(RVRegs::sp), make_imm(0 - stack_size)));
     instrs.push_back(new RVMem(RVOp::SD, make_reg(RVRegs::ra), stack_size - 8));
     instrs.push_back(new RVMem(RVOp::SD, make_reg(RVRegs::s0), stack_size - 16));
     instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::s0), make_reg(RVRegs::sp), make_imm(stack_size)));
-    return;
+    
+    std::vector<std::pair<std::string, int>> stack_info;
+
+    int block_id = triples[index + 1].e1.value;
+    for (size_t cur_line = index + 2; cur_line < triples.size(); ++cur_line) {
+        Triples::Triple& t = triples[cur_line];
+        if (t.cmd == TCmd.blke && t.e1.value == block_id) break;
+
+        if (cur_smallest_temp != -1 && t.e1.type == TTT.temp) cur_smallest_temp = t.e1.value;
+        if (cur_smallest_temp != -1 && t.e2.type == TTT.temp) cur_smallest_temp = t.e2.value;
+        if (cur_smallest_temp != -1 && t.to.type == TTT.temp) cur_smallest_temp = t.to.value;
+
+        if (t.cmd != TCmd.var) continue;
+        stack_info.push_back({triples.getVarName(t.e1), t.e2.value});
+    }
+
+    cur_stacks.push(stack_info);
 }
 void StackRiscVGenerator::genReturn(Triples& triples, Triples::Triple& triple) {
     int stack_size = func_size[cur_func_name];
@@ -311,6 +371,9 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
             case TCmd.load:
                 // genLoad(triples, cur_triple);
                 break;
+            case TCmd.store:
+                // genStore(triples, cur_triple);
+                break;
             
             case TCmd.call:
                 genCall(triples, cur_triple);
@@ -327,13 +390,14 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
                 cur_blocks.push(cur_triple.e1.value);
                 if (cur_blocks.size() == 1) {
                     // create new stack
-                    genStack(triples, cur_triple);
+                    genStack(triples, cur_triple, index);
                 }
                 break;
             case TCmd.blke:
                 cur_blocks.pop();
                 if (cur_blocks.size() == 0) {
-                    // cur_stacks.pop();
+                    cur_stacks.pop();
+                    cur_smallest_temp = -1;
                     genReturn(triples, cur_triple);
                 }
                 break;
