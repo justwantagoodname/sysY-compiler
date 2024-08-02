@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <map>
+#include <stack>
 
 #include "codegen/riscvinstr.h"
 #include "sysY.h"
@@ -47,7 +48,12 @@ private:
     // temp variable -> type
     // 0, 1, 2 -> int, float, addr
     std::map<uint, uint> tempvar_type;
-    
+
+    // index -> [name, size]
+    std::stack<std::vector<std::pair<std::string, int>>> cur_stacks;
+    std::stack<int> cur_blocks;
+    std::string cur_func_name;
+
     size_t simm_count;
     size_t string_count;
     void createTable(Triples& triples);
@@ -60,9 +66,11 @@ private:
     void genPutf(Triples& triples, Triples::Triple& triple);
     void genTag(Triples& triples, Triples::Triple& triple);
     void genStack(Triples& triples, Triples::Triple& triple);
+    void genReturn(Triples& triples, Triples::Triple& triple);
     void genAllStrsFloats();
 public:
     StackRiscVGenerator();
+    ~StackRiscVGenerator();
     void generate(Triples& triples, bool optimize_flag);
 };
 

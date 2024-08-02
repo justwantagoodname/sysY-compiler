@@ -15,13 +15,18 @@ enum RVOperandTag {
     IMM,
     SIMM,
     ADDR,
-    STACK
+
+    // base on sp
+    STACK,
+    // base on s0
+    BASE
 };
 
 enum RVRegs {
     zero = 0,
     ra = 1,
     sp = 2,
+    s0 = 8,
     s1 = 9,
     a0 = 10, a1, a2, a3, a4, a5, a6, a7 = 17,
     s2 = 18, s3, s4, s5, s6, s7, s8, s9, s10, s11 = 27,
@@ -46,7 +51,7 @@ public:
     std::string toASM() const;
 };
 
-RVOperand make_reg(int reg);
+RVOperand make_reg(RVRegs reg);
 RVOperand make_areg(int offset);
 RVOperand make_sreg(int sreg);
 RVOperand make_imm(int value);
@@ -70,6 +75,7 @@ enum class RVOp {
 
     MV,
     FMVXD,
+    FMVS,
     // Float move
     // from integer
     FMVF,
@@ -106,11 +112,14 @@ enum class RVOp {
     // Load
     LW,
     LI,
+    LD,
     FLW,
+    FLD,
     // Load string
     LSTR,
     // Store
     SW,
+    SD,
     FSW,
 
     // I
@@ -126,6 +135,10 @@ enum class RVOp {
     // set < immediate
     SLTI,
     SLTIU,
+
+    // Jump
+    JR,
+    JALR,
 
     NOP
 };
@@ -171,7 +184,7 @@ class RVMem : public RVInstr {
 public:
     bool is_float;
     RVOperand dst, opr;
-    RVMem(RVOp opt, const RVOperand& opr, uint16_t dst_offset);
+    RVMem(RVOp opt, const RVOperand& opr, uint16_t dst_offset, bool base_on_sp = true);
     RVMem(RVOp opt, const RVOperand& dst, const RVOperand& value);
     virtual std::string toASM() override;
 };
@@ -198,10 +211,10 @@ public:
     virtual std::string toASM() override;
 };
 
-// Putf
-class RVPutf : public RVInstr {
+class RVJump : public RVInstr {
 public:
-
+    RVOperand dst;
+    RVJump(RVOp opt, const RVOperand& dst);
     virtual std::string toASM() override;
 };
 

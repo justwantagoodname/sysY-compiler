@@ -544,18 +544,17 @@ void Triples::make()
 				makeCond(Cmd.jge, Cmd.jgef);
 			}
 	*/
-#define makeCond(cmd) do{\
-		bool isfloat = false;\
-		int t0 = element[0].get_attr_int("temp");\
-		int t1 = element[1].get_attr_int("temp");\
-		int idx = triples.size();\
-		CMD::CMD_ENUM tcmd = (cmd);\
-		triples.add(tcmd, {t0}, {t1}, {});\
-		triples.add(Cmd.jmp, {}, {}, {});\
-		triples.add(Cmd.tag, { tag_count++, TT.lamb}, {}, {});\
-		element.add_attr("true", idx);\
-		element.add_attr("false", idx + 1);\
-		} while(0)
+		auto makeCond = [&](CMD::CMD_ENUM cmd) {
+			int t0 = element[0].get_attr_int("temp");
+			int t1 = element[1].get_attr_int("temp");
+			int idx = triples.size();
+			CMD::CMD_ENUM tcmd = (cmd);
+			triples.add(tcmd, { t0 }, { t1 }, {});
+			triples.add(Cmd.jmp, {}, {}, {});
+			triples.add(Cmd.tag, { tag_count++, TT.lamb }, {}, {});
+			element.add_attr("true", idx);
+			element.add_attr("false", idx + 1);
+			};
 
 		ife("Equal") {
 			makeCond(Cmd.jeq);
@@ -711,22 +710,22 @@ void Triples::make()
 					assert(strcmp("Int", element.get_attr_str("type")) == 0);
 				}
 		*/
-#define EopE(cmd) do{\
-			bool isfloat = false;\
-			int t0 = element[0].get_attr_int("temp"); \
-			int t1 = element[1].get_attr_int("temp"); \
-			CMD::CMD_ENUM cmdt = (cmd);\
-			triples.add(cmdt, {t0}, {t1}, {temp_count}); \
-			element.add_attr("temp", temp_count); \
-			if(strcmp(element[0].get_attr_str("type"), "Float") == 0 \
-				 || strcmp(element[0].get_attr_str("type"), "Float") == 0){\
-				element.add_attr("type", "Float");\
-			}\
-			else{\
-				element.add_attr("type", "Int");\
-			}\
-			++temp_count; \
-		}while (0)
+		auto EopE = [&](CMD::CMD_ENUM cmd) {
+			bool isfloat = false;
+			int t0 = element[0].get_attr_int("temp");
+			int t1 = element[1].get_attr_int("temp");
+			CMD::CMD_ENUM cmdt = (cmd);
+			triples.add(cmdt, { t0 }, { t1 }, { temp_count });
+			element.add_attr("temp", temp_count);
+			if (strcmp(element[0].get_attr_str("type"), "Float") == 0
+				|| strcmp(element[0].get_attr_str("type"), "Float") == 0) {
+				element.add_attr("type", "Float");
+			}
+			else {
+				element.add_attr("type", "Int");
+			}
+			++temp_count;
+			};
 		ife("Plus") {
 			EopE(Cmd.add);
 		}
@@ -811,23 +810,19 @@ void Triples::make()
 			// ���⣨ > w < )
 
 			const char* name = element.get_attr_str("name");
-			element.add_attr("temp", temp_count);
-
 			int fid = triples.findf(name);
 
-			if (fid != -1) {
-				triples.add(Cmd.call, { fid, TT.func }, parms, { temp_count });
-				element.add_attr("type", function_pointer[fid].get_attr_str("return"));
+			const char* type = function_pointer[fid].get_attr_str("return");
+			element.add_attr("type", type);
 
+			if (strcmp(type, "Void") != 0) {
+				element.add_attr("temp", temp_count);
+				triples.add(Cmd.call, { fid, TT.func }, parms, { temp_count });
+				++temp_count;
 			}
 			else {
-				triples.add(Cmd.call, { element.get_attr_str("name"), this }, parms, { temp_count });
-
-				// TODO -> 在这里加载内置函数的类型
-				element.add_attr("type", "Unknown");
-
+				triples.add(Cmd.call, { fid, TT.func }, parms, {});
 			}
-			++temp_count;
 		}
 		ife("Param") {
 			if (element.size() > 0) {
@@ -940,6 +935,7 @@ void Triples::make()
 	this->temp_count = temp_count;
 	setValueTable();
 	setFuncParams();
+	listTempType();
 }
 
 void Triples::setValueTable() {
@@ -985,7 +981,8 @@ void Triples::setFuncParams()
 		std::vector<std::pair<string, int>> param_types;
 
 		// float: -(-1) + 1 = 2; int: (0) + 1 = 1; void: -(1) + 1 = 0 
-		int ret = -strcmp(e.get_attr_str("return"), "Int") + 1;
+		int ret = strcmp(e.get_attr_str("return"), "Int");
+		ret = (ret > 0 ? -1 : ret < 0 ? 1 : 0) + 1;
 		param_types.push_back({ "" , ret });
 
 		auto params = e("/Params/*");
