@@ -122,7 +122,11 @@ void Triples::minTempVar()
 			}
 			while (nextt != -1) {
 				int temp = 42;
-				if (triples[var_begin[nextt]]->cmd == Cmd.load) {
+				// 终止本次合并，（在本次循环中）启动下一次
+				if (
+					triples[var_begin[nextt]]->cmd == Cmd.load
+					|| temp_type[begint] != temp_type[nextt]
+					) {
 					meraged[begint] = true;
 					begint = nextt;
 				}
@@ -176,7 +180,7 @@ void Triples::eliUnnecVar()
 			self(self, e->added);
 		}
 		}]
-		(TripleValue* e) -> void{ f(f, e); };
+		(TripleValue* e) -> void { f(f, e); };
 
 	int i = 0;
 	for (auto it = triples.begin(); it != triples.end(); ++it) {
@@ -260,12 +264,14 @@ void Triples::eliUnnecVar()
 
 void Triples::resortTemp()
 {
+	// 重做类型传递
 	int* temp_stack = new int[temp_count + 5];
 	memset(temp_stack, -1, sizeof(int) * temp_count);
 	int stack_top = 0;
 
-	auto sett = [f = [temp_stack](auto&& self, TripleValue* e) -> void {
+	auto sett = [f = [temp_stack, this](auto&& self, TripleValue* e) -> void {
 		if (e->type == TT.temp) {
+			temp_type[temp_stack[e->value]] = temp_type[e->value];
 			e->value = temp_stack[e->value];
 		}
 		if (e->added != nullptr) {
@@ -283,5 +289,64 @@ void Triples::resortTemp()
 		sett(&(*it)->e1);
 		sett(&(*it)->e2);
 		sett(&(*it)->to);
+	}
+}
+
+
+void Triples::getTempType()
+{
+	temp_type.resize(temp_count);
+	temp_type.clear();
+
+	auto gettype = [this](const TripleValue& e) -> int {
+		int t;
+		switch (e.type)
+		{
+		case TT.temp:
+			return temp_type[e.value];
+		case TT.dimd:
+			return 1;
+		case TT.fimd:
+			return 2;
+		case TT.str:
+			return 6;
+		case TT.value:
+			return (strcmp(value_pointer[e.value].get_attr_str("type"), "Float") == 0) + 1;
+		case TT.func:
+			t = strcmp(function_pointer[e.value].get_attr_str("return"), "Int");
+			t = t > 0 ? 1 : t < 0 ? -1 : 0;
+			return -t + 1;
+		case TT.addr:
+			return (strcmp(value_pointer[e.value].get_attr_str("type"), "Float") == 0) + 3;
+		default:
+			panic("gettype error");
+			break;
+		}
+		};
+
+	for (auto e : triples) {
+		switch (e->cmd)
+		{
+		case Cmd.load:
+			temp_type[e->to.value] = gettype(e->e1);
+			break;
+		case Cmd.mov:
+		case Cmd.call:
+			if (e->to.type == TT.temp)
+				temp_type[e->to.value] = gettype(e->e1);
+			break;
+		case Cmd.add:
+		case Cmd.sub:
+		case Cmd.mul:
+		case Cmd.div:
+			// 判断计算后类型
+			if (gettype(e->e1) == 2 || gettype(e->e2) == 2)
+				temp_type[e->to.value] = 2;
+			else
+				temp_type[e->to.value] = 1;
+			break;
+		default:
+			break;
+		}
 	}
 }

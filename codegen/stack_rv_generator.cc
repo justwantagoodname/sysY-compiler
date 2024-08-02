@@ -17,7 +17,10 @@ StackRiscVGenerator::~StackRiscVGenerator() {
 }
 
 void StackRiscVGenerator::genArith(Triples& triples, Triples::Triple& triple) {
-    panic("TODO!");
+    // 正在施工
+    panic("DOING...");
+
+    
 }
 
 /// <summary>
@@ -305,7 +308,7 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
             case TCmd.mul:
             case TCmd.div:
             case TCmd.mod:
-                // genArith(triples, cur_triple);
+                genArith(triples, cur_triple);
                 break;
 
             case TCmd.load:

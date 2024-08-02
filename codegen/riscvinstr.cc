@@ -166,6 +166,33 @@ std::string RVArith::toASM() {
     return result;
 }
 
+std::string RVfArith::toASM()
+{
+    if (!is_float) {
+        panic("TODO: RVfArith::toASM()");
+    }
+    std::string result = "    ";
+    switch (opt) {
+    case RVOp::ADD:
+        result += "fadd.s";
+        break;
+    case RVOp::SUB:
+        result += "fsub.s";
+        break;
+    case RVOp::MUL:
+        result += "fmul.s";
+        break;
+    case RVOp::DIV:
+        result += "fdiv.s";
+        break;
+    default:
+        panic("Error: RVfArith::toASM(): default");
+    }
+
+    result += " " + dst.toASM() + ", " + opr1.toASM() + ", " + opr2.toASM() + "\n";
+    return result;
+}
+
 RVMem::RVMem(RVOp opt, const RVOperand& opr, uint16_t offset, bool base_on_sp) 
     : RVInstr(opt), opr(opr) {
     assert(opt == RVOp::LD || opt == RVOp::LW || opt == RVOp::SW || opt == RVOp::SD);

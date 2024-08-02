@@ -129,6 +129,7 @@ private:
 	std::vector<Element> value_pointer;
 	std::vector<Element> function_pointer;
 	std::vector<std::string> string_pointer;
+	std::vector<int> temp_type;
 	//std::vector<Element> value_table;
 	//std::vector<int> page_stack;
 
@@ -170,6 +171,11 @@ public:
 	/// 重新排序临时变量
 	/// </summary>
 	void resortTemp();
+
+	/// <summary>
+	/// 分析获得临时变量类型
+	/// </summary>
+	void getTempType();
 
 	Triple& operator[](int idx) {
 		return *triples[idx];
