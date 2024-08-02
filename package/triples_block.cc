@@ -293,7 +293,7 @@ void Triples::resortTemp()
 }
 
 
-void Triples::getTempType()
+void Triples::listTempType()
 {
 	temp_type.resize(temp_count);
 	temp_type.clear();

@@ -179,11 +179,6 @@ public:
     virtual std::string toASM() override;
 };
 
-class RVfArith : public RVArith {
-public:
-    virtual std::string toASM() override;
-};
-
 // Load & Store
 class RVMem : public RVInstr {
 public:

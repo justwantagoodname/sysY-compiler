@@ -935,7 +935,7 @@ void Triples::make()
 	this->temp_count = temp_count;
 	setValueTable();
 	setFuncParams();
-	getTempType();
+	listTempType();
 }
 
 void Triples::setValueTable() {

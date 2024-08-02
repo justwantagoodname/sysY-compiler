@@ -173,9 +173,16 @@ public:
 	void resortTemp();
 
 	/// <summary>
-	/// 分析获得临时变量类型
+	/// 分析临时变量类型
 	/// </summary>
-	void getTempType();
+	void listTempType();
+	
+	/// <summary>
+	/// 获得临时变量类型
+	/// </summary>
+	int getTempType(int n) {
+		return temp_type[n];
+	}
 
 	Triple& operator[](int idx) {
 		return *triples[idx];
