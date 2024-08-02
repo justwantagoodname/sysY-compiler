@@ -56,16 +56,20 @@ private:
 
     size_t simm_count;
     size_t string_count;
+    int cur_smallest_temp;
     void createTable(Triples& triples);
     void calculateSize(Triples& triples);
     void getTempVarType(Triples& triples);
+
+    RVOperand getTempOffset(Triples& triples, int temp_id);
+    RVOperand getVarOpr(Triples& triples, const std::string& var_name);
 
     void genArith(Triples& triples, Triples::Triple& triple);
     void genLoad(Triples& triples, Triples::Triple& triple);
     void genCall(Triples& triples, Triples::Triple& triple);
     void genPutf(Triples& triples, Triples::Triple& triple);
     void genTag(Triples& triples, Triples::Triple& triple);
-    void genStack(Triples& triples, Triples::Triple& triple);
+    void genStack(Triples& triples, Triples::Triple& triple, size_t index);
     void genReturn(Triples& triples, Triples::Triple& triple);
     void genAllStrsFloats();
 public:

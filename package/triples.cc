@@ -300,3 +300,8 @@ std::string Triples::getLabelName(const TripleValue& tv) const {
 	assert(tv.type == TT.lamb);
 	return ".l" + std::to_string(tv.value);
 }
+
+std::string Triples::getVarName(const TripleValue& tv) const {
+	assert(tv.type == TT.value);
+	return value_pointer[tv.value].get_attr_str("name");
+}
