@@ -19,18 +19,61 @@ StackRiscVGenerator::~StackRiscVGenerator() {
 }
 
 void StackRiscVGenerator::genArith(Triples& triples, Triples::Triple& triple) {
-    panic("TODO!");
+    // 正在施工
+    bool is_float = false;
+    if (triples.getTempType(triple.to.value) == 2)
+        is_float = true;
+
+    RVOp cmd;
+    if (is_float) {
+        switch (triple.cmd)
+        {
+        case TCmd.add:
+            cmd = RVOp::ADD;
+        case TCmd.sub:
+            cmd = RVOp::SUB;
+        case TCmd.mul:
+            cmd = RVOp::MUL;
+        case TCmd.div:
+            cmd = RVOp::DIV;
+        case TCmd.mod:
+            cmd = RVOp::MOD;
+        default:
+            break;
+        }
+    } else {
+        switch (triple.cmd) {
+        case TCmd.add:
+            cmd = RVOp::FADD;
+        case TCmd.sub:
+            cmd = RVOp::FSUB;
+        case TCmd.mul:
+            cmd = RVOp::FMUL;
+        case TCmd.div:
+            cmd = RVOp::FDIV;
+        case TCmd.mod:
+            cmd = RVOp::FMOD;
+        default:
+            break;
+        }
+
+
+    }
+
+    panic("TODO!!!");
+
+
 }
 
 /// <summary>
 /// 初始化常量表
 /// </summary>
 /// <param name="triples"></param>
-void StackRiscVGenerator::createTable(Triples &triples) {
+void StackRiscVGenerator::createTable(Triples& triples) {
 
     // 处理非call的float立即数和str常量，保存至对应表
     for (size_t index = 0; index < triples.size(); ++index) {
-        Triples::Triple &triple = triples[index];
+        Triples::Triple& triple = triples[index];
         if (triple.cmd == TCmd.call) continue;
 
         if (triple.e1.type == TTT.fimd) {
@@ -39,7 +82,7 @@ void StackRiscVGenerator::createTable(Triples &triples) {
                 simm_table[value] = simm_count++;
             }
         } else if (triple.e1.type == TTT.str) {
-            const std::string &str = triples.getValueString(triple.e1);
+            const std::string& str = triples.getValueString(triple.e1);
             if (string_table.find(str) == string_table.end()) {
                 string_table[str] = string_count++;
             }
@@ -51,7 +94,7 @@ void StackRiscVGenerator::createTable(Triples &triples) {
                 simm_table[value] = simm_count++;
             }
         } else if (triple.e2.type == TTT.str) {
-            const std::string &str = triples.getValueString(triple.e2);
+            const std::string& str = triples.getValueString(triple.e2);
             if (string_table.find(str) == string_table.end()) {
                 string_table[str] = string_count++;
             }
@@ -60,7 +103,7 @@ void StackRiscVGenerator::createTable(Triples &triples) {
 
     // 处理call中的float立即数和str常量
     for (size_t index = 0; index < triples.size(); ++index) {
-        Triples::Triple &triple = triples[index];
+        Triples::Triple& triple = triples[index];
         if (triple.cmd != TCmd.call) continue;
         bool is_putf = (triples.getFuncName(triple.e1) == "putf");
 
@@ -75,7 +118,7 @@ void StackRiscVGenerator::createTable(Triples &triples) {
                     putf_simm_table[value] = simm_count++;
                 }
             } else if (t->type == TTT.str) {
-                const std::string &str = triples.getValueString(*t);
+                const std::string& str = triples.getValueString(*t);
                 if (string_table.find(str) == string_table.end()) {
                     string_table[str] = string_count++;
                 }
@@ -92,26 +135,26 @@ void StackRiscVGenerator::calculateSize(Triples& triples) {
     size_t cur_line = 0;
     // 循环直到处理完整个序列
     while (cur_line < triples.size()) {
-        Triples::Triple &triple = triples[cur_line];
+        Triples::Triple& triple = triples[cur_line];
         // 遇到函数时， 处理
         if (triple.cmd == TCmd.tag && triple.e1.type == TTT.func) {
             ++cur_line;
             std::string func_name = triples.getFuncName(triple.e1);
-            
+
             std::map<int, bool> visited_temp;
             visited_temp.clear();
-            
+
             // 获取函数最外层块的id
             int block_id = triples[cur_line].e1.value;
             size_t stack_size = 16;
             // 处理直到block结束
-            while (cur_line < triples.size() && 
-                   !(triples[cur_line].cmd == TCmd.blke && 
-                   triples[cur_line].e1.value == block_id)) {
+            while (cur_line < triples.size() &&
+                !(triples[cur_line].cmd == TCmd.blke &&
+                    triples[cur_line].e1.value == block_id)) {
 
-                Triples::Triple &cur_trip = triples[cur_line];
+                Triples::Triple& cur_trip = triples[cur_line];
 
-                if (cur_trip.cmd == TCmd.var) { 
+                if (cur_trip.cmd == TCmd.var) {
                     // 如果是变量声明，开对应空间
                     stack_size += cur_trip.e2.value * 4;
                 } else {
@@ -121,7 +164,7 @@ void StackRiscVGenerator::calculateSize(Triples& triples) {
                             stack_size += 4;
                             visited_temp[tv.value] = true;
                         }
-                    };
+                        };
 
                     changeStackSize(cur_trip.e1);
                     changeStackSize(cur_trip.e2);
@@ -194,9 +237,9 @@ void StackRiscVGenerator::genLoad(Triples& triples, Triples::Triple& triple) {
     return;
 }
 
-void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) { 
+void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) {
     std::string func_name = triples.getFuncName(triple.e1);
-    
+
     // 特判putf
     if (func_name == "putf") {
         genPutf(triples, triple);
@@ -252,15 +295,13 @@ void StackRiscVGenerator::genPutf(Triples& triples, Triples::Triple& triple) {
                 instrs.push_back(new RVMem(RVOp::FLD, make_sreg(5), make_addr(".LC" + std::to_string(label))));
                 // instrs.push_back(new RVConvert(RVOp::FCVTDS, make_sreg(5), make_sreg(5)));
                 instrs.push_back(new RVMov(RVOp::FMVXD, make_areg(args_count), make_sreg(5)));
-            }
-            else
+            } else
                 panic("Push");
         } else if (cur_arg->type == TTT.str) {
             size_t str_label = string_table[triples.getValueString(*cur_arg)];
             if (args_count < 8) {
                 instrs.push_back(new RVMem(RVOp::LSTR, make_areg(args_count), make_addr("STR" + std::to_string(str_label))));
-            }
-            else
+            } else
                 panic("Push");
         } else if (cur_arg->type == TTT.temp) {
             panic("TODO!!!");
@@ -344,7 +385,7 @@ void StackRiscVGenerator::genAllStrsFloats() {
     }
 }
 
-void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
+void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
     if (optimize_flag) {
         panic("TODO: StackRiscVGenerator::generate: optimize");
     }
@@ -357,7 +398,7 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
         printf("%s: %u\n", key.c_str(), value);
     }
     for (size_t index = 0; index < triples.size(); ++index) {
-        Triples::Triple &cur_triple = triples[index];
+        Triples::Triple& cur_triple = triples[index];
 
         switch (cur_triple.cmd) {
             case TCmd.add:
@@ -401,6 +442,7 @@ void StackRiscVGenerator::generate(Triples &triples, bool optimize_flag) {
                     genReturn(triples, cur_triple);
                 }
                 break;
+
 
             default:
                 // panic("Error");

@@ -21,7 +21,7 @@ RVOperand::RVOperand() : tag(UNDEF), value(0) {
 }
 RVOperand::RVOperand(RVOperandTag tag, int value)
     : tag(tag), value(value) {
-        return;
+    return;
 }
 bool RVOperand::isreg() const {
     return tag == REG || tag == SREG;
@@ -121,52 +121,64 @@ std::string RVstring::toASM() {
 
 RVArith::RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RVOperand& opr2)
     : RVInstr(opt), dst(dst), opr1(opr1), opr2(opr2) {
-        assert(opt == RVOp::ADD || opt == RVOp::SUB || opt == RVOp::MUL
-            || opt == RVOp::DIV || opt == RVOp::MOD);
-        assert(dst.isreg());
-        assert(opr1.isreg());
-        assert(opr2.isreg() || opr2.isimm());
+    //assert(opt == RVOp::ADD || opt == RVOp::SUB || opt == RVOp::MUL
+    //	|| opt == RVOp::DIV || opt == RVOp::MOD);
+    assert(dst.isreg());
+    assert(opr1.isreg());
+    assert(opr2.isreg() || opr2.isimm());
 
-        if (opr1.isfloat() || opr2.isfloat()) {
-            is_float = true;
-        } else {
-            is_float = false;
-        }
-        return;
+    if (opr1.isfloat() || opr2.isfloat()) {
+        is_float = true;
+    } else {
+        is_float = false;
+    }
+    return;
 }
 std::string RVArith::toASM() {
-    if (is_float) {
-        panic("TODO: RVArith::toASM()");
-    }
     std::string result = "    ";
     switch (opt) {
-        case RVOp::ADD:
-            result += "add";
-            break;
-        case RVOp::SUB:
-            result += "sub";
-            break;
-        case RVOp::MUL:
-            result += "mul";
-            break;
-        case RVOp::DIV:
-            result += "div";
-            break;
-        case RVOp::MOD:
-            result += "rem";
-            break;
-        default:
-            panic("Error: RVArith::toASM(): default");
+    case RVOp::ADD:
+        result += "add";
+        break;
+    case RVOp::SUB:
+        result += "sub";
+        break;
+    case RVOp::MUL:
+        result += "mul";
+        break;
+    case RVOp::DIV:
+        result += "div";
+        break;
+    case RVOp::MOD:
+        result += "rem";
+        break;
+    case RVOp::FADD:
+        result += "fadd.s";
+        break;
+    case RVOp::FSUB:
+        result += "fsub.s";
+        break;
+    case RVOp::FMUL:
+        result += "fmul.s";
+        break;
+    case RVOp::FDIV:
+        result += "fdiv.s";
+        break;
+    case RVOp::FMOD:
+        result += "frem.s";
+        break;
+    default:
+        panic("Error: RVArith::toASM(): default");
     }
-    if (opr2.isimm()) {
+    if (opr2.isimm() && !is_float) {
         result.push_back('i');
     }
-    
+
     result += " " + dst.toASM() + ", " + opr1.toASM() + ", " + opr2.toASM() + "\n";
     return result;
 }
 
-RVMem::RVMem(RVOp opt, const RVOperand& opr, uint16_t offset, bool base_on_sp) 
+RVMem::RVMem(RVOp opt, const RVOperand& opr, uint16_t offset, bool base_on_sp)
     : RVInstr(opt), opr(opr) {
     assert(opt == RVOp::LD || opt == RVOp::LW || opt == RVOp::SW || opt == RVOp::SD);
     if (base_on_sp) dst = make_stack(RVRegs::sp, offset);
@@ -184,36 +196,36 @@ RVMem::RVMem(RVOp opt, const RVOperand& dst, const RVOperand& addr)
 std::string RVMem::toASM() {
     string result;
     switch (opt) {
-        case RVOp::LI:
-            result = "    li " + dst.toASM() + ", " + opr.toASM() + "\n";
-            break;
-        case RVOp::LW:
-            break;
-        case RVOp::LD:
-            result = "    ld " + opr.toASM() + ", " + dst.toASM() + "\n";
-            break;
-        case RVOp::SW:
-            break;
-        case RVOp::SD:
-            result = "    sd " + opr.toASM() + ", " + dst.toASM() + "\n";
-            break;
-        case RVOp::FLW:
-            result  = "    lui " + dst.toASM().substr(1) + ", %" + "hi(" + opr.toASM() + ")\n";
-            result += "    flw " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")(" + dst.toASM().substr(1) + ")\n";
-            break;
-        case RVOp::FLD:
-            result  = "    lui " + dst.toASM().substr(1) + ", %" + "hi(" + opr.toASM() + ")\n";
-            result += "    fld " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")(" + dst.toASM().substr(1) + ")\n";
-            break;
-        case RVOp::FSW:
-            break;
-        case RVOp::LSTR:
-            result  = "    lui " + make_areg(5).toASM() + ", %hi(" + opr.toASM() + ")\n";
-            result += "    addi " + dst.toASM() + ", " + make_areg(5).toASM() + ", %lo(" + opr.toASM() + ")\n";
-            break;
-        default:
-            panic("TODO!");
-            break;
+    case RVOp::LI:
+        result = "    li " + dst.toASM() + ", " + opr.toASM() + "\n";
+        break;
+    case RVOp::LW:
+        break;
+    case RVOp::LD:
+        result = "    ld " + opr.toASM() + ", " + dst.toASM() + "\n";
+        break;
+    case RVOp::SW:
+        break;
+    case RVOp::SD:
+        result = "    sd " + opr.toASM() + ", " + dst.toASM() + "\n";
+        break;
+    case RVOp::FLW:
+        result = "    lui " + dst.toASM().substr(1) + ", %" + "hi(" + opr.toASM() + ")\n";
+        result += "    flw " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")(" + dst.toASM().substr(1) + ")\n";
+        break;
+    case RVOp::FLD:
+        result = "    lui " + dst.toASM().substr(1) + ", %" + "hi(" + opr.toASM() + ")\n";
+        result += "    fld " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")(" + dst.toASM().substr(1) + ")\n";
+        break;
+    case RVOp::FSW:
+        break;
+    case RVOp::LSTR:
+        result = "    lui " + make_areg(5).toASM() + ", %hi(" + opr.toASM() + ")\n";
+        result += "    addi " + dst.toASM() + ", " + make_areg(5).toASM() + ", %lo(" + opr.toASM() + ")\n";
+        break;
+    default:
+        panic("TODO!");
+        break;
     }
     return result;
 }
@@ -225,35 +237,35 @@ RVConvert::RVConvert(RVOp opt, const RVOperand& dst, const RVOperand& opr)
 std::string RVConvert::toASM() {
     string result;
     switch (opt) {
-        case RVOp::FCVTDS:
-            result = "    fcvt.d.s " + dst.toASM() + ", " + opr.toASM() + "\n";
-            break;
-        default:
-            panic("Error on RVConvert");
-            break;
+    case RVOp::FCVTDS:
+        result = "    fcvt.d.s " + dst.toASM() + ", " + opr.toASM() + "\n";
+        break;
+    default:
+        panic("Error on RVConvert");
+        break;
     }
     return result;
 }
 
-RVMov::RVMov(RVOp opt, const RVOperand& dst, const RVOperand& opr) 
+RVMov::RVMov(RVOp opt, const RVOperand& dst, const RVOperand& opr)
     : RVInstr(opt), dst(dst), opr(opr) {
     assert(opt == RVOp::MV || opt == RVOp::FMVXD || opt == RVOp::FMVS);
 }
 std::string RVMov::toASM() {
     string result;
     switch (opt) {
-        case RVOp::FMVXD:
-            result = "    fmv.x.d " + dst.toASM() + ", " + opr.toASM() + "\n";
-            break;
-        case RVOp::FMVS:
-            result = "    fmv.s " + dst.toASM() + ", " + opr.toASM() + "\n";
-            break;
-        case RVOp::MV:
-            result = "    mv " + dst.toASM() + ", " + opr.toASM() + "\n";
-            break;
-        default:
-            panic("Error on RVMov");
-            break;
+    case RVOp::FMVXD:
+        result = "    fmv.x.d " + dst.toASM() + ", " + opr.toASM() + "\n";
+        break;
+    case RVOp::FMVS:
+        result = "    fmv.s " + dst.toASM() + ", " + opr.toASM() + "\n";
+        break;
+    case RVOp::MV:
+        result = "    mv " + dst.toASM() + ", " + opr.toASM() + "\n";
+        break;
+    default:
+        panic("Error on RVMov");
+        break;
     }
     return result;
 }
@@ -274,13 +286,13 @@ RVJump::RVJump(RVOp opt, const RVOperand& dst)
 std::string RVJump::toASM() {
     std::string result;
     switch (opt) {
-        case RVOp::JR:
-            result = "    jr " + dst.toASM() + "\n";
-            break;
-        case RVOp::JALR:
-        default:
-            panic("RVJump error");
-            break;
+    case RVOp::JR:
+        result = "    jr " + dst.toASM() + "\n";
+        break;
+    case RVOp::JALR:
+    default:
+        panic("RVJump error");
+        break;
     }
     return result;
 }

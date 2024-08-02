@@ -223,7 +223,10 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		snprintf(s, 20, "-");
 		break;
 	case TT.temp:
-		snprintf(s, 20, "T%d", value);
+		if (triples.temp_type[value] == 2)
+			snprintf(s, 20, "fT%d", value);
+		else
+			snprintf(s, 20, "T%d", value);
 		break;
 	case TT.dimd:
 		snprintf(s, 40, "#%d", value);
