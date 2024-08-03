@@ -66,6 +66,7 @@ private:
 
     void genArith(Triples& triples, Triples::Triple& triple);
     void genLoad(Triples& triples, Triples::Triple& triple);
+    void genStore(Triples& triples, Triples::Triple& triple);
     void genCall(Triples& triples, Triples::Triple& triple);
     void genPutf(Triples& triples, Triples::Triple& triple);
     void genTag(Triples& triples, Triples::Triple& triple);

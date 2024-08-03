@@ -40,7 +40,7 @@ void StackRiscVGenerator::genArith(Triples& triples, Triples::Triple& triple) {
             }
         } else if (e.type == TTT.dimd) {
             if (!is_float) {
-                if(e.value >= -2048 && e.value <= 2047)
+                if (e.value >= -2048 && e.value <= 2047)
                     return make_imm(e.value);
                 else {
                     instrs.push_back(new RVMem(RVOp::LI, make_reg(reg), make_imm(e.value)));
@@ -52,13 +52,13 @@ void StackRiscVGenerator::genArith(Triples& triples, Triples::Triple& triple) {
                 if (simm_table.find(value) == simm_table.end()) {
                     simm_table[value] = simm_count++;
                 }
-                oper = make_simm(simm_table[value]);
+                oper = make_addr(".LC" + std::to_string(simm_table[value]));
                 instrs.push_back(new RVMem(RVOp::FLD, make_sreg(sreg), oper));
                 return make_sreg(sreg);
             }
 
         } else if (e.type == TTT.fimd) {
-            oper = make_simm(simm_table[e.value]);
+            oper = make_addr(".LC" + std::to_string(simm_table[e.value]));
             instrs.push_back(new RVMem(RVOp::FLD, make_sreg(sreg), oper));
             return make_sreg(sreg);
         }
@@ -295,9 +295,25 @@ RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, const std::string& va
 }
 
 void StackRiscVGenerator::genLoad(Triples& triples, Triples::Triple& triple) {
-    panic("TODO!: Register allocation");
+    auto& e1 = triple.e1;
+    auto& to = triple.to;
+
+    instrs.push_back(new RVMem(RVOp::LW, make_reg(a5), getVarOpr(triples, triples.getVarName(e1))));
+    instrs.push_back(new RVMem(RVOp::SW, getTempOpr(triples, to.value), make_reg(a5)));
+
     return;
 }
+
+void StackRiscVGenerator::genStore(Triples& triples, Triples::Triple& triple) {
+    auto& e1 = triple.e1;
+    auto& to = triple.to;
+
+    instrs.push_back(new RVMem(RVOp::LW, make_reg(a5), getTempOpr(triples, e1.value)));
+    instrs.push_back(new RVMem(RVOp::SW, getVarOpr(triples, triples.getVarName(to)), make_reg(a5)));
+
+    return;
+}
+
 
 void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) {
     std::string func_name = triples.getFuncName(triple.e1);
@@ -472,10 +488,10 @@ void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
             break;
 
         case TCmd.load:
-            // genLoad(triples, cur_triple);
+            genLoad(triples, cur_triple);
             break;
         case TCmd.store:
-            // genStore(triples, cur_triple);
+            genStore(triples, cur_triple);
             break;
 
         case TCmd.call:
