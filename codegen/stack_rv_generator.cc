@@ -252,7 +252,7 @@ void StackRiscVGenerator::getTempVarType(Triples& triples) {
     }
 }
 RVOperand StackRiscVGenerator::getTempOpr(Triples& triples, int temp_id) {
-    return make_stack(RVRegs::s0, -((cur_stacks.top().size() + cur_smallest_temp - temp_id - 1) * 4));
+    return make_stack(RVRegs::s0, -((cur_stacks.top().size() - cur_smallest_temp + temp_id) * 4));
 }
 RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, const std::string& var_name) {
     auto& cur_stack = cur_stacks.top();

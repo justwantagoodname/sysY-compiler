@@ -42,7 +42,7 @@ public:
     uint8_t nhl;
     std::string addr;
     RVRegs reg;
-    uint16_t offset;
+    int offset;
     RVOperand();
     RVOperand(RVOperandTag tag, int value);
     bool isreg() const;
