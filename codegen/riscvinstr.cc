@@ -83,7 +83,7 @@ RVOperand make_simm(int value) {
     opr.value = value;
     return opr;
 }
-RVOperand make_stack(RVRegs reg, uint16_t offset) {
+RVOperand make_stack(RVRegs reg, int offset) {
     RVOperand opr;
     opr.tag = STACK;
     opr.reg = reg;

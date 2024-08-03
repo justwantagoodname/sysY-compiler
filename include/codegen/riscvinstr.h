@@ -57,7 +57,7 @@ RVOperand make_sreg(int sreg);
 RVOperand make_sreg(RVRegs sreg);
 RVOperand make_imm(int value);
 RVOperand make_simm(int value);
-RVOperand make_stack(RVRegs reg, uint16_t offset);
+RVOperand make_stack(RVRegs reg, int offset);
 RVOperand make_addr(const std::string& label, uint8_t normal_hi_lo = 0);
 
 enum class RVOp {
