@@ -54,6 +54,7 @@ public:
 RVOperand make_reg(RVRegs reg);
 RVOperand make_areg(int offset);
 RVOperand make_sreg(int sreg);
+RVOperand make_sreg(RVRegs sreg);
 RVOperand make_imm(int value);
 RVOperand make_simm(int value);
 RVOperand make_stack(RVRegs reg, uint16_t offset);

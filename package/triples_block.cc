@@ -298,52 +298,30 @@ void Triples::listTempType()
 	temp_type.resize(temp_count);
 	temp_type.clear();
 
-	auto gettype = [this](const TripleValue& e) -> int {
-		int t;
-		switch (e.type)
-		{
-		case TT.temp:
-			return temp_type[e.value];
-		case TT.dimd:
-			return 1;
-		case TT.fimd:
-			return 2;
-		case TT.str:
-			return 6;
-		case TT.value:
-			return (strcmp(value_pointer[e.value].get_attr_str("type"), "Float") == 0) + 1;
-		case TT.func:
-			t = strcmp(function_pointer[e.value].get_attr_str("return"), "Int");
-			t = t > 0 ? 1 : t < 0 ? -1 : 0;
-			return -t + 1;
-		case TT.addr:
-			return (strcmp(value_pointer[e.value].get_attr_str("type"), "Float") == 0) + 3;
-		default:
-			panic("gettype error");
-			break;
-		}
-		};
-
 	for (auto e : triples) {
 		switch (e->cmd)
 		{
 		case Cmd.load:
-			temp_type[e->to.value] = gettype(e->e1);
+			temp_type[e->to.value] = getValueType(e->e1);
+			printf("load: %d\n", temp_type[e->to.value]);
 			break;
 		case Cmd.mov:
 		case Cmd.call:
-			if (e->to.type == TT.temp)
-				temp_type[e->to.value] = gettype(e->e1);
+			if (e->to.type == TT.temp) {
+				temp_type[e->to.value] = getValueType(e->e1);
+				printf("call: %d\n", temp_type[e->to.value]);
+			}
 			break;
 		case Cmd.add:
 		case Cmd.sub:
 		case Cmd.mul:
 		case Cmd.div:
 			// 判断计算后类型
-			if (gettype(e->e1) == 2 || gettype(e->e2) == 2)
+			if (getValueType(e->e1) == 2 || getValueType(e->e2) == 2)
 				temp_type[e->to.value] = 2;
 			else
 				temp_type[e->to.value] = 1;
+			printf("add: %d\n", temp_type[e->to.value]);
 			break;
 		default:
 			break;

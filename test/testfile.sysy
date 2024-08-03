@@ -1,24 +1,9 @@
 
-int all =1;
-
-float foo(int a, int b, int c[]){
-	return 0;
-}
-
 int main(){
 
-// starttime();
-
 int a = 0;
-int c[100];
 float b = 2.4;
-a = 1;
-
-a = 1 + a;
-// b = foo(a, a, c);
-putf("intr", 1, 2);
-
-// stoptime();
+b = a + 3.4;
 
 return 0;
 }

@@ -184,6 +184,11 @@ public:
 		return temp_type[n];
 	}
 
+	/// <summary>
+	/// 获取类型
+	/// </summary>
+	int getValueType(const TripleValue& e);
+
 	Triple& operator[](int idx) {
 		return *triples[idx];
 	};

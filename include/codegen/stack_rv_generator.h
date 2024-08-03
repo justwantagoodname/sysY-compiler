@@ -61,7 +61,7 @@ private:
     void calculateSize(Triples& triples);
     void getTempVarType(Triples& triples);
 
-    RVOperand getTempOffset(Triples& triples, int temp_id);
+    RVOperand getTempOpr(Triples& triples, int temp_id);
     RVOperand getVarOpr(Triples& triples, const std::string& var_name);
 
     void genArith(Triples& triples, Triples::Triple& triple);

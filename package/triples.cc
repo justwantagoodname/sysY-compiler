@@ -305,3 +305,36 @@ std::string Triples::getVarName(const TripleValue& tv) const {
 	assert(tv.type == TT.value);
 	return value_pointer[tv.value].get_attr_str("name");
 }
+
+int Triples::getValueType(const TripleValue& e) {
+	int t;
+	switch (e.type)
+	{
+	case TT.temp:
+		return temp_type[e.value];
+		break;
+	case TT.dimd:
+		return 1;
+		break;
+	case TT.fimd:
+		return 2;
+		break;
+	case TT.str:
+		return 6;
+		break;
+	case TT.value:
+		return (strcmp(value_pointer[e.value].get_attr_str("type"), "Float") == 0) + 1;
+		break;
+	case TT.func:
+		t = strcmp(function_pointer[e.value].get_attr_str("return"), "Int");
+		t = t > 0 ? 1 : t < 0 ? -1 : 0;
+		return -t + 1;
+		break;
+	case TT.addr:
+		return (strcmp(value_pointer[e.value].get_attr_str("type"), "Float") == 0) + 3;
+		break;
+	default:
+		panic("gettype error");
+		break;
+	}
+}
