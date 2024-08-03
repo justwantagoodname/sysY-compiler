@@ -252,7 +252,7 @@ void StackRiscVGenerator::getTempVarType(Triples& triples) {
     }
 }
 RVOperand StackRiscVGenerator::getTempOpr(Triples& triples, int temp_id) {
-    return make_stack(RVRegs::s0, -((cur_stacks.top().size() - cur_smallest_temp + temp_id) * 4));
+    return make_stack(RVRegs::s0, -((cur_stacks.top().size() - cur_smallest_temp + temp_id) * 4 + 16));
 }
 RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, const std::string& var_name) {
     auto& cur_stack = cur_stacks.top();
@@ -345,7 +345,29 @@ void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) {
             }
             ++float_count;
         } else if (cur_arg->type == TTT.temp) {
-            panic("TODO!!!!!");
+            int temp_type = triples.getTempType(cur_arg->value);
+            if (temp_type == 1) {
+                // int
+                if (int_count < 8) {
+                    instrs.push_back(new RVMem(RVOp::LW, make_areg(int_count), getTempOpr(triples, cur_arg->value)));
+                } else {
+                    panic("Push");
+                }
+                ++int_count;
+            } else if (temp_type == 2) {
+                // float
+                if (float_count < 8) {
+                    instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), getTempOpr(triples, cur_arg->value)));
+                    instrs.push_back(new RVMov(RVOp::FMVS, make_sreg(float_count), make_sreg(5)));
+                } else {
+                    panic("Push");
+                }
+                ++float_count;
+            } else {
+                panic("bad temp type");
+            }
+        } else if (cur_arg->type == TTT.addr) {
+            panic("TODO!");
         } else {
             panic("Error on call's args");
         }
@@ -363,9 +385,9 @@ void StackRiscVGenerator::genPutf(Triples& triples, Triples::Triple& triple) {
     int args_count = 0;
     for (auto cur_arg = triple.e2.added; cur_arg; cur_arg = cur_arg->added) {
         if (cur_arg->type == TTT.dimd) {
-            if (args_count < 8)
+            if (args_count < 8){
                 instrs.push_back(new RVMem(RVOp::LI, make_areg(args_count), make_imm(cur_arg->value)));
-            else
+            } else
                 panic("Push");
         } else if (cur_arg->type == TTT.fimd) {
             size_t label = putf_simm_table[cur_arg->value];
@@ -382,7 +404,27 @@ void StackRiscVGenerator::genPutf(Triples& triples, Triples::Triple& triple) {
             } else
                 panic("Push");
         } else if (cur_arg->type == TTT.temp) {
-            panic("TODO!!!");
+            int temp_type = triples.getTempType(cur_arg->value);
+            if (temp_type == 1) {
+                // int
+                if (args_count < 8) {
+                    instrs.push_back(new RVMem(RVOp::LW, make_areg(args_count), getTempOpr(triples, cur_arg->value)));
+                } else {
+                    panic("Push");
+                }
+            } else if (temp_type == 2) {
+                // float
+                if (args_count < 8) {
+                    instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), getTempOpr(triples, cur_arg->value)));
+                    instrs.push_back(new RVConvert(RVOp::FCVTDS, make_sreg(5), make_sreg(5)));
+                    instrs.push_back(new RVMov(RVOp::FMVXD, make_areg(args_count), make_sreg(5)));
+                } else {
+                    panic("Push");
+                }
+            } else {
+                printf("value: %d, type %d\n", cur_arg->value, temp_type);
+                panic("bad temp type");
+            }
         } else {
             panic("Error on putf's args");
         }
@@ -462,6 +504,28 @@ void StackRiscVGenerator::genAllStrsFloats() {
         instrs.push_back(new RVword(lo));
     }
 }
+void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
+    Triples::TripleValue &tv = triple.e1, &to = triple.to;
+
+    RVOperand dst;
+    if (to.type == TTT.value) {
+        dst = getVarOpr(triples, triples.getVarName(to));
+    } else if (to.type == TTT.temp) {
+        dst = getTempOpr(triples, to.value);
+    }
+
+    if (tv.type == TTT.dimd) {
+        instrs.push_back(new RVMem(RVOp::LI, make_areg(5), make_imm(tv.value)));
+        instrs.push_back(new RVMem(RVOp::SW, dst, make_areg(5)));
+    } else if (tv.type == TTT.fimd) {
+        assert(simm_table.find(tv.value) != simm_table.end());
+        int label = simm_table[tv.value];
+        instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), make_addr(".LC" + std::to_string(label))));
+        instrs.push_back(new RVMem(RVOp::FSW, make_sreg(5), dst));
+    } else {
+        panic("bad triplevalue type");
+    }
+}
 
 void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
     if (optimize_flag) {
@@ -496,6 +560,10 @@ void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
 
         case TCmd.call:
             genCall(triples, cur_triple);
+            break;
+
+        case TCmd.mov:
+            genMove(triples, cur_triple);
             break;
 
         case TCmd.tag:

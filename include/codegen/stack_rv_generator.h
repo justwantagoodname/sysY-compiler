@@ -72,6 +72,7 @@ private:
     void genTag(Triples& triples, Triples::Triple& triple);
     void genStack(Triples& triples, Triples::Triple& triple, size_t index);
     void genReturn(Triples& triples, Triples::Triple& triple);
+    void genMove(Triples& triples, Triples::Triple& triple);
     void genAllStrsFloats();
 public:
     StackRiscVGenerator();

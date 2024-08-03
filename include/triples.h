@@ -122,7 +122,7 @@ private:
 	void setValueTable();
 	void setFuncParams();
 private:
-	int temp_count = -1;
+	int temp_count;
 
 
 	std::vector<std::shared_ptr<Triple>> triples;
