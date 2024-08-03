@@ -1,6 +1,7 @@
 int main() {
     int t = 3;
-    putf("var arg: %d\n", t);
+    float s = 4.0;
+    putf("var arg: %d %f\n", t, s);
     putint(12345);
     putch(10);
     putfloat(114514.1919);
