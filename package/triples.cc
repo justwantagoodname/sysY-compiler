@@ -71,7 +71,13 @@ int Triples::findf(const char* name)
 //	return {};
 //}
 
-Triples::Triples(const Element& e) : root(e) {}
+Triples::Triples(const Element& e) : root(e), temp_count(-1) {
+	triples.clear();
+	value_pointer.clear();
+	function_pointer.clear();
+	string_pointer.clear();
+	temp_type.clear();
+}
 
 Triples::Triple::Triple(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, const TripleValue& to) : cmd(cmd), e1(e1), e2(e2), to(to) {}
 
