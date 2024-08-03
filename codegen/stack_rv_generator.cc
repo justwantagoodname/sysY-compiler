@@ -136,7 +136,7 @@ void StackRiscVGenerator::createTable(Triples& triples) {
     // 处理非call的float立即数和str常量，保存至对应表
     for (size_t index = 0; index < triples.size(); ++index) {
         Triples::Triple& triple = triples[index];
-        if (triple.cmd == TCmd.call) continue;
+        if (triple.cmd == TCmd.call || triple.cmd == TCmd.mov) continue;
 
         if (triple.e1.type == TTT.fimd) {
             int value = triple.e1.value;
@@ -184,6 +184,28 @@ void StackRiscVGenerator::createTable(Triples& triples) {
                 if (string_table.find(str) == string_table.end()) {
                     string_table[str] = string_count++;
                 }
+            }
+        }
+    }
+
+    for (size_t index = 0; index < triples.size(); ++index) {
+        Triples::Triple& triple = triples[index];
+        if (triple.cmd != TCmd.mov) continue;
+
+        auto &from = triple.e1, &to = triple.to;
+        if ((to.type == TTT.temp && triples.getTempType(to.value) == 2)
+            // to is float temp
+            || (to.type == TTT.value && triples.getValueType(to) == 2)) {
+            // to is float value
+            if (from.type == TTT.fimd) {
+                simm_table[from.value] = simm_count++;
+            } else if (from.type == TTT.dimd) {
+                union {
+                    uint32_t u32;
+                    float f;
+                } u;
+                u.f = from.value;
+                simm_table[u.u32] = simm_count++;
             }
         }
     }
@@ -508,20 +530,55 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
     Triples::TripleValue &tv = triple.e1, &to = triple.to;
 
     RVOperand dst;
+    int dst_type = 0;
     if (to.type == TTT.value) {
         dst = getVarOpr(triples, triples.getVarName(to));
+        dst_type = triples.getValueType(to);
     } else if (to.type == TTT.temp) {
         dst = getTempOpr(triples, to.value);
+        dst_type = triples.getTempType(to.value);
     }
 
     if (tv.type == TTT.dimd) {
-        instrs.push_back(new RVMem(RVOp::LI, make_areg(5), make_imm(tv.value)));
-        instrs.push_back(new RVMem(RVOp::SW, dst, make_areg(5)));
+        if (dst_type == 1) {
+            // int
+            instrs.push_back(new RVMem(RVOp::LI, make_areg(5), make_imm(tv.value)));
+            instrs.push_back(new RVMem(RVOp::SW, dst, make_areg(5)));
+        } else if (dst_type == 2) {
+            // float
+            union {
+                uint32_t u32;
+                float f;
+            } u;
+            u.f = tv.value;
+            assert(simm_table.find(u.u32) != simm_table.end());
+            int label = simm_table[u.u32];
+            instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), make_addr(".LC" + std::to_string(label))));
+            instrs.push_back(new RVMem(RVOp::FSW, dst, make_sreg(5)));
+        } else {
+            panic("error");
+        }
     } else if (tv.type == TTT.fimd) {
-        assert(simm_table.find(tv.value) != simm_table.end());
-        int label = simm_table[tv.value];
-        instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), make_addr(".LC" + std::to_string(label))));
-        instrs.push_back(new RVMem(RVOp::FSW, dst, make_sreg(5)));
+        if (dst_type == 1) {
+            // to int
+            union {
+                uint32_t u32;
+                float f;
+            } u;
+            u.u32 = tv.value;
+            int res = u.f;
+            instrs.push_back(new RVMem(RVOp::LI, make_areg(5), make_imm(res)));
+            instrs.push_back(new RVMem(RVOp::SW, dst, make_areg(5)));
+        } else if (dst_type == 2) {
+            // float
+            assert(simm_table.find(tv.value) != simm_table.end());
+            int label = simm_table[tv.value];
+            instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), make_addr(".LC" + std::to_string(label))));
+            instrs.push_back(new RVMem(RVOp::FSW, dst, make_sreg(5)));
+        } else {
+            panic("error");
+        }
+        
     } else {
         panic("bad triplevalue type");
     }
