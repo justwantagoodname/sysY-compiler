@@ -521,7 +521,7 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
         assert(simm_table.find(tv.value) != simm_table.end());
         int label = simm_table[tv.value];
         instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), make_addr(".LC" + std::to_string(label))));
-        instrs.push_back(new RVMem(RVOp::FSW, make_sreg(5), dst));
+        instrs.push_back(new RVMem(RVOp::FSW, dst, make_sreg(5)));
     } else {
         panic("bad triplevalue type");
     }
