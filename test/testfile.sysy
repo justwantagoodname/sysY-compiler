@@ -1,12 +1,9 @@
-int foo(float b){
-	b = b + 1;
-	return b;
-}
 int main(){
 
-int a = 0;
-float b = 2.4;
-b = a + 3.4;
+float a = 1.0;
+int b = 1;
+a = a + b;
+putf("%f, %d", a, b);
 
 return 0;
 }
