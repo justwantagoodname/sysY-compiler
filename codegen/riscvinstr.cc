@@ -218,7 +218,7 @@ std::string RVMem::toASM() {
         result = "    sd " + opr.toASM() + ", " + dst.toASM() + "\n";
         break;
     case RVOp::FLW:
-        if (opr.isimm()) {
+        if (opr.tag == ADDR) {
             result = "    lui " + dst.toASM().substr(1) + ", %" + "hi(" + opr.toASM() + ")\n";
             result += "    flw " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")(" + dst.toASM().substr(1) + ")\n";
         } else {
@@ -226,7 +226,7 @@ std::string RVMem::toASM() {
         }
         break;
     case RVOp::FLD:
-        if (opr.isimm()) {
+        if (opr.tag == ADDR) {
             result = "    lui " + dst.toASM().substr(1) + ", %" + "hi(" + opr.toASM() + ")\n";
             result += "    fld " + dst.toASM() + ", %" + "lo(" + opr.toASM() + ")(" + dst.toASM().substr(1) + ")\n";
         } else {

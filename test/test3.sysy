@@ -1,4 +1,6 @@
 int main() {
+    int t = 3;
+    putf("var arg: %d\n", t);
     putint(12345);
     putch(10);
     putfloat(114514.1919);
