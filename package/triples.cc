@@ -339,6 +339,9 @@ int Triples::getValueType(const TripleValue& e) {
 	case TT.addr:
 		return (strcmp(value_pointer[e.value].get_attr_str("type"), "Float") == 0) + 3;
 		break;
+	case TT.null:
+		return 0;
+		break;
 	default:
 		panic("gettype error");
 		break;

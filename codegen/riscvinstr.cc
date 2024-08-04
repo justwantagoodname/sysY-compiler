@@ -300,18 +300,82 @@ std::string RVCall::toASM() {
 
 RVJump::RVJump(RVOp opt, const RVOperand& dst)
     : RVInstr(opt), dst(dst) {
-    assert(dst.tag == REG);
+    assert(dst.tag == REG || dst.tag == ADDR);
     return;
 }
 std::string RVJump::toASM() {
     std::string result;
     switch (opt) {
+    case RVOp::J:
+        result = "    j " + dst.toASM() + "\n";
+        break;
     case RVOp::JR:
         result = "    jr " + dst.toASM() + "\n";
         break;
     case RVOp::JALR:
     default:
         panic("RVJump error");
+        break;
+    }
+    return result;
+}
+
+RVCompare::RVCompare(RVOp opt, const RVOperand& dst, const RVOperand& op1, const RVOperand& op2)
+    : RVInstr(opt), dst(dst), op1(op1), op2(op2)
+{
+}
+
+std::string RVCompare::toASM() {
+    std::string result;
+    switch (opt) {
+    case RVOp::BGT:
+        result = "    bgt " + op1.toASM() + "," + op2.toASM() + "," + dst.toASM() + "\n";
+        break;
+    case RVOp::BGE:
+        result = "    bge " + op1.toASM() + "," + op2.toASM() + "," + dst.toASM() + "\n";
+        break;
+    case RVOp::BLT:
+        result = "    blt " + op1.toASM() + "," + op2.toASM() + "," + dst.toASM() + "\n";
+        break;
+    case RVOp::BLE:
+        result = "    ble " + op1.toASM() + "," + op2.toASM() + "," + dst.toASM() + "\n";
+        break;
+    case RVOp::BEQ:
+        result = "    beq " + op1.toASM() + "," + op2.toASM() + "," + dst.toASM() + "\n";
+        break;
+    case RVOp::BNE:
+        result = "    bne " + op1.toASM() + "," + op2.toASM() + "," + dst.toASM() + "\n";
+        break;
+    case RVOp::BNEZ:
+        result = "    bne " "zero" "," + op1.toASM() + "," + dst.toASM() + "\n";
+        break;
+    case RVOp::FGT:
+        result = "    fgt.s " "a5" "," + op1.toASM() + "," + op2.toASM() + "\n";
+        result += "    bne "  "a5"  "," "zero" "," + dst.toASM() + "\n";
+        break;
+    case RVOp::FGE:
+        result = "    fge.s " "a5" "," + op1.toASM() + "," + op2.toASM() + "\n";
+        result += "    bne "  "a5"  "," "zero" "," + dst.toASM() + "\n";
+        break;
+    case RVOp::FLT:
+        result = "    flt.s " "a5" "," + op1.toASM() + "," + op2.toASM() + "\n";
+        result += "    bne "  "a5"  "," "zero" "," + dst.toASM() + "\n";
+        break;
+    case RVOp::FLE:
+        result = "    fle.s " "a5" "," + op1.toASM() + "," + op2.toASM() + "\n";
+        result += "    bne "  "a5"  "," "zero" "," + dst.toASM() + "\n";
+        break;
+    case RVOp::FEQ:
+        result = "    feq.s " "a5" "," + op1.toASM() + "," + op2.toASM() + "\n";
+        result += "    bne "  "a5"  "," "zero" "," + dst.toASM() + "\n";
+        break;
+    case RVOp::FNE:
+        result = "    fne.s " "a5" "," + op1.toASM() + "," + op2.toASM() + "\n";
+        result += "    bne "  "a5"  "," "zero" "," + dst.toASM() + "\n";
+        break;
+    case RVOp::FNEZ:
+    default:
+        panic("RVCompare error");
         break;
     }
     return result;

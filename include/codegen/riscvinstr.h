@@ -74,6 +74,24 @@ enum class RVOp {
     FDIV,
     FMOD,
 
+    // Compare
+    BGT,
+    BGE,
+    BLT,
+    BLE,
+    BEQ,
+    BNE,
+    BNEZ,
+
+    // Float Compare
+    FGT,
+    FGE,
+    FLT,
+    FLE,
+    FEQ,
+    FNE,
+    FNEZ,       
+
     MV,
     FMVXD,
     FMVS,
@@ -138,6 +156,7 @@ enum class RVOp {
     SLTIU,
 
     // Jump
+    J,
     JR,
     JALR,
 
@@ -216,6 +235,14 @@ class RVJump : public RVInstr {
 public:
     RVOperand dst;
     RVJump(RVOp opt, const RVOperand& dst);
+    virtual std::string toASM() override;
+};
+
+class RVCompare : public RVInstr {
+public:
+    RVOperand dst;
+    RVOperand op1, op2;
+    RVCompare(RVOp opt, const RVOperand& dst, const RVOperand& op1, const RVOperand& op2);
     virtual std::string toASM() override;
 };
 
