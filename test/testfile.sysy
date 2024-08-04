@@ -3,7 +3,10 @@ int main(){
 float a = 1.0;
 int b = 1;
 a = a + b;
-putf("%f, %d", a, b);
-
+if(b != 0){
+	putf("%f, %d, 0\n", a, b);
+}else{
+	putf("%f, %d, 1\n", a, b);
+}
 return 0;
 }
