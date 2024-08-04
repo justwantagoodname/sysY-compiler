@@ -58,7 +58,6 @@ private:
     int cur_smallest_temp;
     void createTable(Triples& triples);
     void calculateSize(Triples& triples);
-    void getTempVarType(Triples& triples);
 
     RVOperand getTempOpr(Triples& triples, int temp_id);
     RVOperand getVarOpr(Triples& triples, int var_id);

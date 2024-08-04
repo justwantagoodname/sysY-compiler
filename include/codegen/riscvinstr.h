@@ -22,7 +22,7 @@ enum RVOperandTag {
     BASE
 };
 
-enum RVRegs {
+enum class RVRegs {
     zero = 0,
     ra = 1,
     sp = 2,
