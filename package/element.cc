@@ -330,7 +330,7 @@ Element Element::querySelectorOnef(const char* fmt, ...) const
 
 Element Element::table(const char* key) const
 {
-	Element e = this->qo("ancestor::Scope/Decl/*[@name='%s',@define=1]", key);
+	Element e = this->qo("ancestor::Scope/Decl/*[@name='%s',@define='true']", key);
 	return e;
 }
 

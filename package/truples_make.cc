@@ -861,12 +861,17 @@ void Triples::make()
 				init.add_attr("name", element.get_attr_str("name"));
 				init.add_attr("type", element.get_attr_str("type"));
 			}
+
+			const char* s = element.get_attr_str("name");
+			Element value = element.qo("ancestor::Scope/Decl/*[@name='%s']", s);
+			value.add_attr("define", "true");
 		}
 		ife("Var") {
 			int size = 1;
 
 			const char* s = element.get_attr_str("name");
 			Element value = element.qo("ancestor::Scope/Decl/*[@name='%s']", s);
+			value.add_attr("define", "true");
 			if (value.get_attr("size"))
 				size = value.get_attr_int("size");
 
@@ -876,7 +881,6 @@ void Triples::make()
 			if (strcmp("Float", value.get_attr_str("type")) == 0)
 				type = 1;
 
-			value.add_attr("define", 1);
 			triples.add(Cmd.var, { a , TT.value }, { size , TT.dimd }, { type, TT.typetag });
 		}
 		ife("InitValue") {
