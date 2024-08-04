@@ -866,7 +866,7 @@ void Triples::make()
 			int size = 1;
 
 			const char* s = element.get_attr_str("name");
-			Element value = element.qo("ancestor::Scope/Decl/*[@name='%s']", s);
+			Element value = element.table(s);
 			if (value.get_attr("size"))
 				size = value.get_attr_int("size");
 
@@ -876,7 +876,6 @@ void Triples::make()
 			if (strcmp("Float", value.get_attr_str("type")) == 0)
 				type = 1;
 
-			value.add_attr("define", 1);
 			triples.add(Cmd.var, { a , TT.value }, { size , TT.dimd }, { type, TT.typetag });
 		}
 		ife("InitValue") {
