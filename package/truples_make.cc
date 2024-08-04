@@ -660,7 +660,36 @@ void Triples::make()
             int f = element.get_attr_int("false");
             triples.add(Cmd.jmp, {}, {}, { b, TT.lamb });
             triples[f].to = { tag_count, TT.lamb };
-            triples.add(Cmd.tag, { tag_count++, TT.lamb }, {}, {});
+            triples.add(Cmd.tag, { tag_count, TT.lamb }, {}, {});
+
+            if (element.get_attr("break")) {
+                int break_index = element.get_attr_int("break");
+                while (triples[break_index].to.type != TT.null) {
+                    break_index = triples[break_index].to.value;
+                    triples[break_index].to = { tag_count, TT.lamb };
+                }
+            }
+            tag_count++;
+        }
+        ife("Break") {
+            int idx = triples.size();
+            triples.add(Cmd.jmp, {}, {}, {});
+
+            Element while_element = element.qo("ancestor::While");
+            if (while_element.get_attr("break")) {
+                int break_index = while_element.get_attr_int("break");
+                while (triples[break_index].to.type != TT.null) {
+                    break_index = triples[break_index].to.value;
+                }
+                triples[break_index].to = { idx };
+            } else {
+                while_element.add_attr("break", idx);
+            }
+        }
+        ife("Continue") {
+            Element while_element = element.qo("ancestor::While");
+            int tag = while_element.get_attr_int("begin");
+            triples.add(Cmd.jmp, {}, {}, { tag , TT.lamb });
         }
         ife("Not") {
             int t = element[0].get_attr_int("true");

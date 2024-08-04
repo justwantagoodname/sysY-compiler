@@ -712,7 +712,22 @@ void StackRiscVGenerator::genReturn(Triples& triples, Triples::Triple& triple) {
         }
     } else if (return_type == 2) {
         // float
-
+        auto& ret = triple.e1;
+        if (ret.type == TTT.dimd) {
+            float tf = ret.value;
+            int value = *(int*)(&tf);
+            if (simm_table.find(value) == simm_table.end()) {
+                simm_table[value] = simm_count++;
+            }
+            instrs.push_back(new RVMem(RVOp::FLD, make_sreg(RVRegs::fa5), make_addr(".LC" + std::to_string(simm_table[value]))));
+        } else if (ret.type == TTT.fimd) {
+            instrs.push_back(new RVMem(RVOp::FLD, make_sreg(RVRegs::fa5), make_addr(".LC" + std::to_string(simm_table[ret.value]))));
+        } else if (ret.type == TTT.temp && triples.getTempType(ret.value) == 1) {
+            instrs.push_back(new RVMem(RVOp::LW, make_sreg(5), getTempOpr(triples, ret.value)));
+            instrs.push_back(new RVConvert(RVOp::FCVTF, make_sreg(5), make_areg(5)));
+        } else if (ret.type == TTT.temp && triples.getTempType(ret.value) == 2) {
+            instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), getTempOpr(triples, ret.value)));
+        }
     }
 
     instrs.push_back(new RVJump(RVOp::JMP, make_addr(".endof" + std::string(cur_func_name))));
