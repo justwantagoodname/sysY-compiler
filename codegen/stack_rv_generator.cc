@@ -847,6 +847,6 @@ void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
     for (auto e : instrs) {
         std::cout << e->toASM();
     }
-    panic("TODO!!!!!!!");
+    // panic("TODO!!!!!!!");
     return;
 }
