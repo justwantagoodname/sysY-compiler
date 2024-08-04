@@ -411,10 +411,9 @@ RVOperand StackRiscVGenerator::getTempOpr(Triples& triples, int temp_id) {
     // printf("Temp: cur id %d, offset %d\n", temp_id, -((cur_stacks.top().size() - cur_smallest_temp + temp_id) * 4 + 16));
     return make_stack(RVRegs::s0, -((cur_stacks.top().size() - cur_smallest_temp + temp_id + 1) * 4 + 16));
 }
-RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, Triples::TripleValue var) {
+RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, int var_id) {
     //printf("target id: %d\n", var_id);
     auto& cur_stack = cur_stacks.top();
-    auto& var_id = var.value;
 
     int count = 0;
     for (auto& [id, num] : cur_stack) {
