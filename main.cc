@@ -36,7 +36,7 @@ int main(int argc, const char** argv) {
 	
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
-  		// root.print();
+  		 //root.print();
 	}
 #endif
 	

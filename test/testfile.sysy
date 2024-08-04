@@ -1,12 +1,18 @@
-int foo(float b){
-	b = b + 1;
-	return b;
+int foo(int a, int b, int c){
+	return 0;
 }
+
 int main(){
 
-int a = 0;
-float b = 2.4;
-b = a + 3.4;
-
+float a;
+int b = 1;
+a = b;
+a = a + b;
+if(b != 0){
+	putf("%f, %d, 0\n", a, b);
+}else{
+	putf("%f, %d, 1\n", a, b);
+}
 return 0;
 }
+
