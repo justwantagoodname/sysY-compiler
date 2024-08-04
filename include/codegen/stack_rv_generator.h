@@ -37,7 +37,6 @@ private:
         std::string name;
         
     };
-    std::vector<RVInstr*> instrs;
 
     // float value (in integer) -> [index, is 64bit?]
     std::map<int, size_t> simm_table;
@@ -76,6 +75,7 @@ private:
     void genMove(Triples& triples, Triples::Triple& triple);
     void genAllStrsFloats();
 public:
+    std::vector<RVInstr*> instrs;
     StackRiscVGenerator();
     ~StackRiscVGenerator();
     void generate(Triples& triples, bool optimize_flag);
