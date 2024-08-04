@@ -411,9 +411,10 @@ RVOperand StackRiscVGenerator::getTempOpr(Triples& triples, int temp_id) {
     // printf("Temp: cur id %d, offset %d\n", temp_id, -((cur_stacks.top().size() - cur_smallest_temp + temp_id) * 4 + 16));
     return make_stack(RVRegs::s0, -((cur_stacks.top().size() - cur_smallest_temp + temp_id + 1) * 4 + 16));
 }
-RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, int var_id) {
+RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, Triples::TripleValue var) {
     //printf("target id: %d\n", var_id);
     auto& cur_stack = cur_stacks.top();
+    auto& var_id = var.value;
 
     int count = 0;
     for (auto& [id, num] : cur_stack) {
@@ -712,7 +713,22 @@ void StackRiscVGenerator::genReturn(Triples& triples, Triples::Triple& triple) {
         }
     } else if (return_type == 2) {
         // float
-
+        auto& ret = triple.e1;
+        if (ret.type == TTT.dimd) {
+            float tf = ret.value;
+            int value = *(int*)(&tf);
+            if (simm_table.find(value) == simm_table.end()) {
+                simm_table[value] = simm_count++;
+            }
+            instrs.push_back(new RVMem(RVOp::FLD, make_sreg(RVRegs::fa5), make_addr(".LC" + std::to_string(simm_table[value]))));
+        } else if (ret.type == TTT.fimd) {
+            instrs.push_back(new RVMem(RVOp::FLD, make_sreg(RVRegs::fa5), make_addr(".LC" + std::to_string(simm_table[ret.value]))));
+        } else if (ret.type == TTT.temp && triples.getTempType(ret.value) == 1) {
+            instrs.push_back(new RVMem(RVOp::LW, make_sreg(5), getTempOpr(triples, ret.value)));
+            instrs.push_back(new RVConvert(RVOp::FCVTF, make_sreg(5), make_areg(5)));
+        } else if (ret.type == TTT.temp && triples.getTempType(ret.value) == 2) {
+            instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), getTempOpr(triples, ret.value)));
+        }
     }
 
     instrs.push_back(new RVJump(RVOp::JMP, make_addr(".endof" + std::string(cur_func_name))));
