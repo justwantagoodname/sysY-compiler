@@ -94,6 +94,8 @@ enum class RVOp {
     FCVTTU,
     // from 32bit to 64bit
     FCVTDS,
+    FCVTWS,
+    FCVTWS,
 
     // Logical
     XOR,
@@ -140,6 +142,9 @@ enum class RVOp {
     // Jump
     JR,
     JALR,
+    JMP,
+
+    SEXTW,
 
     NOP
 };
@@ -216,6 +221,12 @@ class RVJump : public RVInstr {
 public:
     RVOperand dst;
     RVJump(RVOp opt, const RVOperand& dst);
+    virtual std::string toASM() override;
+};
+class RVSext : public RVInstr {
+public:
+    RVOperand dst, opr;
+    RVSext(RVOp opt, const RVOperand& dst, const RVOperand& opr);
     virtual std::string toASM() override;
 };
 

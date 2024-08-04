@@ -260,6 +260,8 @@ std::string RVConvert::toASM() {
     case RVOp::FCVTF:
         result = "    fcvt.s.w " + dst.toASM() + ", " + opr.toASM() + "\n";
         break;
+    case RVOp::FCVTWS:
+        result = "    fcvt.w.s " + dst.toASM() + ", " + opr.toASM() + ", rtz\n";
     default:
         panic("Error on RVConvert");
         break;
@@ -309,10 +311,31 @@ std::string RVJump::toASM() {
     case RVOp::JR:
         result = "    jr " + dst.toASM() + "\n";
         break;
+    case RVOp::JMP:
+        result = "    j " + dst.toASM() + "\n";
+        break;
     case RVOp::JALR:
     default:
         panic("RVJump error");
         break;
     }
     return result;
+}
+
+RVSext::RVSext(RVOp opt, const RVOperand& dst, const RVOperand& opr)
+    : RVInstr(opt), dst(dst), opr(opr) {
+    return;
+}
+std::string RVSext::toASM() {
+    std::string result = "";
+    switch (opt)
+    {
+        case RVOp::SEXTW:
+            result = "    sext.w " + dst.toASM() + ", " + opr.toASM() + "\n";
+            break;
+    
+        default:
+            panic("RVSext error");
+            break;
+    }
 }
