@@ -1,5 +1,5 @@
 int foo() {
-    return 3.0;
+    return 3;
 }
 
 int main() {
@@ -12,6 +12,7 @@ int main() {
     putch(10);
     putfloat(114514.1919);
     putch(10);
+    putf("foo(): %d\n", foo());
     putf("%f\n", 3.14);
     putf("%f\n", 6.28);
     putf("Complex string: %d, %f\n", 12345, 3.14);
