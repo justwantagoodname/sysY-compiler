@@ -455,40 +455,6 @@ RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, int var_id) {
     return make_imm(0);
 }
 
-void StackRiscVGenerator::genLoad(Triples& triples, Triples::Triple& triple) {
-    auto& e1 = triple.e1;
-    auto& to = triple.to;
-
-    instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getVarOpr(triples, e1.value)));
-    instrs.push_back(new RVMem(RVOp::SW, getTempOpr(triples, to.value), make_reg(RVRegs::a5)));
-
-    return;
-}
-
-void StackRiscVGenerator::genStore(Triples& triples, Triples::Triple& triple) {
-    auto& e1 = triple.e1;
-    auto& to = triple.to;
-    if (triples.getValueType(e1) == triples.getValueType(to)) {
-        // 同类型
-        instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, e1.value)));
-        instrs.push_back(new RVMem(RVOp::SW, getVarOpr(triples, to.value), make_reg(RVRegs::a5)));
-    } else if (triples.getValueType(e1) == 1 && triples.getValueType(to) == 2) {
-        // int -> float
-        instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, e1.value)));
-        instrs.push_back(new RVConvert(RVOp::FCVTF, make_sreg(RVRegs::fa5), make_reg(RVRegs::a5)));
-        instrs.push_back(new RVMem(RVOp::FSW, getVarOpr(triples, to.value), make_sreg(RVRegs::fa5)));
-    } else if (triples.getValueType(e1) == 2 && triples.getValueType(to) == 1) {
-        // float -> int
-        instrs.push_back(new RVMem(RVOp::FLW, make_reg(RVRegs::a5), getTempOpr(triples, e1.value)));
-        instrs.push_back(new RVConvert(RVOp::FCVTT, make_reg(RVRegs::a5), make_sreg(RVRegs::fa5)));
-        instrs.push_back(new RVMem(RVOp::SW, getVarOpr(triples, to.value), make_reg(RVRegs::a5)));
-    } else {
-        panic("Error in genStore");
-    }
-
-    return;
-}
-
 void StackRiscVGenerator::genMem(Triples& triples, Triples::Triple& triple) {
     auto& e1 = triple.e1;
     auto& to = triple.to;

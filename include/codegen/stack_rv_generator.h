@@ -63,8 +63,6 @@ private:
     RVOperand getVarOpr(Triples& triples, int var_id);
 
     void genArith(Triples& triples, Triples::Triple& triple);
-    void genLoad(Triples& triples, Triples::Triple& triple);
-    void genStore(Triples& triples, Triples::Triple& triple);
     void genMem(Triples& triples, Triples::Triple& triple);
     void genCompare(Triples& triples, Triples::Triple& triple);
     void genCall(Triples& triples, Triples::Triple& triple);
