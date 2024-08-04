@@ -260,6 +260,9 @@ std::string RVConvert::toASM() {
     case RVOp::FCVTF:
         result = "    fcvt.s.w " + dst.toASM() + ", " + opr.toASM() + "\n";
         break;
+    case RVOp::FCVTT:
+        result = "    fcvt.w.s " + dst.toASM() + ", " + opr.toASM() + ", rtz\n";
+        break;
     default:
         panic("Error on RVConvert");
         break;
