@@ -1,18 +1,16 @@
-int foo(int a, int b, int c){
-	return 0;
+int foo() {
+    int a = 3;
+    return a;
 }
 
-int main(){
-
-float a;
-int b = 1;
-a = b;
-a = a + b;
-if(b != 0){
-	putf("%f, %d, 0\n", a, b);
-}else{
-	putf("%f, %d, 1\n", a, b);
+int main() {
+    int t = 3.14;
+    t = t + 1;
+    putf("test! %d\n", t);
+    float s1 = 4, s2 = 6;
+    float s = 0;
+    putf("s1: %f, s2: %f, s1 + s2: %f\n", s1, s2, s1 + s2);
+    s = s1 + s2;
+    putf("var arg: %d %f\n", t, s);
+    return 0;
 }
-return 0;
-}
-
