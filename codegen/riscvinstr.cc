@@ -315,6 +315,9 @@ std::string RVJump::toASM() {
     case RVOp::JR:
         result = "    jr " + dst.toASM() + "\n";
         break;
+    case RVOp::JMP:
+        result = "    j " + dst.toASM() + "\n";
+        break;
     case RVOp::JALR:
     default:
         panic("RVJump error");
@@ -323,6 +326,23 @@ std::string RVJump::toASM() {
     return result;
 }
 
+RVSext::RVSext(RVOp opt, const RVOperand& dst, const RVOperand& opr)
+    : RVInstr(opt), dst(dst), opr(opr) {
+    return;
+}
+std::string RVSext::toASM() {
+    std::string result = "";
+    switch (opt)
+    {
+        case RVOp::SEXTW:
+            result = "    sext.w " + dst.toASM() + ", " + opr.toASM() + "\n";
+            break;
+    
+        default:
+            panic("RVSext error");
+            break;
+    }
+}
 RVCompare::RVCompare(RVOp opt, const RVOperand& dst, const RVOperand& op1, const RVOperand& op2)
     : RVInstr(opt), dst(dst), op1(op1), op2(op2)
 {

@@ -1,0 +1,12 @@
+int main() {
+    int a = 2;
+    putf("a: %d\n", a);
+    {
+        int b;
+        b = a;
+        putf("b: %d\n", b);
+        int a = 3;
+        putf("a2: %d\n", a);
+    }
+    putf("this a should be 2: %d\n", a);
+}

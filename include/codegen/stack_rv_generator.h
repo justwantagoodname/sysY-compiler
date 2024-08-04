@@ -48,8 +48,8 @@ private:
     // 0, 1, 2 -> int, float, addr
     std::map<uint, uint> tempvar_type;
 
-    // index -> [name, size]
-    std::stack<std::vector<std::pair<std::string, int>>> cur_stacks;
+    // index -> [id, size]
+    std::stack<std::vector<std::pair<int, int>>> cur_stacks;
     std::stack<int> cur_blocks;
     std::string cur_func_name;
 
@@ -61,7 +61,7 @@ private:
     void getTempVarType(Triples& triples);
 
     RVOperand getTempOpr(Triples& triples, int temp_id);
-    RVOperand getVarOpr(Triples& triples, const std::string& var_name);
+    RVOperand getVarOpr(Triples& triples, int var_id);
 
     void genArith(Triples& triples, Triples::Triple& triple);
     void genLoad(Triples& triples, Triples::Triple& triple);
@@ -72,11 +72,12 @@ private:
     void genPutf(Triples& triples, Triples::Triple& triple);
     void genTag(Triples& triples, Triples::Triple& triple);
     void genStack(Triples& triples, Triples::Triple& triple, size_t index);
-    void genReturn(Triples& triples, Triples::Triple& triple);
+    void genFuncEnd(Triples& triples, Triples::Triple& triple);
     void genMove(Triples& triples, Triples::Triple& triple);
+    void genReturn(Triples& triples, Triples::Triple& triple);
     void genAllStrsFloats();
 public:
-    std::vector<RVInstr*> instrs;
+    std::vector<RVInstr*> instrs; 
     StackRiscVGenerator();
     ~StackRiscVGenerator();
     void generate(Triples& triples, bool optimize_flag);
