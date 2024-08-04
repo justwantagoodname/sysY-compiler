@@ -1,7 +1,8 @@
 int main(){
 
-float a = 1.0;
+float a;
 int b = 1;
+a = b;
 a = a + b;
 if(b != 0){
 	putf("%f, %d, 0\n", a, b);
@@ -10,3 +11,4 @@ if(b != 0){
 }
 return 0;
 }
+
