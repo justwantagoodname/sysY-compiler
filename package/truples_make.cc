@@ -330,7 +330,7 @@ void Triples::make()
         Element element = *iter;
 
         //printf("--%p", element.unwrap());
-        printf("--%s\n", element.id());
+        //printf("--%s\n", element.id());
 
         ifb("Decl") {
             cut;
@@ -952,7 +952,6 @@ void Triples::setValueTable() {
         } else {
             value.scope = -1;
         }
-        printf("%s, %d, %d\n", value.name.c_str(), value.type, value.scope);
         value_table.push_back(value);
 
     }
@@ -992,7 +991,7 @@ void Triples::setFuncParams()
                 type += 1;
             }
             std::string name = param.get_attr_str("name");
-            Element value = e.qo("/*[@name=%s]", name.c_str());
+            Element value = e.qo("/*[@name='%s']", name.c_str());
 
             for (int i = 0; i < value_pointer.size(); ++i) {
                 if (value_pointer[i] == value) {

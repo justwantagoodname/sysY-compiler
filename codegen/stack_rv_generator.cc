@@ -429,11 +429,10 @@ RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, const std::string& va
     for (auto& [name, type] : cur_args) {
         if (type == 1 || type == 3 || type == 4) ++int_count;
         else if (type == 2) ++float_count;
-        printf("%s = %d\n", name.c_str(), type);
     }
 
     for (size_t i = cur_args.size() - 1; i >= 0; --i) {
-        std::string& name = cur_args[i].first;
+        std::string name = triples.value_pointer[cur_args[i].first].get_attr_str("name");
         int type = cur_args[i].second;
 
         if (type == 1 || type == 3 || type == 4) {
