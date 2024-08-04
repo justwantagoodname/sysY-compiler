@@ -497,7 +497,7 @@ void StackRiscVGenerator::genMem(Triples& triples, Triples::Triple& triple) {
     if (e1.type == TTT.temp) op1 = getTempOpr(triples, e1.value);
     else op1 = getVarOpr(triples, e1.value);
     if (to.type == TTT.temp) dst = getTempOpr(triples, to.value);
-    else dst = getVarOpr(triples, e1.value);
+    else dst = getVarOpr(triples, to.value);
 
     if (triples.getValueType(e1) == triples.getValueType(to)) {
         // 同类型
