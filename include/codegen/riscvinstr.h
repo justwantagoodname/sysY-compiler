@@ -113,7 +113,6 @@ enum class RVOp {
     // from 32bit to 64bit
     FCVTDS,
     FCVTWS,
-    FCVTWS,
 
     // Logical
     XOR,
