@@ -116,7 +116,7 @@ public:
 	// func name -> [<param name, type>, ...]
 	// 0,    1,   2,     3,     4
 	// void, int, float, int[], float[]
-	std::map<std::string, std::vector<std::pair<std::string, int>>> func_params;
+	std::map<std::string, std::vector<std::pair<int, int>>> func_params;
 
 private:
 	void setValueTable();
