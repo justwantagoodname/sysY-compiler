@@ -35,8 +35,16 @@ void StackRiscVGenerator::genArith(Triples& triples, Triples::Triple& triple) {
                 instrs.push_back(new RVMem(RVOp::LW, make_reg(reg), oper));
                 return make_reg(reg);
             } else {
-                instrs.push_back(new RVMem(RVOp::FLW, make_sreg(sreg), oper));
-                return make_sreg(sreg);
+                if (triples.getValueType(e) == 1) {
+                    instrs.push_back(new RVMem(RVOp::LW, make_reg(reg), oper));
+                    oper = make_reg(reg);
+                    instrs.push_back(new RVConvert(RVOp::FCVTF, make_sreg(sreg), oper));
+                    return make_sreg(sreg);
+                }
+                else {
+                    instrs.push_back(new RVMem(RVOp::FLW, make_sreg(sreg), oper));
+                    return make_sreg(sreg);
+                }
             }
         } else if (e.type == TTT.dimd) {
             if (!is_float) {
@@ -336,6 +344,11 @@ void StackRiscVGenerator::genStore(Triples& triples, Triples::Triple& triple) {
     return;
 }
 
+void StackRiscVGenerator::genJemp(Triples& triples, Triples::Triple& triple)
+{
+
+}
+
 
 void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) {
     std::string func_name = triples.getFuncName(triple.e1);
@@ -606,6 +619,16 @@ void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
         case TCmd.div:
         case TCmd.mod:
             genArith(triples, cur_triple);
+            break;
+
+        case TCmd.jmp:
+        case TCmd.jn0:
+        case TCmd.jeq:
+        case TCmd.jne:
+        case TCmd.jgt:
+        case TCmd.jlt:
+        case TCmd.jge:
+        case TCmd.jle:
             break;
 
         case TCmd.load:

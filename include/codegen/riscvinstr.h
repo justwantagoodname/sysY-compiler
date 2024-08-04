@@ -74,6 +74,24 @@ enum class RVOp {
     FDIV,
     FMOD,
 
+    // Compare
+    BGT,
+    BGE,
+    BLT,
+    BLE,
+    BEQ,
+    BNE,
+    BNEZ,
+
+    // Float Compare
+    FGT,
+    FGE,
+    FLT,
+    FLE,
+    FEQ,
+    FNE,
+    FNEZ,       
+
     MV,
     FMVXD,
     FMVS,
