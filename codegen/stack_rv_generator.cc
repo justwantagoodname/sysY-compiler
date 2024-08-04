@@ -47,16 +47,18 @@ void StackRiscVGenerator::genArith(Triples& triples, Triples::Triple& triple) {
             }
         } else if (e.type == TTT.dimd) {
             if (!is_float) {
-                if (e.value >= -2048 && e.value <= 2047) {
-                    if (e.value == 0) {
-                        return make_reg(zero);
-                    }
-                    return make_imm(e.value);
-                } else {
+                //if (e.value >= -2048 && e.value <= 2047) {
+                //    if (e.value == 0) {
+                //        return make_reg(zero);
+                //    }
+                //    return make_imm(e.value);
+                //} else {
 
-                    instrs.push_back(new RVMem(RVOp::LI, make_reg(reg), make_imm(e.value)));
-                    return make_reg(reg);
-                }
+                //    instrs.push_back(new RVMem(RVOp::LI, make_reg(reg), make_imm(e.value)));
+                //    return make_reg(reg);
+                //}
+                instrs.push_back(new RVMem(RVOp::LI, make_reg(reg), make_imm(e.value)));
+                return make_reg(reg);
             } else {
                 float tf = e.value;
                 int value = *(int*)(&tf);
