@@ -1,21 +1,16 @@
 int foo() {
-    return 3;
+    int a = 3;
+    return a;
 }
 
 int main() {
     int t = 3.14;
+    t = t + 1;
+    putf("test! %d\n", t);
     float s1 = 4, s2 = 6;
     float s = 0;
+    putf("s1: %f, s2: %f, s1 + s2: %f\n", s1, s2, s1 + s2);
     s = s1 + s2;
     putf("var arg: %d %f\n", t, s);
-    putint(12345);
-    putch(10);
-    putfloat(114514.1919);
-    putch(10);
-    putf("foo(): %d\n", foo());
-    putf("%f\n", 3.14);
-    putf("%f\n", 6.28);
-    putf("Complex string: %d, %f\n", 12345, 3.14);
-    putf("Goodbye, world!\n");
     return 0;
 }

@@ -12,7 +12,7 @@ StackRiscVGenerator::StackRiscVGenerator() : simm_count(0), string_count(0) {
 
     tempvar_type.clear();
 
-    cur_smallest_temp = -1;
+    cur_smallest_temp = INT32_MAX;
 }
 StackRiscVGenerator::~StackRiscVGenerator() {
     for (auto p : instrs) delete p;
@@ -411,15 +411,21 @@ void StackRiscVGenerator::getTempVarType(Triples& triples) {
     }
 }
 RVOperand StackRiscVGenerator::getTempOpr(Triples& triples, int temp_id) {
-    return make_stack(RVRegs::s0, -((cur_stacks.top().size() - cur_smallest_temp + temp_id) * 4 + 16));
+    printf("size of stack %d\n", cur_stacks.top().size());
+    printf("current smallest temp %d\n", cur_smallest_temp);
+    printf("Temp: cur id %d, offset %d\n", temp_id, -((cur_stacks.top().size() - cur_smallest_temp + temp_id) * 4 + 16));
+    return make_stack(RVRegs::s0, -((cur_stacks.top().size() - cur_smallest_temp + temp_id + 1) * 4 + 16));
 }
 RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, int var_id) {
+    printf("target id: %d\n", var_id);
     auto& cur_stack = cur_stacks.top();
 
     int count = 0;
     for (auto& [id, num] : cur_stack) {
+        printf("cur id: %d, size %d\n", id, num);
         if (id == var_id) {
-            return make_stack(RVRegs::s0, -(count * 4 + 16));
+            printf("i got it! offset: %d\n", -((count + 1) * 4 + 16));
+            return make_stack(RVRegs::s0, -((count + 1) * 4 + 16));
         }
         count += num;
     }
@@ -437,15 +443,16 @@ RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, int var_id) {
 
         if (type == 1 || type == 3 || type == 4) {
             if (id == var_id) {
-                if (int_count <= 6) return make_areg(int_count - 1);
+                if (int_count <= 8) return make_areg(int_count - 1);
                 else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
             }
             --int_count;
         } else if (type == 2) {
             if (id == var_id) {
-                if (float_count <= 6) return make_sreg(float_count - 1);
+                if (float_count <= 8) return make_sreg(float_count - 1);
                 else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
             }
+            --float_count;
         }
     }
 
@@ -666,14 +673,14 @@ void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple, si
 
     std::vector<std::pair<int, int>> stack_info;
 
-    int block_id = triples[index + 1].e1.value;
-    for (size_t cur_line = index + 2; cur_line < triples.size(); ++cur_line) {
+    int block_id = triples[index].e1.value;
+    for (size_t cur_line = index + 1; cur_line < triples.size(); ++cur_line) {
         Triples::Triple& t = triples[cur_line];
         if (t.cmd == TCmd.blke && t.e1.value == block_id) break;
 
-        if (cur_smallest_temp != -1 && t.e1.type == TTT.temp) cur_smallest_temp = t.e1.value;
-        if (cur_smallest_temp != -1 && t.e2.type == TTT.temp) cur_smallest_temp = t.e2.value;
-        if (cur_smallest_temp != -1 && t.to.type == TTT.temp) cur_smallest_temp = t.to.value;
+        if (t.e1.type == TTT.temp) cur_smallest_temp = std::min(cur_smallest_temp, t.e1.value);
+        if (t.e2.type == TTT.temp) cur_smallest_temp = std::min(cur_smallest_temp, t.e2.value);
+        if (t.to.type == TTT.temp) cur_smallest_temp = std::min(cur_smallest_temp, t.to.value);
 
         if (t.cmd != TCmd.var) continue;
         stack_info.push_back({ t.e1.value, t.e2.value });
@@ -684,7 +691,7 @@ void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple, si
 void StackRiscVGenerator::genFuncEnd(Triples& triples, Triples::Triple& triple) {
     int stack_size = func_size[cur_func_name];
 
-    instrs.push_back(new RVTag("endof" + cur_func_name));
+    instrs.push_back(new RVTag(".endof" + cur_func_name));
     instrs.push_back(new RVMov(RVOp::MV, make_areg(0), make_areg(5)));
     instrs.push_back(new RVMem(RVOp::LD, make_reg(RVRegs::ra), stack_size - 8));
     instrs.push_back(new RVMem(RVOp::LD, make_reg(RVRegs::s0), stack_size - 16));
@@ -719,7 +726,7 @@ void StackRiscVGenerator::genReturn(Triples& triples, Triples::Triple& triple) {
         
     }
 
-    instrs.push_back(new RVJump(RVOp::JMP, make_addr("endof" + std::string(cur_func_name))));
+    instrs.push_back(new RVJump(RVOp::JMP, make_addr(".endof" + std::string(cur_func_name))));
 }
 /// <summary>   
 /// 生成所有float与str常量
@@ -875,7 +882,7 @@ void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
             cur_blocks.pop();
             if (cur_blocks.size() == 0) {
                 cur_stacks.pop();
-                cur_smallest_temp = -1;
+                cur_smallest_temp = INT32_MAX;
                 genFuncEnd(triples, cur_triple);
             }
             break;
@@ -894,9 +901,9 @@ void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
 
     genAllStrsFloats();
 
-    for (auto e : instrs) {
-        std::cout << e->toASM();
-    }
+    // for (auto e : instrs) {
+    //     std::cout << e->toASM();
+    // }
     // panic("TODO!!!!!!!");
     return;
 }
