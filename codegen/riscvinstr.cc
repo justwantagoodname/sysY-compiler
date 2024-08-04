@@ -3,17 +3,18 @@
 
 std::string RVOperand::getRegName() const {
     assert(isreg() || tag == STACK);
-    if (reg == zero) return "zero";
-    if (reg == ra) return "ra";
-    if (reg == sp) return "sp";
-    if (reg == s0) return "s0";
-    if (reg == s1) return "s1";
-    if (10 <= reg && reg <= 17) return "a" + std::to_string(reg - 10);
-    if (18 <= reg && reg <= 27) return "s" + std::to_string(reg - 16);
-    if (0 <= reg && reg <= 27) return "x" + std::to_string(reg);
-    if (28 <= reg && reg <= 35) return "fa" + std::to_string(reg - 28);
+    if (reg == RVRegs::zero) return "zero";
+    if (reg == RVRegs::ra) return "ra";
+    if (reg == RVRegs::sp) return "sp";
+    if (reg == RVRegs::s0) return "s0";
+    if (reg == RVRegs::s1) return "s1";
+    if (RVRegs(10) <= reg && reg <= RVRegs(17)) return "a" + std::to_string(int(reg) - 10);
+    if (RVRegs(18) <= reg && reg <= RVRegs(27)) return "s" + std::to_string(int(reg) - 16);
+    if (RVRegs(0) <= reg && reg <= RVRegs(27)) return "x" + std::to_string(int(reg));
+    if (RVRegs(28) <= reg && reg <= RVRegs(35)) return "fa" + std::to_string(int(reg) - 28);
 
-    panic("Error: getRegName()");
+    printf("reg id: %d\n", reg);
+    panic("Error: getRegName(): bad reg id");
     return "";
 }
 RVOperand::RVOperand() : tag(UNDEF), value(0) {
@@ -66,7 +67,7 @@ RVOperand make_sreg(int offset) {
     return res;
 }
 RVOperand make_sreg(RVRegs reg) {
-    assert(reg - 28 < 8 && reg - 28 > 0);
+    assert(int(reg) - 28 < 8 && int(reg) - 28 > 0);
     RVOperand res = make_reg(reg);
     res.tag = SREG;
     return res;
