@@ -242,7 +242,7 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		break;
 	case TT.value:
 		if (added == nullptr) {
-			snprintf(s, 40, "%s", triples.value_pointer[value].get_attr_str("name"));
+			snprintf(s, 40, "%s(%d)", triples.value_pointer[value].get_attr_str("name"), value);
 		}
 		else {
 			added->toString(ts, triples);

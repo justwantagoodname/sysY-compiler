@@ -994,6 +994,8 @@ void Triples::setFuncParams()
             Element value = e.qo("/*[@name='%s']", name.c_str());
 
             for (int i = 0; i < value_pointer.size(); ++i) {
+                //printf("makeing i: %d\n", i);
+
                 if (value_pointer[i] == value) {
                     param_types.push_back({ i , type });
                     break;

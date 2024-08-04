@@ -55,7 +55,7 @@ RVOperand make_reg(RVRegs reg) {
     return opr;
 }
 RVOperand make_areg(int offset) {
-    assert(offset < 8);
+    assert(offset < 8 && offset >= 0);
     RVRegs reg = RVRegs(10 + offset);
     return make_reg(reg);
 }
