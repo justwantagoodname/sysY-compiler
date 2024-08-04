@@ -10,9 +10,13 @@
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
 // #define ASM_GEN
-#define TRIPLE_DEBUG
+// #define TRIPLE_DEBUG
+#define RV_ASM_GEN
 
 #ifdef TRIPLE_DEBUG
+#include "codegen/stack_rv_generator.h"
+#endif
+#ifdef RV_ASM_GEN
 #include "codegen/stack_rv_generator.h"
 #endif
 
@@ -80,6 +84,28 @@ int main(int argc, const char** argv) {
 
 	StackRiscVGenerator g;
 	g.generate(triples, false);
+#endif
+#ifdef RV_ASM_GEN
+	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());
+
+	// GlobalDeclInflater const_inflater(root.unwrap());
+    // const_inflater.inflate(asm_file);
+
+	asm_file.raw(".global main\n.text\n.align 2\n.type main, %function\n");
+
+	Triples triples(root);
+	triples.pretreat();
+	triples.make();
+	triples.eliUnnecVar();
+	triples.minTempVar();
+	triples.resortTemp();
+
+	StackRiscVGenerator g;
+	g.generate(triples, false);
+	for (auto p : g.instrs) {
+		asm_file.raw(p->toASM().c_str());
+	}
+	asm_file.raw(".section	.note.GNU-stack,\"\",%progbits\n.ident	\"SysY-Compiler\"\n");
 #endif
 
 	return 0;
