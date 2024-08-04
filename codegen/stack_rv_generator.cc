@@ -413,12 +413,12 @@ void StackRiscVGenerator::getTempVarType(Triples& triples) {
 RVOperand StackRiscVGenerator::getTempOpr(Triples& triples, int temp_id) {
     return make_stack(RVRegs::s0, -((cur_stacks.top().size() - cur_smallest_temp + temp_id) * 4 + 16));
 }
-RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, const std::string& var_name) {
+RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, int var_id) {
     auto& cur_stack = cur_stacks.top();
 
     int count = 0;
-    for (auto& [name, num] : cur_stack) {
-        if (name == var_name) {
+    for (auto& [id, num] : cur_stack) {
+        if (id == var_id) {
             return make_stack(RVRegs::s0, -(count * 4 + 16));
         }
         count += num;
@@ -432,17 +432,17 @@ RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, const std::string& va
     }
 
     for (size_t i = cur_args.size() - 1; i >= 0; --i) {
-        std::string name = triples.value_pointer[cur_args[i].first].get_attr_str("name");
+        int id = cur_args[i].first;
         int type = cur_args[i].second;
 
         if (type == 1 || type == 3 || type == 4) {
-            if (name == var_name) {
+            if (id == var_id) {
                 if (int_count <= 6) return make_areg(int_count - 1);
                 else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
             }
             --int_count;
         } else if (type == 2) {
-            if (name == var_name) {
+            if (id == var_id) {
                 if (float_count <= 6) return make_sreg(float_count - 1);
                 else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
             }
@@ -457,7 +457,7 @@ void StackRiscVGenerator::genLoad(Triples& triples, Triples::Triple& triple) {
     auto& e1 = triple.e1;
     auto& to = triple.to;
 
-    instrs.push_back(new RVMem(RVOp::LW, make_reg(a5), getVarOpr(triples, triples.getVarName(e1))));
+    instrs.push_back(new RVMem(RVOp::LW, make_reg(a5), getVarOpr(triples, e1.value)));
     instrs.push_back(new RVMem(RVOp::SW, getTempOpr(triples, to.value), make_reg(a5)));
 
     return;
@@ -469,17 +469,17 @@ void StackRiscVGenerator::genStore(Triples& triples, Triples::Triple& triple) {
     if (triples.getValueType(e1) == triples.getValueType(to)) {
         // 同类型
         instrs.push_back(new RVMem(RVOp::LW, make_reg(a5), getTempOpr(triples, e1.value)));
-        instrs.push_back(new RVMem(RVOp::SW, getVarOpr(triples, triples.getVarName(to)), make_reg(a5)));
+        instrs.push_back(new RVMem(RVOp::SW, getVarOpr(triples, to.value), make_reg(a5)));
     } else if (triples.getValueType(e1) == 1 && triples.getValueType(to) == 2) {
         // int -> float
         instrs.push_back(new RVMem(RVOp::LW, make_reg(a5), getTempOpr(triples, e1.value)));
         instrs.push_back(new RVConvert(RVOp::FCVTF, make_sreg(fa5), make_reg(a5)));
-        instrs.push_back(new RVMem(RVOp::FSW, getVarOpr(triples, triples.getVarName(to)), make_sreg(fa5)));
+        instrs.push_back(new RVMem(RVOp::FSW, getVarOpr(triples, to.value), make_sreg(fa5)));
     } else if (triples.getValueType(e1) == 2 && triples.getValueType(to) == 1) {
         // float -> int
         instrs.push_back(new RVMem(RVOp::FLW, make_reg(a5), getTempOpr(triples, e1.value)));
         instrs.push_back(new RVConvert(RVOp::FCVTT, make_reg(a5), make_sreg(fa5)));
-        instrs.push_back(new RVMem(RVOp::SW, getVarOpr(triples, triples.getVarName(to)), make_reg(a5)));
+        instrs.push_back(new RVMem(RVOp::SW, getVarOpr(triples, to.value), make_reg(a5)));
     } else {
         panic("Error in genStore");
     }
@@ -493,9 +493,9 @@ void StackRiscVGenerator::genMem(Triples& triples, Triples::Triple& triple) {
 
     RVOperand op1, dst;
     if (e1.type == TTT.temp) op1 = getTempOpr(triples, e1.value);
-    else op1 = getVarOpr(triples, triples.getVarName(e1));
+    else op1 = getVarOpr(triples, e1.value);
     if (to.type == TTT.temp) dst = getTempOpr(triples, to.value);
-    else dst = getVarOpr(triples, triples.getVarName(to));
+    else dst = getVarOpr(triples, e1.value);
 
     if (triples.getValueType(e1) == triples.getValueType(to)) {
         // 同类型
@@ -651,7 +651,7 @@ void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple, si
     instrs.push_back(new RVMem(RVOp::SD, make_reg(RVRegs::s0), stack_size - 16));
     instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::s0), make_reg(RVRegs::sp), make_imm(stack_size)));
 
-    std::vector<std::pair<std::string, int>> stack_info;
+    std::vector<std::pair<int, int>> stack_info;
 
     int block_id = triples[index + 1].e1.value;
     for (size_t cur_line = index + 2; cur_line < triples.size(); ++cur_line) {
@@ -663,19 +663,49 @@ void StackRiscVGenerator::genStack(Triples& triples, Triples::Triple& triple, si
         if (cur_smallest_temp != -1 && t.to.type == TTT.temp) cur_smallest_temp = t.to.value;
 
         if (t.cmd != TCmd.var) continue;
-        stack_info.push_back({ triples.getVarName(t.e1), t.e2.value });
+        stack_info.push_back({ t.e1.value, t.e2.value });
     }
 
     cur_stacks.push(stack_info);
 }
-void StackRiscVGenerator::genReturn(Triples& triples, Triples::Triple& triple) {
+void StackRiscVGenerator::genFuncEnd(Triples& triples, Triples::Triple& triple) {
     int stack_size = func_size[cur_func_name];
+
+    instrs.push_back(new RVTag("endof" + cur_func_name));
     instrs.push_back(new RVMov(RVOp::MV, make_areg(0), make_areg(5)));
     instrs.push_back(new RVMem(RVOp::LD, make_reg(RVRegs::ra), stack_size - 8));
     instrs.push_back(new RVMem(RVOp::LD, make_reg(RVRegs::s0), stack_size - 16));
     instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::sp), make_reg(RVRegs::sp), make_imm(stack_size)));
     instrs.push_back(new RVJump(RVOp::JR, make_reg(RVRegs::ra)));
     return;
+}
+void StackRiscVGenerator::genReturn(Triples& triples, Triples::Triple& triple) {
+    int return_type = triples.func_params[cur_func_name][0].second;
+    if (return_type == 1) {
+        // int
+        if (triple.e2.type == TTT.dimd) {
+            instrs.push_back(new RVMem(RVOp::LI, make_areg(5), make_imm(triple.e2.value)));
+        } else if (triple.e2.type == TTT.fimd) {
+            union {
+                uint32_t u32;
+                float f;
+            } u;
+            u.u32 = triple.e2.value;
+            int res = u.f;
+            instrs.push_back(new RVMem(RVOp::LI, make_areg(5), make_imm(res)));
+        } else if (triple.e2.type == TTT.temp && triples.getTempType(triple.e2.value) == 1) {
+            instrs.push_back(new RVMem(RVOp::LW, make_areg(5), getTempOpr(triples, triple.e2.value)));
+        } else if (triple.e2.type == TTT.temp && triples.getTempType(triple.e2.value) == 2) {
+            instrs.push_back(new RVMem(RVOp::FLW, make_sreg(5), getTempOpr(triples, triple.e2.value)));
+            instrs.push_back(new RVConvert(RVOp::FCVTWS, make_areg(5), make_sreg(5)));
+            instrs.push_back(new RVSext(RVOp::SEXTW, make_areg(5), make_areg(5)));
+        }
+    } else if (return_type == 2) {
+        // float
+        
+    }
+
+    instrs.push_back(new RVJump(RVOp::JMP, make_addr("endof" + std::string(cur_func_name))));
 }
 /// <summary>   
 /// 生成所有float与str常量
@@ -713,7 +743,7 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
     RVOperand dst;
     int dst_type = 0;
     if (to.type == TTT.value) {
-        dst = getVarOpr(triples, triples.getVarName(to));
+        dst = getVarOpr(triples, to.value);
         dst_type = triples.getValueType(to);
     } else if (to.type == TTT.temp) {
         dst = getTempOpr(triples, to.value);
@@ -832,7 +862,7 @@ void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
             if (cur_blocks.size() == 0) {
                 cur_stacks.pop();
                 cur_smallest_temp = -1;
-                genReturn(triples, cur_triple);
+                genFuncEnd(triples, cur_triple);
             }
             break;
 

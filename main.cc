@@ -10,8 +10,8 @@
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
 // #define ASM_GEN
-// #define TRIPLE_DEBUG
-#define RV_ASM_GEN
+#define TRIPLE_DEBUG
+// #define RV_ASM_GEN
 
 #ifdef TRIPLE_DEBUG
 #include "codegen/stack_rv_generator.h"
