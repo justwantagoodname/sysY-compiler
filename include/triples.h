@@ -121,9 +121,9 @@ public:
 private:
 	void setValueTable();
 	void setFuncParams();
-private:
-	int temp_count;
 
+	int temp_count;
+public:
 
 	std::vector<std::shared_ptr<Triple>> triples;
 	std::vector<Element> value_pointer;

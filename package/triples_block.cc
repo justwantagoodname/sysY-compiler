@@ -303,13 +303,11 @@ void Triples::listTempType()
 		{
 		case Cmd.load:
 			temp_type[e->to.value] = getValueType(e->e1);
-			printf("load: %d\n", temp_type[e->to.value]);
 			break;
 		case Cmd.mov:
 		case Cmd.call:
 			if (e->to.type == TT.temp) {
 				temp_type[e->to.value] = getValueType(e->e1);
-				printf("call: %d\n", temp_type[e->to.value]);
 			}
 			break;
 		case Cmd.add:
@@ -321,7 +319,6 @@ void Triples::listTempType()
 				temp_type[e->to.value] = 2;
 			else
 				temp_type[e->to.value] = 1;
-			printf("add: %d\n", temp_type[e->to.value]);
 			break;
 		default:
 			break;
