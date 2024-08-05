@@ -255,9 +255,10 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
     ASTNode *base_node = ASTNode_querySelectorOne(node, "//*[@base][0]");
     const char *base_name = nullptr;
     ASTNode_get_attr_str(base_node, "base", &base_name);
-    int access_line;
+    int access_line, access_col;
     bool hasLine = ASTNode_get_attr_int(base_node, "line", &access_line);
-    assert(hasLine);
+    bool hasCol = ASTNode_get_attr_int(base_node, "column", &access_col);
+    assert(hasLine && hasCol);
 
     assert(base_name != nullptr);
 
@@ -265,11 +266,12 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
 
     ASTNode* target = nullptr;
     DL_FOREACH(const_list, cur) {
-        int line;
+        int line, col;
         hasLine = ASTNode_get_attr_int(cur->node, "line", &line);
-        assert(hasLine);
+        hasCol = ASTNode_get_attr_int(cur->node, "column", &col);
+        assert(hasLine && hasCol);
 
-        if (line < access_line) {
+        if (line < access_line || (line == access_line && col < access_col)) { // 不能访问自己
             target = cur->node;
             break;
         }
