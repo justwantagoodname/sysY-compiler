@@ -667,7 +667,8 @@ void Triples::make()
                 while (triples[break_index].to.type != TT.null) {
                     break_index = triples[break_index].to.value;
                     triples[break_index].to = { tag_count, TT.lamb };
-                }
+                } 
+                triples[break_index].to = { tag_count, TT.lamb };
             }
             tag_count++;
         }
