@@ -208,13 +208,20 @@ void Triples::pretreat()
         this->pushf(e);
     }
 
+    Query ex_vars = root("/Scope/Decl/*");
+    ex_vars += root("//ParamDecl");
+    for (auto e : ex_vars) {
+        e.add_attr("define", "true");
+    }
+
     Query array_decls_Unknown = root("//Decl/*[@array='true']/Dimension[@size='Unknown']");
     for (auto adecl : array_decls_Unknown) {
         adecl.add_attr("unknown-size", -1);
     }
 
-    Query array_decls = root("//Decl/*[@array='true']");
+    Query array_decls = root("//Decl/*[@array='true']/ArraySize");
     for (auto adecl : array_decls) {
+        adecl.print();
         DFS_Element(adecl) {
             DFS_Element_init;
             ife("Exp") {
@@ -374,7 +381,9 @@ void Triples::make()
         }
         ife("Address") {
             const char* s = element.get_attr_str("base");
+            printf("--geting %s value\n", s);
             Element value = element.table(s);
+            printf("==geted %s value\n" , value.id());
 
             element.add_attr("addr", triples.find(value));
             element.add_attr("type", value.get_attr_str("type"));

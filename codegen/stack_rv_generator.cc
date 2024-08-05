@@ -463,12 +463,38 @@ void StackRiscVGenerator::genMem(Triples& triples, Triples::Triple& triple) {
     RVOperand dst;
 
     if (to.type == TTT.temp) dst = getTempOpr(triples, to.value);
-    else if (to.type == TTT.value) dst = getVarOpr(triples, to.value);
+    else if (to.type == TTT.value) {
+        dst = getVarOpr(triples, to.value);
+        if (to.added != NULL) { // 数组
+            if (to.added->type == TTT.dimd) {
+                dst.offset -= to.added->value;
+            } else if (to.added->type == TTT.temp) {
+                instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::s0), make_imm(dst.offset)));
+                instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, to.added->value)));
+                instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 4));
+                instrs.push_back(new RVArith(RVOp::SUB, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
+                dst = make_stack(RVRegs::a4, 0);
+            }
+        }
+    }
 
     if (e1.type != TTT.dimd && e1.type != TTT.fimd) {
         RVOperand op1;
         if (e1.type == TTT.temp) op1 = getTempOpr(triples, e1.value);
-        else if (e1.type == TTT.value) op1 = getVarOpr(triples, e1.value);
+        else if (e1.type == TTT.value) {
+            op1 = getVarOpr(triples, e1.value);
+            if (e1.added != NULL) { // 数组
+                if (e1.added->type == TTT.dimd) {
+                    op1.offset -= e1.added->value;
+                } else if (e1.added->type == TTT.temp) {
+                    instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::s0), make_imm(op1.offset)));
+                    instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, e1.added->value)));
+                    instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 4));
+                    instrs.push_back(new RVArith(RVOp::SUB, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
+                    op1 = make_stack(RVRegs::a4, 0);
+                }
+            }
+        }
 
         if (triples.getValueType(e1) == triples.getValueType(to)) {
             // 同类型
@@ -770,6 +796,17 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
     if (to.type == TTT.value) {
         dst = getVarOpr(triples, to.value);
         dst_type = triples.getValueType(to);
+        if (to.added != NULL) { // 数组
+            if (to.added->type == TTT.dimd) {
+                dst.offset -= to.added->value;
+            } else if (to.added->type == TTT.temp) {
+                instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::s0), make_imm(dst.offset)));
+                instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, to.added->value)));
+                instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 4));
+                instrs.push_back(new RVArith(RVOp::SUB, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
+                dst = make_stack(RVRegs::a4, 0);
+            }
+        }
     } else if (to.type == TTT.temp) {
         dst = getTempOpr(triples, to.value);
         dst_type = triples.getTempType(to.value);
@@ -815,7 +852,29 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
             panic("error");
         }
 
-    } else {
+    } else if (tv.type == TTT.temp)
+    {
+        RVOperand op1;
+        op1 = getTempOpr(triples, tv.value);
+        if (triples.getValueType(tv) == triples.getValueType(to)) {
+            // 同类型
+            instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), op1));
+            instrs.push_back(new RVMem(RVOp::SW, dst, make_reg(RVRegs::a5)));
+        } else if (triples.getValueType(tv) == 1 && triples.getValueType(to) == 2) {
+            // int -> float
+            instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), op1));
+            instrs.push_back(new RVConvert(RVOp::FCVTF, make_sreg(RVRegs::fa5), make_reg(RVRegs::a5)));
+            instrs.push_back(new RVMem(RVOp::FSW, dst, make_sreg(RVRegs::fa5)));
+        } else if (triples.getValueType(tv) == 2 && triples.getValueType(to) == 1) {
+            // float -> int
+            instrs.push_back(new RVMem(RVOp::FLW, make_reg(RVRegs::a5), op1));
+            instrs.push_back(new RVConvert(RVOp::FCVTT, make_reg(RVRegs::a5), make_sreg(RVRegs::fa5)));
+            instrs.push_back(new RVMem(RVOp::SW, dst, make_reg(RVRegs::a5)));
+        } else {
+            panic("Error in genMove");
+        }
+    }
+    else {
         panic("bad triplevalue type");
     }
 }

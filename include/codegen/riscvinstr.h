@@ -248,6 +248,14 @@ public:
     virtual std::string toASM() override;
 };
 
+class RVSLLi : public RVInstr {
+public:
+    RVOperand dst;
+    int imm;
+    RVSLLi(RVOp opt, const RVOperand& dst, int imm);
+    virtual std::string toASM() override;
+};
+
 class RVCompare : public RVInstr {
 public:
     RVOperand dst;

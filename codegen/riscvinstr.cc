@@ -404,3 +404,22 @@ std::string RVCompare::toASM() {
     }
     return result;
 }
+
+RVSLLi::RVSLLi(RVOp opt, const RVOperand& dst, int imm)
+    :dst(dst), imm(imm), RVInstr(opt)
+{
+}
+
+std::string RVSLLi::toASM()
+{
+    std::string result;
+    switch (opt) {
+    case RVOp::SLL:
+        result = "    slli " + dst.toASM() + "," + dst.toASM() + "," + std::to_string(imm) + "\n";
+        break;
+    default:
+        panic("RVSLLI error");
+        break;
+    }
+    return result;
+}
