@@ -141,6 +141,8 @@ public:
    virtual void fcmpGreaterEqual(const std::string& dst, const std::string& src1, const std::string& src2) = 0;
 
    virtual void fjumpEqual(const std::string& src1, const float imm, const std::string& labelName) = 0;
+
+   virtual void createLocalLTPool() = 0;
 };
 
 #endif

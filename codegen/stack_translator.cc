@@ -333,9 +333,7 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
             // 转换右边为浮点数
             translateTypeConversion(rhs, SyFloat); // s0 <- r0
             adapter->fpopStack({floatTempReg}); // s1 <- lhs
-        }
-
-        if (strcmp(rhs_type, SyFloat) == 0) {
+        } else if (strcmp(rhs_type, SyFloat) == 0) {
             // 转换左边为浮点数
             adapter->fpopStack({floatTempReg});
             adapter->i2f(floatTempReg, floatTempReg);
@@ -438,19 +436,21 @@ void StackTranslator::translateLVal(ASTNode *lval) {
     bool hasName = ASTNode_get_attr_str(address, "base", &name);
     assert(hasName);
 
-    int access_line;
+    int access_line, access_col;
     bool hasLine = ASTNode_get_attr_int(address, "line", &access_line);
-    assert(hasLine);
+    bool hasCol = ASTNode_get_attr_int(address, "column", &access_col);
+    assert(hasLine && hasCol);
 
     QueryResult *decl_list = ASTNode_querySelectorf(address, "/ancestor::Scope/Decl/*[@name='%s']", name), *cur;
 
     ASTNode* decl = nullptr;
     DL_FOREACH(decl_list, cur) {
-        int line;
+        int line, col;
         hasLine = ASTNode_get_attr_int(cur->node, "line", &line);
-        assert(hasLine);
+        hasCol = ASTNode_get_attr_int(cur->node, "column", &col);
+        assert(hasLine && hasCol);
 
-        if (line < access_line) {
+        if (line < access_line || (line == access_line && col < access_col)) { // 不能访问自己
             decl = cur->node;
             break;
         }
@@ -662,15 +662,22 @@ void StackTranslator::translateAssign(ASTNode *assign) {
 void StackTranslator::translateReturn(ASTNode *ret) {
     assert(ASTNode_id_is(ret, "Return"));
 
+    auto func = ASTNode_querySelectorOne(ret, "/ancestor::Function");
+    string ret_type;
+    ASTNode_get_attr_str(func, "return", ret_type);
+
     auto exp = ASTNode_querySelectorOne(ret, "Exp");
+    assert((ret_type == SyVoid && exp == nullptr )|| (ret_type != SyVoid && exp != nullptr));
+
     if (exp) {
         translateExp(exp);
-    }
+        string exp_type;
+        ASTNode_get_attr_str(exp, "type", exp_type);
 
-    auto func = ASTNode_querySelectorOne(ret, "/ancestor::Function");
-    const char* ret_label;
-    bool hasRetLabel = ASTNode_get_attr_str(func, "returnLabel", &ret_label);
-    assert(hasRetLabel);
+        if (ret_type != exp_type) {
+            translateTypeConversion(exp, ret_type);
+        }
+    }
 
     // 直接返回不做转跳了，应该没有什么问题
     adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
@@ -714,6 +721,8 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
             cleared = true;
         }
         QueryResult *inits = ASTNode_querySelector(decl_entity, "InitValue/*"), *cur;
+        if (inits == nullptr) return;
+
         int idx = 0;
         DL_FOREACH(inits, cur) {
             auto init = cur->node;
@@ -769,7 +778,7 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
         // 变量初始化表达式
         auto init_exp = ASTNode_querySelectorOne(decl_entity, "InitValue/Exp");
         // 在文法里已经确定过了，必定有初始化表达式
-        assert(init_exp);
+        if (init_exp == nullptr) return;
 
         translateExp(init_exp);
 
@@ -1152,4 +1161,8 @@ void StackTranslator::translateTypePop(ASTNode* exp) {
     } else {
         assert(false);
     }
+}
+
+void StackTranslator::insertLiteralPool() {
+    adapter->createLocalLTPool();
 }

@@ -5,7 +5,7 @@
 
 #include "ast.h"
 
-void ConstNode_unfold(ASTNode* root);
+void ConstNode_fold(ASTNode* root);
 void ArrayDecl_flatten(ASTNode* root);
 
 #endif // PASS_H
