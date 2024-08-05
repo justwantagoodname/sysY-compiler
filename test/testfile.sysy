@@ -1,14 +1,5 @@
 int main(){
-    int i;
-    i = 0;
-    int sum;
-    sum = 0;
-    while(i < 100){
-        if(i == 50){
-            break;
-        }
-        sum = sum + i;
-        i = i + 1;
-    }
-    return sum;
+    int a[4][2] = {1, 2, 3, 4, 5, 6, 7, 8};
+	putf("%d %d %d %d ", a[0][0], a[0][1], a[1][0], a[1][1]);
+	putf("%d %d %d %d\n", a[2][0], a[2][1], a[3][0], a[3][1] );
 }

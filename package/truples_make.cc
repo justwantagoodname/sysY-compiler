@@ -208,13 +208,20 @@ void Triples::pretreat()
         this->pushf(e);
     }
 
+    Query ex_vars = root("/Scope/Decl/*");
+    ex_vars += root("//ParamDecl");
+    for (auto e : ex_vars) {
+        e.add_attr("define", "true");
+    }
+
     Query array_decls_Unknown = root("//Decl/*[@array='true']/Dimension[@size='Unknown']");
     for (auto adecl : array_decls_Unknown) {
         adecl.add_attr("unknown-size", -1);
     }
 
-    Query array_decls = root("//Decl/*[@array='true']");
+    Query array_decls = root("//Decl/*[@array='true']/ArraySize");
     for (auto adecl : array_decls) {
+        adecl.print();
         DFS_Element(adecl) {
             DFS_Element_init;
             ife("Exp") {
@@ -374,7 +381,9 @@ void Triples::make()
         }
         ife("Address") {
             const char* s = element.get_attr_str("base");
+            printf("--geting %s value\n", s);
             Element value = element.table(s);
+            printf("==geted %s value\n" , value.id());
 
             element.add_attr("addr", triples.find(value));
             element.add_attr("type", value.get_attr_str("type"));
@@ -412,8 +421,8 @@ void Triples::make()
             DL_FOREACH(element.unwrap()->children, cur) {
                 int t;
                 ASTNode_get_attr_int(cur, "temp", &t);
-                if (count > 0) {
-                    cr *= value[count].get_attr_int("size");
+                if (cur->next != NULL) {
+                    cr *= value[count + 1].get_attr_int("size");
                     triples.add(Cmd.mul, { t }, { cr, TT.dimd }, { t });
                 }
                 ++count;
@@ -904,6 +913,7 @@ void Triples::make()
                 type = 1;
 
             triples.add(Cmd.var, { a , TT.value }, { size , TT.dimd }, { type, TT.typetag });
+            printf("-----add size: %d\n", size);
         }
         ife("InitValue") {
             const char* et = element.get_attr_str("type");
