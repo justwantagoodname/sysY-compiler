@@ -913,6 +913,7 @@ void Triples::make()
                 type = 1;
 
             triples.add(Cmd.var, { a , TT.value }, { size , TT.dimd }, { type, TT.typetag });
+            printf("-----add size: %d\n", size);
         }
         ife("InitValue") {
             const char* et = element.get_attr_str("type");
