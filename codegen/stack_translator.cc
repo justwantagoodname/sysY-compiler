@@ -148,12 +148,6 @@ void StackTranslator::translateBlock(ASTNode *block) {
     DL_FOREACH(stmts, cur) {
         auto stmt = cur->node;
         translateStmt(stmt);
-        literal_pool_counter++;
-
-        if (literal_pool_counter >= 50) {
-            insertLiteralPool();
-            literal_pool_counter = 0;
-        }
     }
 }
 

@@ -475,6 +475,7 @@ public:
 
     void loadLabelAddress(const std::string& reg, const std::string& labelName) override {
         asm_file.line("\tldr %s, =%s", reg.c_str(), labelName.c_str());
+        createLocalLTPool();
     }
 
     void loadRegister(const std::string& dst, const std::string& src, int offset) override {
