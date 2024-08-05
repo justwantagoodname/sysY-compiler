@@ -24,8 +24,13 @@ struct ExternFunctionDeclare {
 
 class ARMAdapter : public Adapter {
 private:
+    int lt_label_count = 0;
     AssemblyBuilder &asm_file;
     std::map<std::string, ExternFunctionDeclare> extern_functions;
+
+    string getLTLabel() {
+        return ".LT" + std::to_string(lt_label_count++);
+    }
 
 public:
     explicit ARMAdapter(AssemblyBuilder &asm_file) : asm_file(asm_file) {
@@ -794,6 +799,12 @@ public:
         asm_file.line("\tbeq %s", labelName.c_str());
     }
 
+    void createLocalLTPool() override {
+        const auto label = getLTLabel();
+        jump(label);
+        asm_file.line(".ltorg");
+        emitLabel(label);
+    }
 };
 
 #endif
