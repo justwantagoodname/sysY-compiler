@@ -29,7 +29,6 @@ int main(int argc, const char** argv) {
 
 #ifdef UNI_OPTIMIZTION
 	ConstNode_fold(root);
-	
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
   		root.print();

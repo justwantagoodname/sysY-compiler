@@ -226,6 +226,28 @@ ASTNode *ExpNode_simplify_binary_operator(const ASTNode *exp) {
     return ret;
 }
 
+void NumberNode_cast(ASTNode* node, const string& targetType) {
+    assert(node);
+    assert(targetType == SyFloat || targetType == SyInt);
+    
+    string type;
+    ASTNode_get_attr_str(node, "type", type);
+
+    if (type == targetType) return;
+
+    if (type == SyFloat && targetType == SyInt) {
+        float value;
+        ASTNode_get_attr_float(node, "value", &value);
+        ASTNode_set_attr_int(node, "value", (int) value);
+        ASTNode_set_attr_str(node, "type", SyInt);
+    } else if (type == SyInt && targetType == SyFloat) {
+        int value;
+        ASTNode_get_attr_int(node, "value", &value);
+        ASTNode_set_attr_float(node, "value", (float) value);
+        ASTNode_set_attr_str(node, "type", SyFloat);
+    }
+}
+
 ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
     assert(node != nullptr);
     assert(ASTNode_id_is(node, "Fetch"));
@@ -261,7 +283,10 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
     // can ref self check
     assert(ASTNode_id_is(target, "Const"));
 
-    ASTNode *value = nullptr;
+    string const_type;
+    ASTNode_get_attr_str(target, "type", const_type);
+
+    ASTNode *value;
 
     if (ASTNode_has_attr(target, "array") || ASTNode_querySelectorOne(node, "//Locator[0]") != nullptr) {
         value = ExpNode_fetch_const_array_value(node, target);
@@ -269,6 +294,7 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
         value = ASTNode_querySelectorOne(target, "//Exp/Number");
         value = ASTNode_clone(value);
     }
+    NumberNode_cast(value, const_type);
     return value;
 }
 
