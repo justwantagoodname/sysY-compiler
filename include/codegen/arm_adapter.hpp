@@ -474,16 +474,30 @@ public:
 
     void loadRegister(const std::string& dst, const std::string& src, int offset) override {
         if (offset == 0) asm_file.line("\tldr %s, [%s]", dst.c_str(), src.c_str());
-        else asm_file.line("\tldr %s, [%s, #%d]", dst.c_str(), src.c_str(), offset);
+        else {
+            if (abs(offset) > 512) {
+                loadImmediate(getRegName(5), offset);
+                asm_file.line("\tldr %s, [%s, %s]", src.c_str(), dst.c_str(), getRegName(5).c_str());
+            } else {
+                asm_file.line("\tldr %s, [%s, #%d]", src.c_str(), dst.c_str(), offset);
+            }
+        }
     }
 
     void storeRegister(const std::string& src, const std::string& dst, int offset) override {
         if (offset == 0) asm_file.line("\tstr %s, [%s]", src.c_str(), dst.c_str());
-        else asm_file.line("\tstr %s, [%s, #%d]", src.c_str(), dst.c_str(), offset);
+        else {
+            if (abs(offset) > 512) {
+                loadImmediate(getRegName(5), offset);
+                asm_file.line("\tstr %s, [%s, %s]", src.c_str(), dst.c_str(), getRegName(5).c_str());
+            } else {
+                asm_file.line("\tstr %s, [%s, #%d]", src.c_str(), dst.c_str(), offset);
+            }
+        }
     }
 
     void uniOpWithImm(const std::string& op, const std::string& dst, const std::string& src, int imm) {
-        if (abs(imm) > 255) {
+        if (abs(imm) > 512) {
             loadImmediate(getRegName(5), imm);
             uniOp(op, dst, src, getRegName(5));
         } else {
