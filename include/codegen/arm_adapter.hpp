@@ -771,7 +771,7 @@ public:
     }
 
     void fjumpEqual(const std::string& src1, const float imm, const std::string& labelName) override {
-        asm_file.line("\tvcmp.f32 %s, #%f", imm);
+        asm_file.line("\tvcmp.f32 %s, #%f", src1.c_str(), imm);
         asm_file.line("\tbeq %s", labelName.c_str());
     }
 
