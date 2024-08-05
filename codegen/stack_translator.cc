@@ -333,9 +333,7 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
             // 转换右边为浮点数
             translateTypeConversion(rhs, SyFloat); // s0 <- r0
             adapter->fpopStack({floatTempReg}); // s1 <- lhs
-        }
-
-        if (strcmp(rhs_type, SyFloat) == 0) {
+        } else if (strcmp(rhs_type, SyFloat) == 0) {
             // 转换左边为浮点数
             adapter->fpopStack({floatTempReg});
             adapter->i2f(floatTempReg, floatTempReg);
