@@ -483,7 +483,12 @@ public:
     }
 
     void uniOpWithImm(const std::string& op, const std::string& dst, const std::string& src, int imm) {
-        asm_file.line("\t%s %s, %s, #%d", op.c_str(), dst.c_str(), src.c_str(), imm);
+        if (((unsigned)imm) > 255) {
+            loadImmediate(getRegName(5), imm);
+            uniOp(op, dst, src, getRegName(5));
+        } else {
+            asm_file.line("\t%s %s, %s, #%d", op.c_str(), dst.c_str(), src.c_str(), imm);
+        }
     }
 
     void uniOp(const std::string& op, const std::string& dst, const std::string& src, const std::string& src2) {
