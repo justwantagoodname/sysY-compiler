@@ -1,14 +1,3 @@
-/* const int a = 1.5;
-const int b[2] = {1, 2.0};
-const float x[2] = {1, 2};
-*/
-
-int a = 1.0;
-float b = 2;
-
-//int y[2] = {1, 2.0};
-// float z[2] = {1, 2};
-
 int main() {
-    
+    e2;
 }
