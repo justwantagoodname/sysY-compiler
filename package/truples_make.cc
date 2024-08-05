@@ -421,8 +421,8 @@ void Triples::make()
             DL_FOREACH(element.unwrap()->children, cur) {
                 int t;
                 ASTNode_get_attr_int(cur, "temp", &t);
-                if (count > 0) {
-                    cr *= value[count].get_attr_int("size");
+                if (cur->next != NULL) {
+                    cr *= value[count + 1].get_attr_int("size");
                     triples.add(Cmd.mul, { t }, { cr, TT.dimd }, { t });
                 }
                 ++count;

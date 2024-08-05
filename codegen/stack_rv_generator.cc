@@ -467,12 +467,12 @@ void StackRiscVGenerator::genMem(Triples& triples, Triples::Triple& triple) {
         dst = getVarOpr(triples, to.value);
         if (to.added != NULL) { // 数组
             if (to.added->type == TTT.dimd) {
-                dst.offset -= to.added->value;
+                dst.offset += to.added->value * 4;
             } else if (to.added->type == TTT.temp) {
                 instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::s0), make_imm(dst.offset)));
                 instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, to.added->value)));
-                instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 4));
-                instrs.push_back(new RVArith(RVOp::SUB, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
+                instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 2));
+                instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
                 dst = make_stack(RVRegs::a4, 0);
             }
         }
@@ -485,12 +485,12 @@ void StackRiscVGenerator::genMem(Triples& triples, Triples::Triple& triple) {
             op1 = getVarOpr(triples, e1.value);
             if (e1.added != NULL) { // 数组
                 if (e1.added->type == TTT.dimd) {
-                    op1.offset -= e1.added->value;
+                    op1.offset += e1.added->value * 4;
                 } else if (e1.added->type == TTT.temp) {
                     instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::s0), make_imm(op1.offset)));
                     instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, e1.added->value)));
-                    instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 4));
-                    instrs.push_back(new RVArith(RVOp::SUB, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
+                    instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 2));
+                    instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
                     op1 = make_stack(RVRegs::a4, 0);
                 }
             }
@@ -798,12 +798,12 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
         dst_type = triples.getValueType(to);
         if (to.added != NULL) { // 数组
             if (to.added->type == TTT.dimd) {
-                dst.offset -= to.added->value;
+                dst.offset += to.added->value * 4;
             } else if (to.added->type == TTT.temp) {
                 instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::s0), make_imm(dst.offset)));
                 instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, to.added->value)));
-                instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 4));
-                instrs.push_back(new RVArith(RVOp::SUB, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
+                instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 2));
+                instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
                 dst = make_stack(RVRegs::a4, 0);
             }
         }
