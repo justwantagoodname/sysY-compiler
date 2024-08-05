@@ -124,6 +124,13 @@ RVstring::RVstring(const std::string& str) : str(str) {
 std::string RVstring::toASM() {
     return "    .string \"" + str + "\"\n";
 }
+RVzero::RVzero(uint32_t size) :size(size) {
+    return;
+}
+
+std::string RVzero::toASM() {
+    return "    .zero " + std::to_string(size * 4) + "\n";
+}
 
 
 RVArith::RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RVOperand& opr2)
@@ -132,7 +139,7 @@ RVArith::RVArith(RVOp opt, const RVOperand& dst, const RVOperand& opr1, const RV
     //	|| opt == RVOp::DIV || opt == RVOp::MOD);
     assert(dst.isreg());
     assert(opr1.isreg());
-    assert(opr2.isreg() || opr2.isimm());
+    assert(opr2.isreg() || opr2.isimm() || opr2.tag == ADDR);
 
     if (opr1.isfloat() || opr2.isfloat()) {
         is_float = true;
@@ -146,6 +153,9 @@ std::string RVArith::toASM() {
     switch (opt) {
     case RVOp::ADD:
         result += "add";
+        break;
+    case RVOp::ADDI:
+        result += "addi";
         break;
     case RVOp::SUB:
         result += "sub";
@@ -177,11 +187,11 @@ std::string RVArith::toASM() {
     default:
         panic("Error: RVArith::toASM(): default");
     }
-    if (opr2.isimm() && !is_float) {
-        result.push_back('i');
-    }
 
-    result += " " + dst.toASM() + ", " + opr1.toASM() + ", " + opr2.toASM() + "\n";
+    if (opr2.tag == ADDR)
+        result += " " + dst.toASM() + ", " + opr1.toASM() + ", " + "%lo(" + opr2.toASM() + ")" + "\n";
+    else
+        result += " " + dst.toASM() + ", " + opr1.toASM() + ", " + opr2.toASM() + "\n";
     return result;
 }
 
@@ -211,6 +221,9 @@ std::string RVMem::toASM() {
         break;
     case RVOp::LD:
         result = "    ld " + opr.toASM() + ", " + dst.toASM() + "\n";
+        break;
+    case RVOp::LUI:
+        result = "    lui " + dst.toASM() + ", " + "%hi(" + opr.toASM() + ")" + "\n";
         break;
     case RVOp::SW:
         result = "    sw " + opr.toASM() + ", " + dst.toASM() + "\n";
@@ -335,13 +348,13 @@ std::string RVSext::toASM() {
     std::string result = "";
     switch (opt)
     {
-        case RVOp::SEXTW:
-            result = "    sext.w " + dst.toASM() + ", " + opr.toASM() + "\n";
-            break;
-    
-        default:
-            panic("RVSext error");
-            break;
+    case RVOp::SEXTW:
+        result = "    sext.w " + dst.toASM() + ", " + opr.toASM() + "\n";
+        break;
+
+    default:
+        panic("RVSext error");
+        break;
     }
 }
 RVCompare::RVCompare(RVOp opt, const RVOperand& dst, const RVOperand& op1, const RVOperand& op2)
@@ -423,3 +436,4 @@ std::string RVSLLi::toASM()
     }
     return result;
 }
+

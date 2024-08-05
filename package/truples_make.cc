@@ -209,6 +209,9 @@ void Triples::pretreat()
     }
 
     Query ex_vars = root("/Scope/Decl/*");
+    for (auto e : ex_vars) {
+        e.add_attr("ex_var", 1);
+    }
     ex_vars += root("//ParamDecl");
     for (auto e : ex_vars) {
         e.add_attr("define", "true");
@@ -221,7 +224,6 @@ void Triples::pretreat()
 
     Query array_decls = root("//Decl/*[@array='true']/ArraySize");
     for (auto adecl : array_decls) {
-        adecl.print();
         DFS_Element(adecl) {
             DFS_Element_init;
             ife("Exp") {
@@ -383,7 +385,7 @@ void Triples::make()
             const char* s = element.get_attr_str("base");
             printf("--geting %s value\n", s);
             Element value = element.table(s);
-            printf("==geted %s value\n" , value.id());
+            printf("==geted %s value\n", value.id());
 
             element.add_attr("addr", triples.find(value));
             element.add_attr("type", value.get_attr_str("type"));
@@ -676,7 +678,7 @@ void Triples::make()
                 while (triples[break_index].to.type != TT.null) {
                     break_index = triples[break_index].to.value;
                     triples[break_index].to = { tag_count, TT.lamb };
-                } 
+                }
                 triples[break_index].to = { tag_count, TT.lamb };
             }
             tag_count++;
@@ -902,7 +904,8 @@ void Triples::make()
 
             const char* s = element.get_attr_str("name");
             Element value = element.qo("ancestor::Scope/Decl/*[@name='%s']", s);
-            value.add_attr("define", "true");
+            if (!value.get_attr("define"))
+                value.add_attr("define", "true");
             if (value.get_attr("size"))
                 size = value.get_attr_int("size");
 
