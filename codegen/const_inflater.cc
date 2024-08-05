@@ -26,32 +26,52 @@ void GlobalDeclInflater::inflateConstDecl(ASTNode* const_decl, AssemblyBuilder& 
     ASTNode_get_attr_str(const_decl, "label", &label);
     assert(label != nullptr);
 
+    bool is_array = ASTNode_querySelectorOne(const_decl, "/.[@array]") != nullptr;
+    if (!is_array) return; // Single const var will be omitted
+
+    string type;
+    ASTNode_get_attr_str(const_decl, "type", type);
+
     asm_builder
         .line("\t.type %s, %%object", label)
         .line("\t.section .rodata")
         .line("\t.align %d", this->word_align)
         .line("%s:", label);
 
-    bool is_array = ASTNode_querySelectorOne(const_decl, "/.[@array]") != nullptr;
-    if (!is_array) {
-        ASTNode* init_value = ASTNode_querySelectorOne(const_decl, "/InitValue//Number");
-        assert(init_value != nullptr);
-        int value = -1;
-        ASTNode_get_attr_int(init_value, "value", &value);
-        asm_builder
-            .line("\t.word %d", value);
-    } else {
-        QueryResult *init_values = ASTNode_querySelector(const_decl, "/InitValue[@array]//Number"), *cur = NULL;
-        DL_FOREACH(init_values, cur) {
-            int value = -1, repeat = -1;
-            ASTNode_get_attr_int(cur->node, "value", &value);
-            ASTNode_get_attr_int(cur->node, "repeat", &repeat);
-            if (value == 0) {
-                asm_builder.line("\t.zero %d", repeat * this->word_size); 
+
+    QueryResult *init_values = ASTNode_querySelector(const_decl, "/InitValue[@array]//Number"), *cur = NULL;
+    DL_FOREACH(init_values, cur) {
+        int ivalue = -1, repeat = -1;
+        float fvalue;
+        string number_type;
+        uint32_t data;
+        ASTNode_get_attr_str(cur->node, "type", number_type);
+        ASTNode_get_attr_int(cur->node, "repeat", &repeat);
+
+        if (number_type == SyInt) {
+            ASTNode_get_attr_int(cur->node, "value", &ivalue);
+            data = ivalue;
+        } else {
+            ASTNode_get_attr_float(cur->node, "value", &fvalue);
+            data = *(uint32_t*)&fvalue;
+        }
+
+        if (number_type != type) {
+            if (type == SyInt && number_type == SyFloat) {
+                data = (int)fvalue;
+            } else if (type == SyFloat && number_type == SyInt) {
+                float converted = (float)ivalue;
+                data = *(uint32_t*)&converted;
             } else {
-                for (int i = 0; i < repeat; i++) {
-                    asm_builder.line("\t.word %d", value);
-                }
+                assert(false);
+            }
+        }
+
+        if (data == 0) {
+            asm_builder.line("\t.zero %d", repeat * this->word_size);
+        } else {
+            for (int i = 0; i < repeat; i++) {
+                asm_builder.line("\t.word %u", data);
             }
         }
     }
