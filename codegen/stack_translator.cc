@@ -671,12 +671,12 @@ void StackTranslator::translateReturn(ASTNode *ret) {
 
     if (exp) {
         translateExp(exp);
-    }
-    string exp_type;
-    ASTNode_get_attr_str(exp, "type", exp_type);
+        string exp_type;
+        ASTNode_get_attr_str(exp, "type", exp_type);
 
-    if (ret_type != exp_type) {
-        translateTypeConversion(exp, ret_type);
+        if (ret_type != exp_type) {
+            translateTypeConversion(exp, ret_type);
+        }
     }
 
     // 直接返回不做转跳了，应该没有什么问题
