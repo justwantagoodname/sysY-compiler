@@ -48,6 +48,10 @@ private:
     // 0, 1, 2 -> int, float, addr
     std::map<uint, uint> tempvar_type;
 
+    // globe map
+    // index -> [name, type, size, init nums]
+    std::map<int, std::tuple<std::string, int, int, std::vector<unsigned int>>> globe_map;
+
     // index -> [id, size]
     std::stack<std::vector<std::pair<int, int>>> cur_stacks;
     std::stack<int> cur_blocks;
@@ -58,9 +62,11 @@ private:
     int cur_smallest_temp;
     void createTable(Triples& triples);
     void calculateSize(Triples& triples);
+    void makeGlobeMap(Triples& triples);
 
     RVOperand getTempOpr(Triples& triples, int temp_id);
     RVOperand getVarOpr(Triples& triples, int var_id);
+    RVOperand loadValueOpr(Triples& triples, Triples::TripleValue& e);
 
     void genArith(Triples& triples, Triples::Triple& triple);
     void genMem(Triples& triples, Triples::Triple& triple);
@@ -73,6 +79,8 @@ private:
     void genMove(Triples& triples, Triples::Triple& triple);
     void genReturn(Triples& triples, Triples::Triple& triple);
     void genAllStrsFloats();
+    void genAllGlobeVars();
+
 public:
     std::vector<RVInstr*> instrs; 
     StackRiscVGenerator();
