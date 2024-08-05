@@ -122,7 +122,11 @@ void Triples::minTempVar()
 			}
 			while (nextt != -1) {
 				int temp = 42;
-				if (triples[var_begin[nextt]]->cmd == Cmd.load) {
+				// 终止本次合并，（在本次循环中）启动下一次
+				if (
+					triples[var_begin[nextt]]->cmd == Cmd.load
+					|| temp_type[begint] != temp_type[nextt]
+					) {
 					meraged[begint] = true;
 					begint = nextt;
 				}
@@ -163,67 +167,111 @@ void Triples::minTempVar()
 void Triples::eliUnnecVar()
 {
 	// 消除到立即数的无用中间变量
-	std::vector<int> imd_temp(temp_count, -1);
-	//int* imd_temp = new int[temp_count + 5];
-	//memset(imd_temp, -1, sizeof(int) * temp_count);
-	std::vector<bool> imd_type(temp_count, false);
-	//bool* imd_type = new bool[temp_count + 5];
-	//memset(imd_type, 0, sizeof(bool) * temp_count);
+	std::vector<TripleValue> imd_temp(temp_count, TripleValue());
 
-	auto sett = [f = [&imd_temp, &imd_type](auto&& self, TripleValue* e) -> void {\
+	auto sett = [f = [&imd_temp](auto&& self, TripleValue* e) -> void {
 
-		if (e->type == TT.temp && imd_temp[e->value] != -1) {
-
-			if (imd_type[e->value]) {
-				e->type = TT.fimd;
-			}
-			else {
-				e->type = TT.dimd;
-			}
-			e->value = imd_temp[e->value];
-
+		if (e->type == TT.temp && imd_temp[e->value].type != TT.null) {
+			auto added = e->added;
+			*e = imd_temp[e->value];
+			e->added = added;
 		}
 		if (e->added != nullptr) {
 			self(self, e->added);
 		}
 		}]
-		(TripleValue* e) {\
-		f(f, e);
-	};
+		(TripleValue* e) -> void { f(f, e); };
 
 	int i = 0;
 	for (auto it = triples.begin(); it != triples.end(); ++it) {
-		\
+
 		sett(&(*it)->e1);
 		sett(&(*it)->e2);
 
 		// 获取某个立即数并绑定到临时变量
-		if ((*it)->cmd == Cmd.mov && ((*it)->e1.type == TT.dimd || (*it)->e1.type == TT.fimd) && (*it)->to.type == TT.temp) {
-			imd_temp[(*it)->to.value] = (*it)->e1.value;
-			if ((*it)->e1.type == TT.fimd) {
-				imd_type[(*it)->to.value] = true;
-			}
+		if ((*it)->cmd == Cmd.mov &&
+			(
+				(*it)->e1.type == TT.dimd
+				|| (*it)->e1.type == TT.fimd
+				)
+			&& (*it)->to.type == TT.temp) {
+			imd_temp[(*it)->to.value] = (*it)->e1;
 			it = triples.erase(it);
 			--it;
 		}
 		// 当某个临时变量被重新赋值时取消绑定 (尽管可能不存在这样的情况）
 		else if ((*it)->to.type == TT.temp && imd_temp[(*it)->to.value] != -1) {
-			imd_temp[(*it)->to.value] = -1;
+			imd_temp[(*it)->to.value] = {};
 		}
 	}
 
 	//delete[] imd_temp;
 	//delete[] imd_type;
+
+//	// 消除到立即数的无用中间变量
+//	std::vector<int> imd_temp(temp_count, -1);
+//	//int* imd_temp = new int[temp_count + 5];
+//	//memset(imd_temp, -1, sizeof(int) * temp_count);
+//	std::vector<bool> imd_type(temp_count, false);
+//	//bool* imd_type = new bool[temp_count + 5];
+//	//memset(imd_type, 0, sizeof(bool) * temp_count);
+//
+//	auto sett = [f = [&imd_temp, &imd_type](auto&& self, TripleValue* e) -> void {\
+//
+//		if (e->type == TT.temp && imd_temp[e->value] != -1) {
+//
+//			if (imd_type[e->value]) {
+//				e->type = TT.fimd;
+//			}
+//			else {
+//				e->type = TT.dimd;
+//			}
+//			e->value = imd_temp[e->value];
+//
+//		}
+//		if (e->added != nullptr) {
+//			self(self, e->added);
+//		}
+//		}]
+//		(TripleValue* e) {\
+//		f(f, e);
+//	};
+//
+//	int i = 0;
+//	for (auto it = triples.begin(); it != triples.end(); ++it) {
+//		\
+//		sett(&(*it)->e1);
+//		sett(&(*it)->e2);
+//
+//		// 获取某个立即数并绑定到临时变量
+//		if ((*it)->cmd == Cmd.mov && ((*it)->e1.type == TT.dimd || (*it)->e1.type == TT.fimd) && (*it)->to.type == TT.temp) {
+//			imd_temp[(*it)->to.value] = (*it)->e1.value;
+//			if ((*it)->e1.type == TT.fimd) {
+//				imd_type[(*it)->to.value] = true;
+//			}
+//			it = triples.erase(it);
+//			--it;
+//		}
+//		// 当某个临时变量被重新赋值时取消绑定 (尽管可能不存在这样的情况）
+//		else if ((*it)->to.type == TT.temp && imd_temp[(*it)->to.value] != -1) {
+//			imd_temp[(*it)->to.value] = -1;
+//		}
+//	}
+//
+//	//delete[] imd_temp;
+//	//delete[] imd_type;
 }
 
 void Triples::resortTemp()
 {
+	// 重做类型传递
 	int* temp_stack = new int[temp_count + 5];
 	memset(temp_stack, -1, sizeof(int) * temp_count);
 	int stack_top = 0;
 
-	auto sett = [f = [temp_stack](auto&& self, TripleValue* e) -> void {
+	auto sett = [f = [temp_stack, this](auto&& self, TripleValue* e) -> void {
 		if (e->type == TT.temp) {
+			temp_type[temp_stack[e->value]] = temp_type[e->value];
 			e->value = temp_stack[e->value];
 		}
 		if (e->added != nullptr) {
@@ -241,5 +289,39 @@ void Triples::resortTemp()
 		sett(&(*it)->e1);
 		sett(&(*it)->e2);
 		sett(&(*it)->to);
+	}
+}
+
+
+void Triples::listTempType()
+{
+	temp_type.resize(temp_count);
+	temp_type.clear();
+
+	for (auto e : triples) {
+		switch (e->cmd)
+		{
+		case Cmd.load:
+			temp_type[e->to.value] = getValueType(e->e1);
+			break;
+		case Cmd.mov:
+		case Cmd.call:
+			if (e->to.type == TT.temp) {
+				temp_type[e->to.value] = getValueType(e->e1);
+			}
+			break;
+		case Cmd.add:
+		case Cmd.sub:
+		case Cmd.mul:
+		case Cmd.div:
+			// 判断计算后类型
+			if (getValueType(e->e1) == 2 || getValueType(e->e2) == 2)
+				temp_type[e->to.value] = 2;
+			else
+				temp_type[e->to.value] = 1;
+			break;
+		default:
+			break;
+		}
 	}
 }

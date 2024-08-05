@@ -149,7 +149,7 @@ Element Element::at(int index) const {
 	return child;
 }
 
-Element& Element::add_child(int n, ...) {
+Element& Element::add_childn(int n, ...) {
 	assert(node != nullptr);
 	va_list args;
 	va_start(args, n);
@@ -164,11 +164,6 @@ Element& Element::add_child(int n, ...) {
 
 Element& Element::add_child(ASTNode* child) {
 	ASTNode_add_child(node, child);
-	return *this;
-}
-
-Element& Element::add_child(const Element&& child) {
-	ASTNode_add_child(node, child.node);
 	return *this;
 }
 
@@ -335,7 +330,7 @@ Element Element::querySelectorOnef(const char* fmt, ...) const
 
 Element Element::table(const char* key) const
 {
-	Element e = this->qo("ancestor::Scope/Decl/*[@name='%s']", key);
+	Element e = this->qo("ancestor::Scope/Decl/*[@name='%s',@define='true']", key);
 	return e;
 }
 

@@ -15,16 +15,22 @@ enum RVOperandTag {
     IMM,
     SIMM,
     ADDR,
-    STACK
+
+    // base on sp
+    STACK,
+    // base on s0
+    BASE
 };
 
-enum RVRegs {
+enum class RVRegs {
     zero = 0,
     ra = 1,
     sp = 2,
+    s0 = 8,
     s1 = 9,
     a0 = 10, a1, a2, a3, a4, a5, a6, a7 = 17,
-    s2 = 18, s3, s4, s5, s6, s7, s8, s9, s10, s11 = 27
+    s2 = 18, s3, s4, s5, s6, s7, s8, s9, s10, s11 = 27,
+    fa0 = 28, fa1, fa2, fa3, fa4, fa5, fa6, fa7 = 35
 };
 
 class RVOperand {
@@ -32,9 +38,11 @@ class RVOperand {
 public:
     RVOperandTag tag;
     int32_t value;
+    // normal hi lo
+    uint8_t nhl;
     std::string addr;
     RVRegs reg;
-    uint16_t offset;
+    int offset;
     RVOperand();
     RVOperand(RVOperandTag tag, int value);
     bool isreg() const;
@@ -43,12 +51,14 @@ public:
     std::string toASM() const;
 };
 
-RVOperand make_reg(int reg);
+RVOperand make_reg(RVRegs reg);
+RVOperand make_areg(int offset);
 RVOperand make_sreg(int sreg);
+RVOperand make_sreg(RVRegs sreg);
 RVOperand make_imm(int value);
-RVOperand make_simm(float value);
-RVOperand make_stack(RVRegs reg, uint16_t offset);
-RVOperand make_addr(const std::string& label);
+RVOperand make_simm(int value);
+RVOperand make_stack(RVRegs reg, int offset);
+RVOperand make_addr(const std::string& label, uint8_t normal_hi_lo = 0);
 
 enum class RVOp {
     // Arithmetic
@@ -64,6 +74,27 @@ enum class RVOp {
     FDIV,
     FMOD,
 
+    // Compare
+    BGT,
+    BGE,
+    BLT,
+    BLE,
+    BEQ,
+    BNE,
+    BNEZ,
+
+    // Float Compare
+    FGT,
+    FGE,
+    FLT,
+    FLE,
+    FEQ,
+    FNE,
+    FNEZ,       
+
+    MV,
+    FMVXD,
+    FMVS,
     // Float move
     // from integer
     FMVF,
@@ -79,6 +110,9 @@ enum class RVOp {
     FCVTT,
     // to integer unsigned
     FCVTTU,
+    // from 32bit to 64bit
+    FCVTDS,
+    FCVTWS,
 
     // Logical
     XOR,
@@ -97,9 +131,15 @@ enum class RVOp {
 
     // Load
     LW,
+    LI,
+    LD,
     FLW,
+    FLD,
+    // Load string
+    LSTR,
     // Store
     SW,
+    SD,
     FSW,
 
     // I
@@ -116,6 +156,14 @@ enum class RVOp {
     SLTI,
     SLTIU,
 
+    // Jump
+    J,
+    JR,
+    JALR,
+    JMP,
+
+    SEXTW,
+
     NOP
 };
 
@@ -125,6 +173,25 @@ public:
     RVInstr();
     RVInstr(RVOp opt);
     virtual std::string toASM() = 0;
+};
+
+class RVTag : public RVInstr {
+public:
+    std::string cont;
+    RVTag(const std::string& cont);
+    virtual std::string toASM() override;
+};
+class RVword : public RVInstr {
+public:
+    uint32_t value;
+    RVword(uint32_t value);
+    virtual std::string toASM() override;
+};
+class RVstring : public RVInstr {
+public:
+    std::string str;
+    RVstring(const std::string& str);
+    virtual std::string toASM() override;
 };
 
 
@@ -141,22 +208,51 @@ class RVMem : public RVInstr {
 public:
     bool is_float;
     RVOperand dst, opr;
-    RVMem(RVOp opt, const RVOperand& opr, uint16_t offset);
+    RVMem(RVOp opt, const RVOperand& opr, uint16_t dst_offset, bool base_on_sp = true);
+    RVMem(RVOp opt, const RVOperand& dst, const RVOperand& value);
+    virtual std::string toASM() override;
+};
+
+class RVMov: public RVInstr {
+public:
+    RVOperand dst, opr;
+    RVMov(RVOp opt, const RVOperand& dst, const RVOperand& opr);
+    virtual std::string toASM() override;
+};
+
+class RVConvert : public RVInstr {
+public:
+    RVOperand dst, opr;
+    RVConvert(RVOp opt, const RVOperand& dst, const RVOperand& opr);
     virtual std::string toASM() override;
 };
 
 // Call
 class RVCall : public RVInstr {
-    std::string intPutOnReg(const RVOperand& opr, uint8_t reg);
 public:
-    std::vector<RVOperand> args;
+    std::string func_name;
+    RVCall(const std::string& func_name);
     virtual std::string toASM() override;
 };
 
-// Putf
-class RVPutf : public RVInstr {
+class RVJump : public RVInstr {
 public:
-    std::vector<RVOperand> args;
+    RVOperand dst;
+    RVJump(RVOp opt, const RVOperand& dst);
+    virtual std::string toASM() override;
+};
+class RVSext : public RVInstr {
+public:
+    RVOperand dst, opr;
+    RVSext(RVOp opt, const RVOperand& dst, const RVOperand& opr);
+    virtual std::string toASM() override;
+};
+
+class RVCompare : public RVInstr {
+public:
+    RVOperand dst;
+    RVOperand op1, op2;
+    RVCompare(RVOp opt, const RVOperand& dst, const RVOperand& op1, const RVOperand& op2);
     virtual std::string toASM() override;
 };
 
