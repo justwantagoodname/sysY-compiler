@@ -664,15 +664,22 @@ void StackTranslator::translateAssign(ASTNode *assign) {
 void StackTranslator::translateReturn(ASTNode *ret) {
     assert(ASTNode_id_is(ret, "Return"));
 
+    auto func = ASTNode_querySelectorOne(ret, "/ancestor::Function");
+    string ret_type;
+    ASTNode_get_attr_str(func, "return", ret_type);
+
     auto exp = ASTNode_querySelectorOne(ret, "Exp");
+    assert((ret_type == SyVoid && exp == nullptr )|| (ret_type != SyVoid && exp != nullptr));
+
     if (exp) {
         translateExp(exp);
     }
+    string exp_type;
+    ASTNode_get_attr_str(exp, "type", exp_type);
 
-    auto func = ASTNode_querySelectorOne(ret, "/ancestor::Function");
-    const char* ret_label;
-    bool hasRetLabel = ASTNode_get_attr_str(func, "returnLabel", &ret_label);
-    assert(hasRetLabel);
+    if (ret_type != exp_type) {
+        translateTypeConversion(exp, ret_type);
+    }
 
     // 直接返回不做转跳了，应该没有什么问题
     adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
