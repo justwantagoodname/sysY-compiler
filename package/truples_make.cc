@@ -975,6 +975,10 @@ void Triples::make()
     setValueTable();
     setFuncParams();
     listTempType();
+
+    for (auto e : value_pointer) {
+        e.print();
+    }
 }
 
 void Triples::setValueTable() {
@@ -1036,7 +1040,7 @@ void Triples::setFuncParams()
                 type += 1;
             }
             std::string name = param.get_attr_str("name");
-            Element value = e.qo("/*[@name='%s']", name.c_str());
+            Element value = e.qo("/Scope/Decl/*[@name='%s']", name.c_str());
 
             for (int i = 0; i < value_pointer.size(); ++i) {
                 //printf("makeing i: %d\n", i);

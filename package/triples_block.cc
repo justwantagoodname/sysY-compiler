@@ -342,6 +342,7 @@ void Triples::listTempType()
         case Cmd.sub:
         case Cmd.mul:
         case Cmd.div:
+        case Cmd.mod:
             // 判断计算后类型
             if (getValueType(e->e1) == 2 || getValueType(e->e2) == 2)
                 temp_type[e->to.value] = 2;

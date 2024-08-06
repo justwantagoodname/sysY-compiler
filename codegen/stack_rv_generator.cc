@@ -467,7 +467,7 @@ void StackRiscVGenerator::makeGlobeMap(Triples& triples)
                 if (item.id_is("Number")) {
                     init_nums.push_back(item.get_attr_int("value"));
                 } else if (item.id_is("Exp")) {
-                    if(item[0].id_is("Number"))
+                    if (item[0].id_is("Number"))
                         init_nums.push_back(item[0].get_attr_int("value"));
                 } else {
                     init_nums.push_back(0);
@@ -512,30 +512,39 @@ RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, int var_id) {
         count += num;
     }
 
+    // 第0位是函数返回值类型
     auto& cur_args = triples.func_params[cur_func_name];
     int int_count = 0, float_count = 0;
     for (auto& [name, type] : cur_args) {
+        if (name == -1)continue;
         if (type == 1 || type == 3 || type == 4) ++int_count;
         else if (type == 2) ++float_count;
     }
+    printf("getting value id %d : int count %d, float count %d\n", var_id, int_count, float_count);
+    for (auto e : cur_args) {
+        printf("(%d, %d) ", e.first, e.second);
+    }
+    printf("\n");
 
-    for (size_t i = cur_args.size() - 1; i >= 0; --i) {
+    for (size_t i = cur_args.size() - 1; i >= 1; --i) {
         int id = cur_args[i].first;
         int type = cur_args[i].second;
 
-
+        printf("%d > finding by %d to var_id: %d \n", i, id, var_id);
         if (type == 1 || type == 3 || type == 4) {
             if (id == var_id) {
                 if (int_count <= 8) return make_areg(int_count - 1);
                 else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
             }
             --int_count;
+            assert(int_count > 0);
         } else if (type == 2) {
             if (id == var_id) {
                 if (float_count <= 8) return make_sreg(float_count - 1);
                 else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
             }
             --float_count;
+            assert(float_count > 0);
         }
     }
 
@@ -635,8 +644,8 @@ void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) {
             ++float_count;
         } else if (cur_arg->type == TTT.temp) {
             int temp_type = triples.getTempType(cur_arg->value);
-            if (temp_type == 1) {
-                // int
+            if (temp_type == 1 || temp_type == 3 || temp_type == 4) {
+                // int || array
                 if (int_count < 8) {
                     instrs.push_back(new RVMem(RVOp::LW, make_areg(int_count), getTempOpr(triples, cur_arg->value)));
                 } else {
@@ -910,6 +919,7 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
     {
         RVOperand op1;
         op1 = getTempOpr(triples, tv.value);
+        printf("%d %d cmp %d \n",tv.value, triples.getValueType(tv), triples.getValueType(to));
         if (triples.getValueType(tv) == triples.getValueType(to)) {
             // 同类型
             instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), op1));
@@ -927,6 +937,46 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
         } else {
             panic("Error in genMove");
         }
+    } else if (tv.type == TTT.addr) {
+        RVOperand op1;
+        op1 = getVarOpr(triples, tv.value);
+
+        RVOperand added;
+        if (tv.added->type == TTT.temp) {
+            added = getTempOpr(triples, tv.added->value);
+            instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), added));
+            added = make_reg(RVRegs::a5);
+        } else if (tv.added->type == TTT.dimd) {
+            added = make_imm(tv.added->value);
+        } else {
+            panic("bad addr added");
+        }
+
+        if (op1.tag == STACK) {
+            if (added.isimm()) {
+                added.value *= 4;
+                added.value += op1.offset;
+            }
+
+            if (added.isimm() && (added.value < -2048 || added.value > 2047)) {
+                added.value += op1.offset;
+                instrs.push_back(new RVMem(RVOp::LI, make_reg(RVRegs::a5), added));
+                added = make_reg(RVRegs::a5);
+            }
+
+            RVOp cmd;
+            if (added.isimm()) {
+                cmd = RVOp::ADDI;
+            } else {
+                cmd = RVOp::ADD;
+            }
+            instrs.push_back(new RVArith(cmd, make_reg(RVRegs::a5), make_reg(op1.reg), added));
+            added = make_reg(RVRegs::a5);
+
+            instrs.push_back(new RVMem(RVOp::SW, dst, added));
+
+        }
+
     } else {
         panic("bad triplevalue type");
     }
