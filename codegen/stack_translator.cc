@@ -757,7 +757,7 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
                 translateTypeConversion(init, var_type);
             }
 
-            if (value != 0 || !cleared) {
+            if (!hasValue || (hasValue && value != 0) || !cleared) {
                 // 如果不是 0 或者没有清空过，那么就赋值
                 for (int i = 0; i < repeat; i++) {
                     if (var_type == SyInt) {
