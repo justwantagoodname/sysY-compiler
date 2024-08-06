@@ -731,10 +731,10 @@ public:
     }
 
     void fnotReg(const std::string& dst, const std::string& src) override {
-        asm_file.line("\tvcmp.f32 s15, #0", dst.c_str(), src.c_str())
+        asm_file.line("\tvcmp.f32 %s, #0", src.c_str())
                 .line("\tvmrs APSR_nzcv, FPSCR")
                 .line("\tmoveq %s, #1", dst.c_str())
-                .line("\tmovne r0, #0", dst.c_str());
+                .line("\tmovne %s, #0", dst.c_str());
     }
 
     void fadd(const std::string& dst, const std::string& src1, const std::string& src2) override {
@@ -795,7 +795,8 @@ public:
     }
 
     void fjumpEqual(const std::string& src1, const float imm, const std::string& labelName) override {
-        asm_file.line("\tvcmp.f32 %s, #%f", src1.c_str(), imm);
+        asm_file.line("\tvcmp.f32 %s, #%f", src1.c_str(), imm)
+                .line("\tvmrs    APSR_nzcv, FPSCR");
         asm_file.line("\tbeq %s", labelName.c_str());
     }
 

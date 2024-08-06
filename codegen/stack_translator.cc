@@ -832,8 +832,10 @@ void StackTranslator::translateIf(ASTNode *ifstmt) {
 
     assert(cond_type != SyVoid);
     if (cond_type == SyInt) adapter->jumpEqual(accumulatorReg, 0, false_label);
-    if (cond_type == SyFloat) adapter->fjumpEqual(floatAccumulatorReg, 0.0f, false_label);
-
+    if (cond_type == SyFloat) {
+        adapter->fjumpEqual(floatAccumulatorReg, 0.0f, false_label);
+        
+    }
     adapter->emitLabel(true_label);
     auto true_branch = ASTNode_querySelectorOne(ifstmt, "Then/*");
     assert(true_branch);
