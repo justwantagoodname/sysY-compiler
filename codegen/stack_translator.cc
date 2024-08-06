@@ -68,7 +68,6 @@ void StackTranslator::translateFunc(ASTNode *func) {
 #endif
 
     // 查找所有的参数，为参数生成引用 label
-    int paramSize = ASTNode_children_size(ASTNode_querySelectorOne(func, "/Params"));
     QueryResult *params = ASTNode_querySelector(func, "/Params/ParamDecl"), *cur = nullptr;
     // 这里从 1 开始，因为 0 是 old fp
     int funcParamIndex = 1;
