@@ -1015,6 +1015,19 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
         assert(false);
     }
 
+
+    if (ASTNode_id_is(logic, "And")) {
+        // 短路与
+        // 计算 rhs 时，如果为真，直接转跳父节点的true_label
+        ASTNode_set_attr_str(logic, "trueLabel", true_label);
+    } else if (ASTNode_id_is(logic, "Or")) {
+        // 短路或
+        // 计算 rhs 时，如果为假，转跳父节点的falseLabel
+        ASTNode_set_attr_str(logic, "falseLabel", false_label);
+    } else {
+        assert(false);
+    }
+
     adapter->emitLabel(rhs_label);
     translateExpInner(rhs);
 

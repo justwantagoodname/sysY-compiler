@@ -10,16 +10,16 @@
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
 
-// #define ASM_GEN
-#define TRIPLE_DEBUG
+ #define ASM_GEN
+//#define TRIPLE_DEBUG
 // #define RV_ASM_GEN
 
-#ifdef TRIPLE_DEBUG
-#include "codegen/stack_rv_generator.h"
-#endif
-#ifdef RV_ASM_GEN
-#include "codegen/stack_rv_generator.h"
-#endif
+//#ifdef TRIPLE_DEBUG
+//#include "codegen/stack_rv_generator.h"
+//#endif
+//#ifdef RV_ASM_GEN
+//#include "codegen/stack_rv_generator.h"
+//#endif
 
 
 int main(int argc, const char** argv) {
@@ -29,14 +29,14 @@ int main(int argc, const char** argv) {
 	Element root = Element::CreateByFile(Flag::getFlag().by<std::string>("input").c_str());
 
 	if (Flag::getFlag().by<bool>("dump-raw")) {
-  		// root.print();
+  		 root.print();
 	}
 
 #ifdef UNI_OPTIMIZTION
 	ConstNode_fold(root);
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
-  		 //root.print();
+  		 root.print();
 	}
 #endif
 	
