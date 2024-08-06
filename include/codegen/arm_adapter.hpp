@@ -97,12 +97,11 @@ public:
                         i2f(getFRegisterName(float_reg), getFRegisterName(float_reg));
                         float_reg++;
                     } else if (arg_type[i] == SyFloat && declare.args[i].first == SyInt) {
+                        // want: int get: float
                         if (i != 0) {
                             floadRegister(getFRegisterName(float_reg), getStackPointerName(), 0);
                             add(getStackPointerName(), getStackPointerName(), 4);
-                        } else {
-                            fmov(getFRegisterName(float_reg), getRegName(0));
-                        }
+                        } // No need to load from float reg
                         f2i(getFRegisterName(float_reg), getFRegisterName(float_reg));
                         fmov(getRegName(integer_reg), getFRegisterName(float_reg));
                         integer_reg++;
