@@ -807,6 +807,8 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
 void StackTranslator::translateIf(ASTNode *ifstmt) {
     assert(ASTNode_id_is(ifstmt, "If"));
 
+    adapter->emitComment("If 开始");
+
     // 生成真分支和假分支标签
     // TODO： 也许可以研究一下分支优化的策略，生成更好的代码
 

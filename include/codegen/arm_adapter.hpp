@@ -24,7 +24,7 @@ struct ExternFunctionDeclare {
 
 class ARMAdapter : public Adapter {
 private:
-    int lt_label_count = 0;
+    static int lt_label_count;
     AssemblyBuilder &asm_file;
     std::map<std::string, ExternFunctionDeclare> extern_functions;
 
@@ -808,4 +808,5 @@ public:
     }
 };
 
+int ARMAdapter::lt_label_count = 0;
 #endif
