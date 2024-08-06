@@ -21,8 +21,9 @@
 extern void yyerror(struct ASTNode **cur, const char *s);
 %}
 
-DecimalFloatConst [0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?
-HexFloatConst (0x|0X)[0-9a-zA-Z]*\.?[0-9a-zA-Z]+([pP][-+]?[0-9]+)
+DecimalDigitFloatConst [0-9]+([eE][-+]?[0-9]+)
+DecimalFractionalConst (([0-9]*\.[0-9]+)|[0-9]+\.)([eE][-+]?[0-9]+)?
+HexFloatConst (0x|0X)(([0-9a-fA-F]+\.)|([0-9a-fA-F]*\.[0-9a-fA-F]+))([pP][-+]?[0-9]+)
 
 DecConst [1-9][0-9]*
 OctConst 0[0-7]*
@@ -96,7 +97,7 @@ Whitespaces [ \f\n\r\t\v]
 {HexConst}          { yylval.intValue = std::stoll(yytext, 0, 16);      return IntegerConst; }
 
     /* 这个从神必网址抄过来的 https://www.regular-expressions.info/floatingpoint.html 😇 */
-{DecimalFloatConst} { char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }
+{DecimalFractionalConst}|{DecimalDigitFloatConst} { char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }
 
     /* 这是我自己写的不知道对不对，参考 https://en.cppreference.com/w/c/string/byte/strtof 🤓 */
 {HexFloatConst} { char* end; yylval.floatValue = strtof(yytext, &end); return FloatConst; }

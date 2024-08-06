@@ -24,8 +24,13 @@ struct ExternFunctionDeclare {
 
 class ARMAdapter : public Adapter {
 private:
+    int lt_label_count = 0;
     AssemblyBuilder &asm_file;
     std::map<std::string, ExternFunctionDeclare> extern_functions;
+
+    string getLTLabel() {
+        return ".LT" + std::to_string(lt_label_count++);
+    }
 
 public:
     explicit ARMAdapter(AssemblyBuilder &asm_file) : asm_file(asm_file) {
@@ -470,20 +475,40 @@ public:
 
     void loadLabelAddress(const std::string& reg, const std::string& labelName) override {
         asm_file.line("\tldr %s, =%s", reg.c_str(), labelName.c_str());
+        createLocalLTPool();
     }
 
     void loadRegister(const std::string& dst, const std::string& src, int offset) override {
         if (offset == 0) asm_file.line("\tldr %s, [%s]", dst.c_str(), src.c_str());
-        else asm_file.line("\tldr %s, [%s, #%d]", dst.c_str(), src.c_str(), offset);
+        else {
+            if (abs(offset) > 512) {
+                loadImmediate(getRegName(5), offset);
+                asm_file.line("\tldr %s, [%s, %s]", src.c_str(), dst.c_str(), getRegName(5).c_str());
+            } else {
+                asm_file.line("\tldr %s, [%s, #%d]", src.c_str(), dst.c_str(), offset);
+            }
+        }
     }
 
     void storeRegister(const std::string& src, const std::string& dst, int offset) override {
         if (offset == 0) asm_file.line("\tstr %s, [%s]", src.c_str(), dst.c_str());
-        else asm_file.line("\tstr %s, [%s, #%d]", src.c_str(), dst.c_str(), offset);
+        else {
+            if (abs(offset) > 512) {
+                loadImmediate(getRegName(5), offset);
+                asm_file.line("\tstr %s, [%s, %s]", src.c_str(), dst.c_str(), getRegName(5).c_str());
+            } else {
+                asm_file.line("\tstr %s, [%s, #%d]", src.c_str(), dst.c_str(), offset);
+            }
+        }
     }
 
     void uniOpWithImm(const std::string& op, const std::string& dst, const std::string& src, int imm) {
-        asm_file.line("\t%s %s, %s, #%d", op.c_str(), dst.c_str(), src.c_str(), imm);
+        if (abs(imm) > 512) {
+            loadImmediate(getRegName(5), imm);
+            uniOp(op, dst, src, getRegName(5));
+        } else {
+            asm_file.line("\t%s %s, %s, #%d", op.c_str(), dst.c_str(), src.c_str(), imm);
+        }
     }
 
     void uniOp(const std::string& op, const std::string& dst, const std::string& src, const std::string& src2) {
@@ -771,10 +796,16 @@ public:
     }
 
     void fjumpEqual(const std::string& src1, const float imm, const std::string& labelName) override {
-        asm_file.line("\tvcmp.f32 %s, #%f", imm);
+        asm_file.line("\tvcmp.f32 %s, #%f", src1.c_str(), imm);
         asm_file.line("\tbeq %s", labelName.c_str());
     }
 
+    void createLocalLTPool() override {
+        const auto label = getLTLabel();
+        jump(label);
+        asm_file.line(".ltorg");
+        emitLabel(label);
+    }
 };
 
 #endif

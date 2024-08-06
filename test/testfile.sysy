@@ -1,10 +1,22 @@
-int ex_var = 100;
-int ex_a[10] = {1, 2, 3};
-
-int main(){
-    int a[4][2] = {1, 2, 3, 4, 5, 6, 7, 8};
-	putf("%d %d %d %d ", a[0][0], a[0][1], a[1][0], a[1][1]);
-	putf("%d %d %d %d\n", a[2][0], a[2][1], a[3][0], a[3][1] );
-	putf("ex_var = %d\n", ex_var);
-	putf("ex_a: [%d, %d, %d, %d...]\n", ex_a[0], ex_a[1], ex_a[2], ex_a[3]);
+// Use complex expression in if structure
+int main () {
+    int a;
+    int b;
+    int c;
+    int d;
+    int result;
+    a = 5;
+    b = 5;
+    c = 1;
+    d = -2;
+    result = 2;
+    if ((d * 1 / 2) < 0 || (a - b) != 0 && (c + 3) % 2 != 0) {
+        putint(result);
+    }
+    if ((d % 2 + 67) < 0 || (a - b) != 0 && (c + 2) % 2 != 0) {
+        result = 4;
+        putint(result);
+    }
+    return 0;
 }
+

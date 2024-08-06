@@ -9,6 +9,7 @@
 #include "codegen/stack_translator.hpp"
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
+
 // #define ASM_GEN
 #define TRIPLE_DEBUG
 // #define RV_ASM_GEN
@@ -32,8 +33,7 @@ int main(int argc, const char** argv) {
 	}
 
 #ifdef UNI_OPTIMIZTION
-	ConstNode_unfold(root);
-	
+	ConstNode_fold(root);
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
   		 //root.print();
