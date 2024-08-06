@@ -409,6 +409,7 @@ void Triples::make()
         ife("Locator") {
             const char* s = element.get_attr_str("base");
             Element value = element.table(s);
+            Element v0 = value;
 
             if (!value.id_is("ParamDecl")) {
                 value = value[0];
@@ -433,7 +434,7 @@ void Triples::make()
 
             if (element.size() < value.size()) {
                 element.add_attr("is_addr", 1);
-                element.add_attr("addr_base", triples.find(value));
+                element.add_attr("addr_base", triples.find(v0));
                 element.add_attr("temp", temp);
             } else {
                 element.add_attr("temp", temp);
@@ -981,6 +982,7 @@ void Triples::setValueTable() {
         assert(e);
 
         ValueTableElement value;
+        e.print();
 
         value.name = e.get_attr_str("name");
         value.type = strcmp(e.get_attr_str("type"), "Float") == 0; // set 0 int and 1 float;

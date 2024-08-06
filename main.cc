@@ -10,7 +10,7 @@
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
 
-// #define ASM_GEN
+ //#define ASM_GEN
 #define TRIPLE_DEBUG
 // #define RV_ASM_GEN
 
