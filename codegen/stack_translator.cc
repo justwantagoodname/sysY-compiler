@@ -529,6 +529,7 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         auto *locator = ASTNode_querySelectorOne(address, "/Locator");
         // 没有访问数组的索引，那么直接返回地址
         if (locator) {
+            auto locator_size = ASTNode_children_size(locator); // subarray 运算符的数量
             // 访问数组 依次计算索引，这里翻译为一个连加，因为我们可以控制过程，所以优化一下
             QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*"), *cur;
             int idx = 0;
@@ -565,7 +566,8 @@ void StackTranslator::translateLVal(ASTNode *lval) {
                     adapter->add(accumulatorReg, accumulatorReg, tempReg);
                 }
 
-                if (idx != dim_sizes.size() - 1) {
+                // Update 这里按照实际的subarray数量来计算防止多push了
+                if (idx != locator_size - 1) {
                     adapter->pushStack({accumulatorReg}); // 如果后面还有维度，先保存
                 }
 
