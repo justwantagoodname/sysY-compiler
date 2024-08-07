@@ -70,12 +70,14 @@ void StackTranslator::translateFunc(ASTNode *func) {
     // Update: Place Variable To NEON Register
 
     int reg_number = 2; // s0 s1 was used
+    vector<string> neon_reg;
     auto hasRemainReg = [&reg_number]() -> bool {
-        return reg_number <= 63;
+        return reg_number <= 31;
     };
-    auto regAlloc = [&reg_number]() -> string {
+    auto regAlloc = [&reg_number, &neon_reg]() -> string {
         assert(reg_number <= 63);
-        return "d" + std::to_string(reg_number / 2) + "[" + std::to_string(reg_number % 2) + "]";
+        neon_reg.push_back("s" + std::to_string(reg_number));
+        return "s" + std::to_string(reg_number);
     };
 
     // 查找所有的参数，为参数生成引用 label
@@ -130,6 +132,28 @@ void StackTranslator::translateFunc(ASTNode *func) {
         adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), localVarSize);
     }
 
+
+    string saved_list = "{";
+    for (int i = 0; i < neon_reg.size(); ++i) {
+        saved_list += neon_reg[i];
+        if (i != neon_reg.size() - 1) {
+            saved_list += ',';
+        }
+    }
+    saved_list += "}";
+
+    if (!neon_reg.empty()) {
+        adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), neon_reg.size() * 8);
+
+        adapter->vstm(adapter->getStackPointerName(), saved_list);
+
+        ASTNode_add_attr_str(func, "saved", saved_list.c_str());
+
+        int save_size = neon_reg.size() * 4;
+        if (neon_reg.size() % 2 != 0) save_size += 4;
+
+        ASTNode_add_attr_int(func, "save-size", save_size);
+    }
 #ifdef DEBUG
     adapter->emitComment("局部变量空间分配好了");
 #endif
@@ -142,6 +166,13 @@ void StackTranslator::translateFunc(ASTNode *func) {
     // 在 sysy 中，有返回值的函数没有返回是未定义行为，所以这里直接返回 0，也是合理的
     adapter->loadImmediate(adapter->getRegName(0), 0);
 
+    if (!neon_reg.empty()) {
+        int save_size = neon_reg.size() * 4;
+        if (neon_reg.size() % 2 != 0) save_size += 4;
+        adapter->sub(adapter->getStackPointerName(), adapter->getStackPointerName(), save_size);
+
+        adapter->vstm(adapter->getStackPointerName(), saved_list);
+    }
     // 恢复栈顶指针
     adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
     // 这里直接弹出到 pc，寄存器中实现转跳
@@ -705,9 +736,11 @@ void StackTranslator::translateReturn(ASTNode *ret) {
     assert(ASTNode_id_is(ret, "Return"));
 
     auto func = ASTNode_querySelectorOne(ret, "/ancestor::Function");
-    string ret_type;
+    string ret_type, saved_regs;
+    int saved_size;
     ASTNode_get_attr_str(func, "return", ret_type);
-
+    bool hasSaved = ASTNode_get_attr_str(func, "saved", saved_regs);
+    ASTNode_get_attr_int(func, "save-size", &saved_size);
     auto exp = ASTNode_querySelectorOne(ret, "Exp");
     assert((ret_type == SyVoid && exp == nullptr )|| (ret_type != SyVoid && exp != nullptr));
 
@@ -719,6 +752,11 @@ void StackTranslator::translateReturn(ASTNode *ret) {
         if (ret_type != exp_type) {
             translateTypeConversion(exp, ret_type);
         }
+    }
+
+    if (hasSaved) {
+        adapter->vldm(adapter->getStackPointerName(), saved_regs);
+        adapter->add(adapter->getStackPointerName(), adapter->getStackPointerName(), saved_size);
     }
 
     // 直接返回不做转跳了，应该没有什么问题

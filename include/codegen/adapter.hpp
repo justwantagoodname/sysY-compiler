@@ -142,6 +142,10 @@ public:
 
    virtual void fjumpEqual(const std::string& src1, const float imm, const std::string& labelName) = 0;
 
+   virtual void vldm(const std::string& base, const std::string& regs) = 0;
+
+   virtual void vstm(const std::string& base, const std::string& regs) = 0;
+
    virtual void createLocalLTPool() = 0;
 };
 

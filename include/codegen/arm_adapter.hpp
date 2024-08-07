@@ -800,6 +800,14 @@ public:
         asm_file.line("\tbeq %s", labelName.c_str());
     }
 
+    void vldm(const std::string& base, const std::string& regs) override {
+        asm_file.line("\tvldm %s, %s", base.c_str(), regs.c_str());
+    }
+
+    void vstm(const std::string& base, const std::string& regs) override {
+        asm_file.line("\tvstm %s, %s", base.c_str(), regs.c_str());
+    }
+
     void createLocalLTPool() override {
         const auto label = getLTLabel();
         jump(label);
