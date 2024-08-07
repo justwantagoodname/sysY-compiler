@@ -68,7 +68,6 @@ void StackTranslator::translateFunc(ASTNode *func) {
 #endif
 
     // 查找所有的参数，为参数生成引用 label
-    int paramSize = ASTNode_children_size(ASTNode_querySelectorOne(func, "/Params"));
     QueryResult *params = ASTNode_querySelector(func, "/Params/ParamDecl"), *cur = nullptr;
     // 这里从 1 开始，因为 0 是 old fp
     int funcParamIndex = 1;
@@ -530,6 +529,7 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         auto *locator = ASTNode_querySelectorOne(address, "/Locator");
         // 没有访问数组的索引，那么直接返回地址
         if (locator) {
+            auto locator_size = ASTNode_children_size(locator); // subarray 运算符的数量
             // 访问数组 依次计算索引，这里翻译为一个连加，因为我们可以控制过程，所以优化一下
             QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*"), *cur;
             int idx = 0;
@@ -566,7 +566,8 @@ void StackTranslator::translateLVal(ASTNode *lval) {
                     adapter->add(accumulatorReg, accumulatorReg, tempReg);
                 }
 
-                if (idx != dim_sizes.size() - 1) {
+                // Update 这里按照实际的subarray数量来计算防止多push了
+                if (idx != locator_size - 1) {
                     adapter->pushStack({accumulatorReg}); // 如果后面还有维度，先保存
                 }
 
@@ -756,7 +757,7 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
                 translateTypeConversion(init, var_type);
             }
 
-            if (value != 0 || !cleared) {
+            if (!hasValue || (hasValue && value != 0) || !cleared) {
                 // 如果不是 0 或者没有清空过，那么就赋值
                 for (int i = 0; i < repeat; i++) {
                     if (var_type == SyInt) {
@@ -807,6 +808,8 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
 void StackTranslator::translateIf(ASTNode *ifstmt) {
     assert(ASTNode_id_is(ifstmt, "If"));
 
+    adapter->emitComment("If 开始");
+
     // 生成真分支和假分支标签
     // TODO： 也许可以研究一下分支优化的策略，生成更好的代码
 
@@ -830,8 +833,10 @@ void StackTranslator::translateIf(ASTNode *ifstmt) {
 
     assert(cond_type != SyVoid);
     if (cond_type == SyInt) adapter->jumpEqual(accumulatorReg, 0, false_label);
-    if (cond_type == SyFloat) adapter->fjumpEqual(floatAccumulatorReg, 0.0f, false_label);
-
+    if (cond_type == SyFloat) {
+        adapter->fjumpEqual(floatAccumulatorReg, 0.0f, false_label);
+        
+    }
     adapter->emitLabel(true_label);
     auto true_branch = ASTNode_querySelectorOne(ifstmt, "Then/*");
     assert(true_branch);
@@ -1011,6 +1016,19 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
     } else if (ASTNode_id_is(logic, "Or")) {
         // 短路或
         adapter->jumpNotEqual(accumulatorReg, 0, true_label);
+    } else {
+        assert(false);
+    }
+
+
+    if (ASTNode_id_is(logic, "And")) {
+        // 短路与
+        // 计算 rhs 时，如果为真，直接转跳父节点的true_label
+        ASTNode_set_attr_str(logic, "trueLabel", true_label);
+    } else if (ASTNode_id_is(logic, "Or")) {
+        // 短路或
+        // 计算 rhs 时，如果为假，转跳父节点的falseLabel
+        ASTNode_set_attr_str(logic, "falseLabel", false_label);
     } else {
         assert(false);
     }

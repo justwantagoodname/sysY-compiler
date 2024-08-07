@@ -24,7 +24,7 @@ struct ExternFunctionDeclare {
 
 class ARMAdapter : public Adapter {
 private:
-    int lt_label_count = 0;
+    static int lt_label_count;
     AssemblyBuilder &asm_file;
     std::map<std::string, ExternFunctionDeclare> extern_functions;
 
@@ -97,12 +97,11 @@ public:
                         i2f(getFRegisterName(float_reg), getFRegisterName(float_reg));
                         float_reg++;
                     } else if (arg_type[i] == SyFloat && declare.args[i].first == SyInt) {
+                        // want: int get: float
                         if (i != 0) {
                             floadRegister(getFRegisterName(float_reg), getStackPointerName(), 0);
                             add(getStackPointerName(), getStackPointerName(), 4);
-                        } else {
-                            fmov(getFRegisterName(float_reg), getRegName(0));
-                        }
+                        } // No need to load from float reg
                         f2i(getFRegisterName(float_reg), getFRegisterName(float_reg));
                         fmov(getRegName(integer_reg), getFRegisterName(float_reg));
                         integer_reg++;
@@ -732,10 +731,10 @@ public:
     }
 
     void fnotReg(const std::string& dst, const std::string& src) override {
-        asm_file.line("\tvcmp.f32 s15, #0", dst.c_str(), src.c_str())
+        asm_file.line("\tvcmp.f32 %s, #0", src.c_str())
                 .line("\tvmrs APSR_nzcv, FPSCR")
                 .line("\tmoveq %s, #1", dst.c_str())
-                .line("\tmovne r0, #0", dst.c_str());
+                .line("\tmovne %s, #0", dst.c_str());
     }
 
     void fadd(const std::string& dst, const std::string& src1, const std::string& src2) override {
@@ -796,7 +795,8 @@ public:
     }
 
     void fjumpEqual(const std::string& src1, const float imm, const std::string& labelName) override {
-        asm_file.line("\tvcmp.f32 %s, #%f", src1.c_str(), imm);
+        asm_file.line("\tvcmp.f32 %s, #%f", src1.c_str(), imm)
+                .line("\tvmrs    APSR_nzcv, FPSCR");
         asm_file.line("\tbeq %s", labelName.c_str());
     }
 
@@ -808,4 +808,5 @@ public:
     }
 };
 
+int ARMAdapter::lt_label_count = 0;
 #endif

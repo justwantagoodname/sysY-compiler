@@ -36,9 +36,9 @@ sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t rig
                 case 4:
                     return (int) left % (int) right;
                 case 5:
-                    return (int) left && (int) right;
+                    return (left != 0) && (right != 0);
                 case 6:
-                    return (int) left || (int) right;
+                    return (left != 0) || (right != 0);
                 case 7:
                     return left == right;
                 case 8:
