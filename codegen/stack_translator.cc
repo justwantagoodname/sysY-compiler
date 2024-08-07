@@ -67,6 +67,17 @@ void StackTranslator::translateFunc(ASTNode *func) {
     adapter->emitComment("栈帧建立好了");
 #endif
 
+    // Update: Place Variable To NEON Register
+
+    int reg_number = 2; // s0 s1 was used
+    auto hasRemainReg = [&reg_number]() -> bool {
+        return reg_number <= 63;
+    };
+    auto regAlloc = [&reg_number]() -> string {
+        assert(reg_number <= 63);
+        return "d" + std::to_string(reg_number / 2) + "[" + std::to_string(reg_number % 2) + "]";
+    };
+
     // 查找所有的参数，为参数生成引用 label
     QueryResult *params = ASTNode_querySelector(func, "/Params/ParamDecl"), *cur = nullptr;
     // 这里从 1 开始，因为 0 是 old fp
@@ -78,19 +89,14 @@ void StackTranslator::translateFunc(ASTNode *func) {
         assert(hasParamName);
         auto param_in_decl = ASTNode_querySelectorfOne(func, "/Scope/Decl/ParamDecl[@name='%s']", paramName);
         assert(param_in_decl != nullptr);
-#if 0
-        if (funcParamIndex < 3) {
-            // 参数在寄存器中
-            ASTNode_add_attr_str(param_in_decl, "pos", "reg");
-            ASTNode_add_attr_str(param_in_decl, "reg", adapter->getRegName(funcParamIndex + 1).c_str());
-        } else {
-#endif
-            ASTNode_add_attr_str(param_in_decl, "pos", "stack");
-            ASTNode_add_attr_int(param_in_decl, "offset", adapter->getWordSize() * funcParamIndex);
-#if 0
-        }
-#endif
+        ASTNode_add_attr_str(param_in_decl, "pos", "stack");
+        ASTNode_add_attr_int(param_in_decl, "offset", adapter->getWordSize() * funcParamIndex);
         funcParamIndex++;
+
+        if (hasRemainReg()) {
+            ASTNode_add_attr_str(param_in_decl, "alias", regAlloc().c_str());
+            reg_number++;
+        }
     }
 
     // 保存局部变量
@@ -98,7 +104,6 @@ void StackTranslator::translateFunc(ASTNode *func) {
     size_t localVarSize = 0;
     // 查询所有局部变量包括匿名作用域的变量
     QueryResult *localVars = ASTNode_querySelector(func, "//Scope/Decl/Var");
-    cur = nullptr;
     DL_FOREACH(localVars, cur) {
         auto var = cur->node;
         if (ASTNode_has_attr(var, "array")) {
@@ -108,6 +113,11 @@ void StackTranslator::translateFunc(ASTNode *func) {
             localVarSize += adapter->getWordSize() * size;
         } else {
             localVarSize += adapter->getWordSize(); // 单个变量大小
+            if (hasRemainReg()) {
+                // only variable will place to register
+                ASTNode_add_attr_str(var, "alias", regAlloc().c_str());
+                reg_number++;
+            }
         }
         ASTNode_add_attr_int(var, "offset", -localVarSize - adapter->getWordSize()); // 从栈低开始计算
     }
@@ -128,10 +138,10 @@ void StackTranslator::translateFunc(ASTNode *func) {
 
     translateBlock(block);
 
+    adapter->emitLabel(retLabel);
     // 在 sysy 中，有返回值的函数没有返回是未定义行为，所以这里直接返回 0，也是合理的
     adapter->loadImmediate(adapter->getRegName(0), 0);
 
-    adapter->emitLabel(retLabel);
     // 恢复栈顶指针
     adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
     // 这里直接弹出到 pc，寄存器中实现转跳
@@ -397,7 +407,7 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
 
     auto address = ASTNode_querySelectorOne(fetch, "Address");
     assert(address);
-    translateLVal(address);
+    auto ret = translateLVal(address);
 
     const char* lval_type;
 
@@ -410,24 +420,35 @@ void StackTranslator::translateFetch(ASTNode *fetch) {
 
     if (is_array_type(fetch_type)) {
         // 如果左值是地址，那么值是本身的地址
+        if (!ret.empty()) {
+            adapter->fmov(accumulatorReg, ret);
+        }
     } else {
         // 如果左值是值，那么值是地址指向的值
         if (fetch_type == SyInt) {
-            adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+            if (!ret.empty()) { // the vale was put on neon reg
+                adapter->fmov(accumulatorReg, ret);
+            } else {
+                adapter->loadRegister(accumulatorReg, accumulatorReg, 0);
+            }
         } else if (fetch_type == SyFloat) {
-            adapter->floadRegister(floatAccumulatorReg, accumulatorReg, 0);
+            if (!ret.empty()) {
+                adapter->fmov(floatAccumulatorReg, ret);
+            } else {
+                adapter->floadRegister(floatAccumulatorReg, accumulatorReg, 0);
+            }
+
         } else {
             assert(0);
         }
     }
-    adapter->emitComment("Fetch 结束");
 }
 
 /**
  * 翻译左值, 由于左值是一个地址, 计算完成的结果*地址*会放在 accumulatorReg 中，对于参数中的数组类型会先做一次加载确保结果始终是数组的基址
  * @param lval
  */
-void StackTranslator::translateLVal(ASTNode *lval) {
+string StackTranslator::translateLVal(ASTNode *lval) {
     assert(ASTNode_id_is(lval, "Address"));
 
     auto address = lval;
@@ -459,6 +480,7 @@ void StackTranslator::translateLVal(ASTNode *lval) {
     assert(decl); // 使用的变量名必须声明过
 
     const char* label;
+    string alias_reg;
 
     bool is_array = ASTNode_has_attr(decl, "array");
 
@@ -589,6 +611,8 @@ void StackTranslator::translateLVal(ASTNode *lval) {
     ASTNode_add_attr_str(lval, "type", lval_type.c_str());
 
     bool hasLabel = ASTNode_get_attr_str(decl, "label", &label);
+    bool hasAlias = ASTNode_get_attr_str(decl, "alias", alias_reg);
+
     if (hasLabel) {
         // 全局变量
         if (is_array) {
@@ -602,19 +626,27 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         bool hasOffset = ASTNode_get_attr_int(decl, "offset", &offset);
         assert(hasOffset);
         // 局部变量
-        // TODO: 这里目前还有bug，如果是超级大的栈帧，那么这里的 offset 是不对的，不过应该交给loadRegister来处理
-        if (is_array) {
-            adapter->add(tempReg, adapter->getFramePointerName(), offset); // 先计算基址
-            if (ASTNode_id_is(decl, "ParamDecl")) {
-                // 参数数组实际是作为数组二级指针传递的
-                // 先做一次加载
-                adapter->loadRegister(tempReg, tempReg, 0);
-            }
-            adapter->add(accumulatorReg, tempReg, accumulatorReg); // 然后确定实际地址
+        // Update: Fix in ARMAdapter
+
+        if (hasAlias) {
+            // The Value was place in NEON Register
+            return alias_reg;
         } else {
-            adapter->add(accumulatorReg, adapter->getFramePointerName(), offset);
+            // The Normal Process
+            if (is_array) {
+                adapter->add(tempReg, adapter->getFramePointerName(), offset); // 先计算基址
+                if (ASTNode_id_is(decl, "ParamDecl")) {
+                    // 参数数组实际是作为数组二级指针传递的
+                    // 先做一次加载
+                    adapter->loadRegister(tempReg, tempReg, 0);
+                }
+                adapter->add(accumulatorReg, tempReg, accumulatorReg); // 然后确定实际地址
+            } else {
+                adapter->add(accumulatorReg, adapter->getFramePointerName(), offset);
+            }
         }
     }
+    return "";
 }
 
 void StackTranslator::translateAssign(ASTNode *assign) {
@@ -629,7 +661,7 @@ void StackTranslator::translateAssign(ASTNode *assign) {
 
     translateTypePush(exp);
 
-    translateLVal(lval);
+    auto ret = translateLVal(lval);
 
     const char* lval_type_str, *exp_type_str;
     bool hasLValType = ASTNode_get_attr_str(lval, "type", &lval_type_str);
@@ -653,9 +685,17 @@ void StackTranslator::translateAssign(ASTNode *assign) {
     }
 
     if (deref_lval(lval_type) == SyInt) {
-        adapter->storeRegister(accumulatorReg, tempReg, 0);
+        if (!ret.empty()) {
+            adapter->fmov(ret, accumulatorReg);
+        } else {
+            adapter->storeRegister(accumulatorReg, tempReg, 0);
+        }
     } else if (deref_lval(lval_type) == SyFloat) {
-        adapter->fstoreRegister(floatAccumulatorReg, tempReg, 0);
+        if (!ret.empty()) {
+            adapter->fmov(ret, floatAccumulatorReg);
+        } else {
+            adapter->fstoreRegister(floatAccumulatorReg, tempReg, 0);
+        }
     } else {
         assert(0);
     }
@@ -698,10 +738,12 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
     auto decl_entity = ASTNode_querySelectorfOne(var_decl, "ancestor::Scope/Decl/Var[@name='%s']", name);
     assert(decl_entity);
 
-    const char* var_type_str;
-    bool hasVarType = ASTNode_get_attr_str(decl_entity, "type", &var_type_str);
+    std::string alias_reg;
+    bool hasAliasReg = ASTNode_get_attr_str(decl_entity, "alias", alias_reg);
+
+    std::string var_type;
+    bool hasVarType = ASTNode_get_attr_str(decl_entity, "type", var_type);
     assert(hasVarType);
-    std::string var_type = var_type_str;
 
     int offset;
     bool hasOffset = ASTNode_get_attr_int(decl_entity, "offset", &offset);
@@ -797,9 +839,17 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
         }
 
         if (var_type == SyInt) {
-            adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+            if (hasAliasReg) {
+                adapter->fmov(alias_reg, accumulatorReg);
+            } else {
+                adapter->storeRegister(accumulatorReg, adapter->getFramePointerName(), offset);
+            }
         } else if (var_type == SyFloat) {
-            adapter->fstoreRegister(floatAccumulatorReg, adapter->getFramePointerName(), offset);
+            if (hasAliasReg) {
+                adapter->fmov(alias_reg, floatAccumulatorReg);
+            } else {
+                adapter->fstoreRegister(floatAccumulatorReg, adapter->getFramePointerName(), offset);
+            }
         } else {
             assert(0);
         }
