@@ -355,7 +355,7 @@ Element::Iter Element::dfsend() const
 
 Element::Iter Element::begin() const
 {
-	return node->children;
+	return Element::Iter(node->children);
 }
 
 Element::Iter Element::end() const

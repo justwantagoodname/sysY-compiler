@@ -18,6 +18,43 @@ StackRiscVGenerator::~StackRiscVGenerator() {
     for (auto p : instrs) delete p;
 }
 
+RVOperand StackRiscVGenerator::loadValueOpr(Triples& triples, Triples::TripleValue& e) {
+    RVOperand opr;
+    opr = getVarOpr(triples, e.value);
+    if (opr.tag == ADDR) {
+        instrs.push_back(new RVMem(RVOp::LUI, make_reg(RVRegs::a4), opr));
+        if (e.added != NULL) { // 数组
+            if (e.added->type == TTT.dimd) {
+                instrs.push_back(new RVArith(RVOp::ADDI, make_reg(RVRegs::a4), make_reg(RVRegs::a4), opr));
+                opr = make_stack(RVRegs::a4, 0);
+                opr.offset += e.added->value * 4;
+            } else if (e.added->type == TTT.temp) {
+                instrs.push_back(new RVArith(RVOp::ADDI, make_reg(RVRegs::a4), make_reg(RVRegs::s0), opr));
+                instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, e.added->value)));
+                instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 2));
+                instrs.push_back(new RVArith(RVOp::ADD, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
+                opr = make_stack(RVRegs::a4, 0);
+            }
+        } else {
+            opr = make_addr("%lo(" + opr.addr + ")(a4)");
+        }
+    } else {
+        if (e.added != NULL) { // 数组
+            if (e.added->type == TTT.dimd) {
+                opr.offset -= e.added->value * 4;
+            } else if (e.added->type == TTT.temp) {
+                instrs.push_back(new RVArith(RVOp::ADDI, make_reg(RVRegs::a4), make_reg(RVRegs::s0), make_imm(opr.offset)));
+                instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), getTempOpr(triples, e.added->value)));
+                instrs.push_back(new RVSLLi(RVOp::SLL, make_reg(RVRegs::a5), 2));
+                instrs.push_back(new RVArith(RVOp::SUB, make_reg(RVRegs::a4), make_reg(RVRegs::a4), make_reg(RVRegs::a5)));
+                opr = make_stack(RVRegs::a4, 0);
+            }
+        }
+    }
+
+    return opr;
+}
+
 void StackRiscVGenerator::genArith(Triples& triples, Triples::Triple& triple) {
     // 正在施工
     bool is_float = false;
@@ -405,13 +442,63 @@ void StackRiscVGenerator::calculateSize(Triples& triples) {
     }
 }
 
+/// <summary>
+/// 初始化全局变量表
+/// </summary>
+/// <param name="triples"></param>
+void StackRiscVGenerator::makeGlobeMap(Triples& triples)
+{
+    int index = 0;
+    for (auto& value : triples.value_pointer) {
+        if (value.get_attr("ex_var")) {
+            std::vector<unsigned int> init_nums;
+            init_nums.clear();
+            printf("get ex var: %s\n", value.get_attr_str("name"));
+            int size = 0;
+            if (value.get_attr("size"))
+                size = value.get_attr_int("size");
+            int type = 0;
+            type = strcmp(value.get_attr_str("type"), "Float") == 0;
+            type |= (value.get_attr("array") ? 1 : 0) << 1;
+            type += 1;
+
+            auto init = value % ("/InitValue");
+            for (auto item : init) {
+                if (item.id_is("Number")) {
+                    init_nums.push_back(item.get_attr_int("value"));
+                } else if (item.id_is("Exp")) {
+                    if (item[0].id_is("Number"))
+                        init_nums.push_back(item[0].get_attr_int("value"));
+                } else {
+                    init_nums.push_back(0);
+                }
+            }
+
+            globe_map[index] = { value.get_attr_str("name"), type, size, init_nums };
+        }
+        ++index;
+    }
+}
+
 RVOperand StackRiscVGenerator::getTempOpr(Triples& triples, int temp_id) {
     // printf("size of stack %d\n", cur_stacks.top().size());
     // printf("current smallest temp %d\n", cur_smallest_temp);
     // printf("Temp: cur id %d, offset %d\n", temp_id, -((cur_stacks.top().size() - cur_smallest_temp + temp_id) * 4 + 16));
-    return make_stack(RVRegs::s0, -((cur_stacks.top().size() - cur_smallest_temp + temp_id + 1) * 4 + 16));
+    auto& cur_stack = cur_stacks.top();
+    int count = 0;
+    for (auto& [id, num] : cur_stack) {
+        //printf("cur id: %d, size %d\n", id, num);
+        count += num;
+    }
+    return make_stack(RVRegs::s0, -((count - cur_smallest_temp + temp_id + 1) * 4 + 16));
 }
 RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, int var_id) {
+
+    // 查找全局变量
+    if (globe_map.count(var_id)) {
+        return make_addr("globe_" + std::get<0>(globe_map[var_id]));
+    }
+
     //printf("target id: %d\n", var_id);
     auto& cur_stack = cur_stacks.top();
 
@@ -425,30 +512,39 @@ RVOperand StackRiscVGenerator::getVarOpr(Triples& triples, int var_id) {
         count += num;
     }
 
+    // 第0位是函数返回值类型
     auto& cur_args = triples.func_params[cur_func_name];
     int int_count = 0, float_count = 0;
     for (auto& [name, type] : cur_args) {
+        if (name == -1)continue;
         if (type == 1 || type == 3 || type == 4) ++int_count;
         else if (type == 2) ++float_count;
     }
+    printf("getting value id %d : int count %d, float count %d\n", var_id, int_count, float_count);
+    for (auto e : cur_args) {
+        printf("(%d, %d) ", e.first, e.second);
+    }
+    printf("\n");
 
-    for (size_t i = cur_args.size() - 1; i >= 0; --i) {
+    for (size_t i = cur_args.size() - 1; i >= 1; --i) {
         int id = cur_args[i].first;
         int type = cur_args[i].second;
 
-
+        printf("%d > finding by %d to var_id: %d \n", i, id, var_id);
         if (type == 1 || type == 3 || type == 4) {
             if (id == var_id) {
                 if (int_count <= 8) return make_areg(int_count - 1);
                 else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
             }
             --int_count;
+            assert(int_count > 0);
         } else if (type == 2) {
             if (id == var_id) {
                 if (float_count <= 8) return make_sreg(float_count - 1);
                 else return make_stack(RVRegs::s0, (cur_args.size() - i + 1) * 4);
             }
             --float_count;
+            assert(float_count > 0);
         }
     }
 
@@ -463,12 +559,16 @@ void StackRiscVGenerator::genMem(Triples& triples, Triples::Triple& triple) {
     RVOperand dst;
 
     if (to.type == TTT.temp) dst = getTempOpr(triples, to.value);
-    else if (to.type == TTT.value) dst = getVarOpr(triples, to.value);
+    else if (to.type == TTT.value) {
+        dst = loadValueOpr(triples, to);
+    }
 
     if (e1.type != TTT.dimd && e1.type != TTT.fimd) {
         RVOperand op1;
         if (e1.type == TTT.temp) op1 = getTempOpr(triples, e1.value);
-        else if (e1.type == TTT.value) op1 = getVarOpr(triples, e1.value);
+        else if (e1.type == TTT.value) {
+            op1 = loadValueOpr(triples, e1);
+        }
 
         if (triples.getValueType(e1) == triples.getValueType(to)) {
             // 同类型
@@ -544,8 +644,8 @@ void StackRiscVGenerator::genCall(Triples& triples, Triples::Triple& triple) {
             ++float_count;
         } else if (cur_arg->type == TTT.temp) {
             int temp_type = triples.getTempType(cur_arg->value);
-            if (temp_type == 1) {
-                // int
+            if (temp_type == 1 || temp_type == 3 || temp_type == 4) {
+                // int || array
                 if (int_count < 8) {
                     instrs.push_back(new RVMem(RVOp::LW, make_areg(int_count), getTempOpr(triples, cur_arg->value)));
                 } else {
@@ -768,7 +868,7 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
     RVOperand dst;
     int dst_type = 0;
     if (to.type == TTT.value) {
-        dst = getVarOpr(triples, to.value);
+        dst = loadValueOpr(triples, to);
         dst_type = triples.getValueType(to);
     } else if (to.type == TTT.temp) {
         dst = getTempOpr(triples, to.value);
@@ -815,8 +915,90 @@ void StackRiscVGenerator::genMove(Triples& triples, Triples::Triple& triple) {
             panic("error");
         }
 
+    } else if (tv.type == TTT.temp)
+    {
+        RVOperand op1;
+        op1 = getTempOpr(triples, tv.value);
+        printf("%d %d cmp %d \n",tv.value, triples.getValueType(tv), triples.getValueType(to));
+        if (triples.getValueType(tv) == triples.getValueType(to)) {
+            // 同类型
+            instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), op1));
+            instrs.push_back(new RVMem(RVOp::SW, dst, make_reg(RVRegs::a5)));
+        } else if (triples.getValueType(tv) == 1 && triples.getValueType(to) == 2) {
+            // int -> float
+            instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), op1));
+            instrs.push_back(new RVConvert(RVOp::FCVTF, make_sreg(RVRegs::fa5), make_reg(RVRegs::a5)));
+            instrs.push_back(new RVMem(RVOp::FSW, dst, make_sreg(RVRegs::fa5)));
+        } else if (triples.getValueType(tv) == 2 && triples.getValueType(to) == 1) {
+            // float -> int
+            instrs.push_back(new RVMem(RVOp::FLW, make_reg(RVRegs::a5), op1));
+            instrs.push_back(new RVConvert(RVOp::FCVTT, make_reg(RVRegs::a5), make_sreg(RVRegs::fa5)));
+            instrs.push_back(new RVMem(RVOp::SW, dst, make_reg(RVRegs::a5)));
+        } else {
+            panic("Error in genMove");
+        }
+    } else if (tv.type == TTT.addr) {
+        RVOperand op1;
+        op1 = getVarOpr(triples, tv.value);
+
+        RVOperand added;
+        if (tv.added->type == TTT.temp) {
+            added = getTempOpr(triples, tv.added->value);
+            instrs.push_back(new RVMem(RVOp::LW, make_reg(RVRegs::a5), added));
+            added = make_reg(RVRegs::a5);
+        } else if (tv.added->type == TTT.dimd) {
+            added = make_imm(tv.added->value);
+        } else {
+            panic("bad addr added");
+        }
+
+        if (op1.tag == STACK) {
+            if (added.isimm()) {
+                added.value *= 4;
+                added.value += op1.offset;
+            }
+
+            if (added.isimm() && (added.value < -2048 || added.value > 2047)) {
+                added.value += op1.offset;
+                instrs.push_back(new RVMem(RVOp::LI, make_reg(RVRegs::a5), added));
+                added = make_reg(RVRegs::a5);
+            }
+
+            RVOp cmd;
+            if (added.isimm()) {
+                cmd = RVOp::ADDI;
+            } else {
+                cmd = RVOp::ADD;
+            }
+            instrs.push_back(new RVArith(cmd, make_reg(RVRegs::a5), make_reg(op1.reg), added));
+            added = make_reg(RVRegs::a5);
+
+            instrs.push_back(new RVMem(RVOp::SW, dst, added));
+
+        }
+
     } else {
         panic("bad triplevalue type");
+    }
+}
+
+void StackRiscVGenerator::genAllGlobeVars() {
+    for (auto& e : globe_map) {
+        int idx = e.first;
+        string& name = std::get<0>(e.second);
+        int type = std::get<1>(e.second);
+        int size = std::get<2>(e.second);
+        vector<unsigned int>& init_num = std::get<3>(e.second);
+
+        instrs.push_back(new RVTag("globe_" + name));
+
+        for (auto item : init_num) {
+            instrs.push_back(new RVword(item));
+            size -= 1;
+        }
+        if (size > 0) {
+            instrs.push_back(new RVzero(size));
+        }
     }
 }
 
@@ -827,13 +1009,14 @@ void StackRiscVGenerator::generate(Triples& triples, bool optimize_flag) {
 
     createTable(triples);
     calculateSize(triples);
-    //getTempVarType(triples);
+    makeGlobeMap(triples);
 
+    genAllGlobeVars();
     for (auto [key, value] : func_size) {
         printf("%s: %u\n", key.c_str(), value);
     }
     for (size_t index = 0; index < triples.size(); ++index) {
-        printf("cur line: %d\n", index);
+        //printf("cur line: %d\n", index);
         Triples::Triple& cur_triple = triples[index];
 
         switch (cur_triple.cmd) {

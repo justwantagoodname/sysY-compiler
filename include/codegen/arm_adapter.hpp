@@ -732,7 +732,7 @@ public:
 
     void fnotReg(const std::string& dst, const std::string& src) override {
         asm_file.line("\tvcmp.f32 %s, #0", src.c_str())
-                .line("\tvmrs APSR_nzcv, FPSCR")
+                //.line("\tvmrs APSR_nzcv, FPSCR")
                 .line("\tmoveq %s, #1", dst.c_str())
                 .line("\tmovne %s, #0", dst.c_str());
     }

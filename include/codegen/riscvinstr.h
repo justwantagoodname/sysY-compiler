@@ -133,6 +133,7 @@ enum class RVOp {
     LW,
     LI,
     LD,
+    LUI,
     FLW,
     FLD,
     // Load string
@@ -193,6 +194,12 @@ public:
     RVstring(const std::string& str);
     virtual std::string toASM() override;
 };
+class RVzero : public RVInstr {
+public:
+    uint32_t size;
+    RVzero(uint32_t size);
+    virtual std::string toASM() override;
+};
 
 
 class RVArith : public RVInstr {
@@ -245,6 +252,14 @@ class RVSext : public RVInstr {
 public:
     RVOperand dst, opr;
     RVSext(RVOp opt, const RVOperand& dst, const RVOperand& opr);
+    virtual std::string toASM() override;
+};
+
+class RVSLLi : public RVInstr {
+public:
+    RVOperand dst;
+    int imm;
+    RVSLLi(RVOp opt, const RVOperand& dst, int imm);
     virtual std::string toASM() override;
 };
 

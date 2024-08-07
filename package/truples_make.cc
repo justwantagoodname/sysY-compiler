@@ -208,12 +208,21 @@ void Triples::pretreat()
         this->pushf(e);
     }
 
+    Query ex_vars = root("/Scope/Decl/*");
+    for (auto e : ex_vars) {
+        e.add_attr("ex_var", 1);
+    }
+    ex_vars += root("//ParamDecl");
+    for (auto e : ex_vars) {
+        e.add_attr("define", "true");
+    }
+
     Query array_decls_Unknown = root("//Decl/*[@array='true']/Dimension[@size='Unknown']");
     for (auto adecl : array_decls_Unknown) {
         adecl.add_attr("unknown-size", -1);
     }
 
-    Query array_decls = root("//Decl/*[@array='true']");
+    Query array_decls = root("//Decl/*[@array='true']/ArraySize");
     for (auto adecl : array_decls) {
         DFS_Element(adecl) {
             DFS_Element_init;
@@ -374,7 +383,9 @@ void Triples::make()
         }
         ife("Address") {
             const char* s = element.get_attr_str("base");
+            printf("--geting %s value\n", s);
             Element value = element.table(s);
+            printf("==geted %s value\n", value.id());
 
             element.add_attr("addr", triples.find(value));
             element.add_attr("type", value.get_attr_str("type"));
@@ -398,6 +409,7 @@ void Triples::make()
         ife("Locator") {
             const char* s = element.get_attr_str("base");
             Element value = element.table(s);
+            Element v0 = value;
 
             if (!value.id_is("ParamDecl")) {
                 value = value[0];
@@ -412,8 +424,8 @@ void Triples::make()
             DL_FOREACH(element.unwrap()->children, cur) {
                 int t;
                 ASTNode_get_attr_int(cur, "temp", &t);
-                if (count > 0) {
-                    cr *= value[count].get_attr_int("size");
+                if (cur->next != NULL) {
+                    cr *= value[count + 1].get_attr_int("size");
                     triples.add(Cmd.mul, { t }, { cr, TT.dimd }, { t });
                 }
                 ++count;
@@ -422,7 +434,7 @@ void Triples::make()
 
             if (element.size() < value.size()) {
                 element.add_attr("is_addr", 1);
-                element.add_attr("addr_base", triples.find(value));
+                element.add_attr("addr_base", triples.find(v0));
                 element.add_attr("temp", temp);
             } else {
                 element.add_attr("temp", temp);
@@ -667,7 +679,7 @@ void Triples::make()
                 while (triples[break_index].to.type != TT.null) {
                     break_index = triples[break_index].to.value;
                     triples[break_index].to = { tag_count, TT.lamb };
-                } 
+                }
                 triples[break_index].to = { tag_count, TT.lamb };
             }
             tag_count++;
@@ -893,7 +905,8 @@ void Triples::make()
 
             const char* s = element.get_attr_str("name");
             Element value = element.qo("ancestor::Scope/Decl/*[@name='%s']", s);
-            value.add_attr("define", "true");
+            if (!value.get_attr("define"))
+                value.add_attr("define", "true");
             if (value.get_attr("size"))
                 size = value.get_attr_int("size");
 
@@ -904,6 +917,7 @@ void Triples::make()
                 type = 1;
 
             triples.add(Cmd.var, { a , TT.value }, { size , TT.dimd }, { type, TT.typetag });
+            printf("-----add size: %d\n", size);
         }
         ife("InitValue") {
             const char* et = element.get_attr_str("type");
@@ -961,6 +975,10 @@ void Triples::make()
     setValueTable();
     setFuncParams();
     listTempType();
+
+    for (auto e : value_pointer) {
+        e.print();
+    }
 }
 
 void Triples::setValueTable() {
@@ -968,6 +986,7 @@ void Triples::setValueTable() {
         assert(e);
 
         ValueTableElement value;
+        e.print();
 
         value.name = e.get_attr_str("name");
         value.type = strcmp(e.get_attr_str("type"), "Float") == 0; // set 0 int and 1 float;
@@ -1021,7 +1040,7 @@ void Triples::setFuncParams()
                 type += 1;
             }
             std::string name = param.get_attr_str("name");
-            Element value = e.qo("/*[@name='%s']", name.c_str());
+            Element value = e.qo("/Scope/Decl/*[@name='%s']", name.c_str());
 
             for (int i = 0; i < value_pointer.size(); ++i) {
                 //printf("makeing i: %d\n", i);

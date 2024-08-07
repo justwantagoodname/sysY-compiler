@@ -11,6 +11,8 @@ void Triples::add(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e
 int Triples::find(const Element& e)
 {
 	assert(e);
+	assert(!e.id_is("ArraySize"));
+
 	for (int i = 0; i < value_pointer.size(); ++i) {
 		if (value_pointer[i] == e)return i;
 	}
