@@ -5,6 +5,7 @@ on:
         branches:
             - main
             - arm-stack-mode
+            - final
     workflow_dispatch:
 
 jobs:
