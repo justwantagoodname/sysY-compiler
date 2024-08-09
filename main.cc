@@ -10,7 +10,7 @@
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
 
- //#define ASM_GEN
+//  #define ASM_GEN
 #define TRIPLE_DEBUG
 // #define RV_ASM_GEN
 
@@ -36,7 +36,7 @@ int main(int argc, const char** argv) {
 	ConstNode_fold(root);
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
-  		 //root.print();
+  		 root.print();
 	}
 #endif
 	
