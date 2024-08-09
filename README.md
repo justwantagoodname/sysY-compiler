@@ -190,6 +190,12 @@ Chillet AST 以 XML 格式、树状结构描述 SysY 语言程序。例如，以
 
 # ARM Stack Translator
 
+ARM Stack Translator 将 Chillet AST 翻译为 ARM 汇编。
+
+其原理将 SysY 视为广义表达式，即：运行程序本质是求解函数；函数本质是多条、多种表达式的集合；表达式有变量定义、变量运算、函数调用；AST 本质是程序表达式的生成树。
+
+基于此，ARM Stack Translator 使用基于栈的表达式求值算法，对其扩展，将程序运行栈视为表达式的参数栈，将 Chillet AST 作为输入表达式，生成求解表达式的原子动作，并以 ARM 汇编形式输出。
+
 # Chillet Triples
 
 Chillet Triples 接受 Chillet AST 作为输入，生成四元组形式的分子级指令动作。例如，以下是 `test/hello_and_apb.sysy` 生成对应的 Chillet Triples:
@@ -210,8 +216,24 @@ Chillet Triples 接受 Chillet AST 作为输入，生成四元组形式的分子
 13>     }(b0)
 ```
 
+相关定义在 `include/triples.h` 中。
+
 # RiscV Generator
+
+RiscV Generator 将 Chillet Triples 翻译为 RiscV 汇编。
+
+Chillet Triples 中，每一条四元组均有分子级指令动作。 RiscV Generator 解析这些指令与其参数，将其拆解成原子级 RiscV 指令，并生成对应 RiscV 汇编。
+
+相关定义在 `include/codegen/generator`、`include/codegen/riscvinstr.h`、`include/codegen/stack_rv_generator.h` 中。
 
 # Acknowledgement
 
-本项目使用开源分析工具 flex 和 bison，以及开源数据结构 uthash。
+Chillet Compiler 使用以下第三方开源库：
+
+- bison: https://www.gnu.org/software/bison/
+- flex: https://github.com/westes/flex
+- uthash: https://troydhanson.github.io/uthash/
+
+此外，Chillet Compiler 还参考了中山大学 YatCC 在毕昇杯交流环节分享的心得。
+
+在此对开源软件和分享经验的同学表示真挚的感谢。
