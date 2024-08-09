@@ -211,3 +211,7 @@ Chillet Triples 接受 Chillet AST 作为输入，生成四元组形式的分子
 ```
 
 # RiscV Generator
+
+# Acknowledgement
+
+本项目使用开源分析工具 flex 和 bison，以及开源数据结构 uthash。
