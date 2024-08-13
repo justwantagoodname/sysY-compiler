@@ -106,19 +106,19 @@ int main(int argc, const char** argv) {
 	printf("===After make===\n");
 	triples.make();
 	//root.print();
-	triples.print();
+	//triples.print();
 
 	printf("===After eliUnnecVar===\n");
 	triples.eliUnnecVar();
-	triples.print();
+	//triples.print();
 
 	printf("===After MinTemp===\n");
 	triples.minTempVar();
-	triples.print();
+	//triples.print();
 
 	printf("===After ResortTemp===\n");
 	triples.resortTemp();
-	triples.print();
+	//triples.print();
 
 	panic("DOING……");
 
