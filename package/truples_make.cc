@@ -268,6 +268,7 @@ void Triples::pretreat()
     Query cond_node = root("//And");
     cond_node += root("//Or");
     cond_node += root("//Cond/Exp");
+    cond_node += root("//Not");
 
     for (auto cond : cond_node) {
         Element copy_cond_node = cond.clone();
@@ -705,6 +706,7 @@ void Triples::make()
             triples.add(Cmd.jmp, {}, {}, { tag , TT.lamb });
         }
         ife("Not") {
+            element.print();
             int t = element[0].get_attr_int("true");
             int f = element[0].get_attr_int("false");
             element.add_attr("true", f);

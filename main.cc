@@ -10,16 +10,16 @@
 #include "codegen/arm_adapter.hpp"
 #define UNI_OPTIMIZTION
 
- #define ASM_GEN
-//#define TRIPLE_DEBUG
+ //#define ASM_GEN
+#define TRIPLE_DEBUG
 // #define RV_ASM_GEN
 
-//#ifdef TRIPLE_DEBUG
-//#include "codegen/stack_rv_generator.h"
-//#endif
-//#ifdef RV_ASM_GEN
-//#include "codegen/stack_rv_generator.h"
-//#endif
+#ifdef TRIPLE_DEBUG
+#include "codegen/stack_rv_generator.h"
+#endif
+#ifdef RV_ASM_GEN
+#include "codegen/stack_rv_generator.h"
+#endif
 
 
 int main(int argc, const char** argv) {
@@ -63,7 +63,7 @@ int main(int argc, const char** argv) {
 	triples.pretreat();
 	printf("===After pretreat===\n");
 
-	//root.print();
+	root.print();
 
 	printf("===After make===\n");
 	triples.make();
