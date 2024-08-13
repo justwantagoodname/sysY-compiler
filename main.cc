@@ -118,7 +118,7 @@ int main(int argc, const char** argv) {
 
 	printf("===After ResortTemp===\n");
 	triples.resortTemp();
-	triples.print();
+	//triples.print();
 
 	panic("DOING……");
 
