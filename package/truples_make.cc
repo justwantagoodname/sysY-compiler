@@ -316,8 +316,6 @@ void Triples::pretreat()
     cond_node += root("//LessEq");
     cond_node += root("//Greater");
     cond_node += root("//GreaterEq");
-    cond_node += root("//And");
-    cond_node += root("//Or");
     cond_node += root("//NotZero");
     cond_node += root("//Plus");
     cond_node += root("//Minus");

@@ -37,7 +37,7 @@ int main(int argc, const char** argv) {
 	ConstNode_fold(root);
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
-  		 root.print();
+  		 //root.print();
 	}
 #endif
 	
@@ -118,7 +118,7 @@ int main(int argc, const char** argv) {
 
 	printf("===After ResortTemp===\n");
 	triples.resortTemp();
-	//triples.print();
+	triples.print();
 
 	panic("DOING……");
 
