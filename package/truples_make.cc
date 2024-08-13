@@ -203,11 +203,14 @@ void Triples::pretreat()
 
 
     // 预处理
+    // 
+    // 创建函数列表
     Query functions = root("//Function");
     for (auto e : functions) {
         this->pushf(e);
     }
 
+    // 预处理全局变量
     Query ex_vars = root("/Scope/Decl/*");
     for (auto e : ex_vars) {
         e.add_attr("ex_var", 1);
@@ -217,11 +220,13 @@ void Triples::pretreat()
         e.add_attr("define", "true");
     }
 
+    // 为未知大小的数组维度添加标签
     Query array_decls_Unknown = root("//Decl/*[@array='true']/Dimension[@size='Unknown']");
     for (auto adecl : array_decls_Unknown) {
         adecl.add_attr("unknown-size", -1);
     }
 
+    // 预处理数组变量，使之符合翻译模式
     Query array_decls = root("//Decl/*[@array='true']/ArraySize");
     array_decls += root("//Decl/ParamDecl[@array='true']");
     for (auto adecl : array_decls) {
@@ -250,9 +255,11 @@ void Triples::pretreat()
     //	ex_fun.add_attr("ex_fun", 1);
     //}
 
-    Element decls = root("//Scope/Decl");
-    decls.add_attr("name", "Global");
 
+    //Element decls = root("//Scope/Decl");
+    //decls.add_attr("name", "Global");
+
+    // 为number->bool添加notzero标签，
     Query cond_node = root("//And");
     cond_node += root("//Or");
     cond_node += root("//Cond/Exp");
@@ -302,6 +309,68 @@ void Triples::pretreat()
         }
     }
 
+    // 为bool->int添加bool2int标签，
+    cond_node = root("//Equal");
+    cond_node += root("//NotEq");
+    cond_node += root("//Less");
+    cond_node += root("//LessEq");
+    cond_node += root("//Greater");
+    cond_node += root("//GreaterEq");
+    cond_node += root("//And");
+    cond_node += root("//Or");
+    cond_node += root("//NotZero");
+    cond_node += root("//Plus");
+    cond_node += root("//Minus");
+    cond_node += root("//Mult");
+    cond_node += root("//Div");
+    cond_node += root("//Mod");
+    cond_node += root("//UnMinus");
+
+    for (auto cond : cond_node) {
+        Element copy_cond_node = cond.clone();
+        copy_cond_node.unwrap()->children = NULL;
+
+        ASTNode* head = cond.children();
+        ASTNode* el = NULL;
+        for ((el) = (head); el; (el) = (el)->next) {
+            Element item = el;
+
+            if (item.id_is("Equal") ||
+                item.id_is("NotEq") ||
+                item.id_is("Less") ||
+                item.id_is("LessEq") ||
+                item.id_is("Greater") ||
+                item.id_is("GreaterEq") ||
+                item.id_is("And") ||
+                item.id_is("Or") ||
+                item.id_is("Not") ||
+                item.id_is("NotZero"))
+
+            {
+                Element cutnode = Element("Bool2Int");
+                cutnode.unwrap()->next = el->next;
+                cutnode.unwrap()->prev = el->prev;
+                if (el->next)
+                    el->next->prev = cutnode.unwrap();
+                if (el->prev->next)
+                    el->prev->next = cutnode.unwrap();
+
+                cutnode.unwrap()->parent = el->parent;
+                cutnode.unwrap()->children = el;
+                el->next = NULL;
+                el->prev = el;
+
+                if (el == head) {
+                    el->parent->children = cutnode.unwrap();
+                }
+
+                el->parent = cutnode.unwrap();
+                el = cutnode.unwrap();
+            }
+        }
+    }
+
+    // 为starttime和stoptime添加行数参数
     Query call_time_node = root("//Call[@name='starttime'|@name='stoptime']");
     for (auto call : call_time_node) {
         int line = call.get_attr_int("line");
@@ -620,6 +689,32 @@ void Triples::make()
             triples[t2].to = { t1 ,TT.lamb };
             element.add_attr("true", t2);
             element.add_attr("false", f2);
+        }
+        ife("Bool2Int") {
+            int t = element[0].get_attr_int("true");
+            int f = element[0].get_attr_int("false");
+            do {
+                TripleValue tmp = triples[t].to;
+                triples[t].to = { tag_count, TT.lamb };
+                t = tmp.value;
+            } while (t != 0);
+            triples.add(Cmd.tag, { tag_count, TT.lamb }, {}, {});
+            triples.add(Cmd.mov, { 1, TT.dimd }, {}, { temp_count });
+            tag_count++;
+            triples.add(Cmd.jmp, {}, {}, { tag_count + 1, TT.lamb });
+            do {
+                TripleValue tmp = triples[f].to;
+                triples[f].to = { tag_count, TT.lamb };
+                f = tmp.value;
+            } while (f != 0);
+            triples.add(Cmd.tag, { tag_count, TT.lamb }, {}, {});
+            triples.add(Cmd.mov, { 0, TT.dimd }, {}, { temp_count });
+            tag_count++;
+            triples.add(Cmd.tag, { tag_count, TT.lamb }, {}, {});
+            tag_count++;
+
+            element.add_attr("temp", temp_count++);
+            element.add_attr("type", "Int");
         }
         ife("Cond") {
             int t = element[0].get_attr_int("true");

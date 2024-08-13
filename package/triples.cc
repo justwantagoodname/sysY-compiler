@@ -95,7 +95,6 @@ size_t Triples::size()
 
 void Triples::print() const
 {
-
 	char ts1[550], ts2[550], ts3[550];
 	int idx = 0;
 	printf("\n");
@@ -140,6 +139,7 @@ void Triples::print() const
 		"var"
 	};
 	for (auto i : triples) {
+		//printf("%s, %d, %d, %d\n", cmd_text[i->cmd], i->e1.value, i->e2.value, i->to.value);
 
 		if (i->cmd == Cmd.tag) {
 			i->e1.toString(ts1, *this);
