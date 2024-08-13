@@ -395,7 +395,7 @@ void Triples::make()
         Element element = *iter;
 
         //printf("--%p", element.unwrap());
-        //printf("--%s\n", element.id());
+        printf("--%s\n", element.id());
 
         ifb("Decl") {
             cut;
@@ -760,8 +760,9 @@ void Triples::make()
             if (element.get_attr("break")) {
                 int break_index = element.get_attr_int("break");
                 while (triples[break_index].to.type != TT.null) {
-                    break_index = triples[break_index].to.value;
+                    int next_index = triples[break_index].to.value;
                     triples[break_index].to = { tag_count, TT.lamb };
+                    break_index = next_index;
                 }
                 triples[break_index].to = { tag_count, TT.lamb };
             }
