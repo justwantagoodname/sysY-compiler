@@ -395,7 +395,7 @@ void Triples::make()
         Element element = *iter;
 
         //printf("--%p", element.unwrap());
-        printf("--%s\n", element.id());
+        //printf("--%s\n", element.id());
 
         ifb("Decl") {
             cut;
