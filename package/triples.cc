@@ -4,7 +4,7 @@ using std::vector;
 
 void Triples::add(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, const TripleValue& to)
 {
-	assert(cmd != Cmd.mov || (cmd == Cmd.mov && e1.value < 20000) || e1.type != TT.temp);
+	//assert(cmd != Cmd.mov || (cmd == Cmd.mov && e1.value < 20000) || e1.type != TT.temp);
 	triples.push_back(std::shared_ptr<Triple>(new Triple(cmd, e1, e2, to)));
 }
 

@@ -413,7 +413,6 @@ void Triples::make()
 
             DL_FOREACH(element.unwrap()->children, cur) {
                 int t;
-                printf("int array param: %d\n", count);
                 ASTNode_get_attr_int(cur, "temp", &t);
                 if (cur->next != NULL) {
                     cr *= value[count + 1].get_attr_int("size");
