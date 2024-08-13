@@ -223,6 +223,7 @@ void Triples::pretreat()
     }
 
     Query array_decls = root("//Decl/*[@array='true']/ArraySize");
+    array_decls += root("//Decl/ParamDecl[@array='true']");
     for (auto adecl : array_decls) {
         DFS_Element(adecl) {
             DFS_Element_init;
@@ -238,20 +239,7 @@ void Triples::pretreat()
                         .free();
                 }
             }
-            //ife("ArraySize") {
-            //	element.add_attr("size", element.size());
-            //	ASTNode* chilen = element.children();
-            //	ASTNode* cur = NULL;
-            //	int size = 1;
-            //	DL_FOREACH(chilen, cur) {
-            //		int i;
-            //		ASTNode_get_attr_int(cur, "value", &i);
-            //		size *= i;
-            //	}
-            //	element.add_attr("value", size);
-            //}
         }
-        //adecl.add_attr("value", adecl[0].get_attr_int("value"));
     }
 
     //Query ex_functions = root("//Call[@name='printf'"
@@ -384,9 +372,9 @@ void Triples::make()
         }
         ife("Address") {
             const char* s = element.get_attr_str("base");
-            printf("--geting %s value\n", s);
+            //printf("--geting %s value\n", s);
             Element value = element.table(s);
-            printf("==geted %s value\n", value.id());
+            //printf("==geted %s value\n", value.id());
 
             element.add_attr("addr", triples.find(value));
             element.add_attr("type", value.get_attr_str("type"));
@@ -422,8 +410,10 @@ void Triples::make()
             ASTNode* cur = NULL;
             int cr = 1;
             triples.add(Cmd.mov, { 0, TT.dimd }, {}, { temp });
+
             DL_FOREACH(element.unwrap()->children, cur) {
                 int t;
+                printf("int array param: %d\n", count);
                 ASTNode_get_attr_int(cur, "temp", &t);
                 if (cur->next != NULL) {
                     cr *= value[count + 1].get_attr_int("size");
@@ -706,7 +696,6 @@ void Triples::make()
             triples.add(Cmd.jmp, {}, {}, { tag , TT.lamb });
         }
         ife("Not") {
-            element.print();
             int t = element[0].get_attr_int("true");
             int f = element[0].get_attr_int("false");
             element.add_attr("true", f);
@@ -919,7 +908,6 @@ void Triples::make()
                 type = 1;
 
             triples.add(Cmd.var, { a , TT.value }, { size , TT.dimd }, { type, TT.typetag });
-            printf("-----add size: %d\n", size);
         }
         ife("InitValue") {
             const char* et = element.get_attr_str("type");
@@ -977,10 +965,6 @@ void Triples::make()
     setValueTable();
     setFuncParams();
     listTempType();
-
-    for (auto e : value_pointer) {
-        e.print();
-    }
 }
 
 void Triples::setValueTable() {
@@ -988,7 +972,6 @@ void Triples::setValueTable() {
         assert(e);
 
         ValueTableElement value;
-        e.print();
 
         value.name = e.get_attr_str("name");
         value.type = strcmp(e.get_attr_str("type"), "Float") == 0; // set 0 int and 1 float;
