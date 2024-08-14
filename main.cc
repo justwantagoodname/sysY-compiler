@@ -121,11 +121,11 @@ int main(int argc, const char** argv) {
 	triples.resortTemp();
 	triples.print();
 
-	TriplesArmGenerator::ArmTripleGenerator generator(triples);
+	TriplesArmGenerator::ArmTripleGenerator generator;
 
-	generator.make();
+	generator.generate(triples, false);
 
-	generator.printAddrs();
+	generator.printAddrs(triples);
 
 	panic("DOING……");
 
