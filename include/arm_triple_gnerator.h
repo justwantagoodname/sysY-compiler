@@ -16,8 +16,10 @@ namespace TriplesArmGenerator {
             pc, // r15, pc寄存器
 
             fa0, fa1, fa2, fa3, fa4, fa5, fa6, fa7, // 浮点寄存器
+            fa8, fa9, fa10, fa11, fa12,
+            fa13, fa14, fa15, // 用作临时浮点寄存器
 
-            imd, //立即数
+            imd, dimd, //立即数, 双字立即数
             tag, // 是tag
             up_tag, low_tag //高位读取， 低位读取
         };
@@ -53,10 +55,17 @@ namespace TriplesArmGenerator {
             lsls,
             lsrs,
 
-            fadd,
-            fsub,
-            fmul,
-            fdiv,
+            vmov,
+            vldr,
+            vstr,
+
+            vadd,
+            vsub,
+            vmul,
+            vdiv,
+
+            vcvtd2f,
+            vcvtf2d,
 
             cmp,
             beq,
@@ -66,6 +75,9 @@ namespace TriplesArmGenerator {
             bge,
             bgt,
 
+            tag,    // 需特判, 放置tag
+            word,   // 需特判, 放置word
+            ascii,  // 需特判, 放置ascii字符串
         };
     }ACmd;
 
@@ -83,21 +95,33 @@ namespace TriplesArmGenerator {
         // 立即数
         Addr(int n)
             :base(AB.imd), value(n) {}
+        // tag
         Addr(std::string s)
             :base(AB.tag), tag(s), value(0) {}
+        Addr(ADDRBASE::ADDRBASEENUM b, std::string s)
+            :base(b), tag(s), value(0) {}
+        Addr(ADDRBASE::ADDRBASEENUM b, int v, std::string s)
+            :base(b), tag(s), value(v) {}
         std::string toString();
     };
 
     struct Instr {
         ARMCMD::ARMCMDENUM cmd;
         Addr e1, e2, e3;
+
+        Instr(ARMCMD::ARMCMDENUM c) :cmd(c) {}
+        Instr(ARMCMD::ARMCMDENUM c, Addr e1)
+            :cmd(c), e1(e1) {}
+        Instr(ARMCMD::ARMCMDENUM c, Addr e1, Addr e2)
+            :cmd(c), e1(e1), e2(e2) {}
+        Instr(ARMCMD::ARMCMDENUM c, Addr e1, Addr e2, Addr e3)
+            :cmd(c), e1(e1), e2(e2), e3(e3) {}
     };
 
     class ArmTripleGenerator : ::Generator {
     private:
         std::vector <Instr> instrs;
 
-        // TODO
         // value -> 位置
         std::vector<Addr> value_addr;
         // temp -> 位置
@@ -105,9 +129,28 @@ namespace TriplesArmGenerator {
         // 函数栈大小
         std::vector<int> func_stack_size;
 
+        // 临时寄存器及占用情况表
+        std::vector<std::pair<int, bool>>
+            int_temp_reg = {
+                {AB.r1, false},
+                {AB.r2, false},
+                {AB.r3, false}
+        },
+            float_temp_reg = {
+                {AB.fa13, false},
+                {AB.fa14, false},
+                {AB.fa15, false}
+        };
+
     private:
-        Addr loadInt(Addr);
-        Addr loadFloat(Addr);
+        Addr loadInt(const Addr&);
+        Addr loadFloat(const Addr&);
+        void storeInt(const Addr&, const Addr&);
+        void storeFloat(const Addr&, const Addr&);
+
+        Addr getEmptyIntTempReg();
+        Addr getEmptyFloatTempReg();
+        void setTempRegState(const Addr&, bool);
     public:
         ArmTripleGenerator();
         // getplace
