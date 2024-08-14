@@ -67,7 +67,7 @@ namespace TriplesArmGenerator {
         }
     }
 
-    void ArmTripleGenerator::generator(Triples& triples, bool O)
+    void ArmTripleGenerator::generate(Triples& triples, bool O)
     {
         getStackPlace(triples);
     }

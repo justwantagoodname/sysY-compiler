@@ -113,7 +113,7 @@ namespace TriplesArmGenerator {
         // getplace
         void getStackPlace(Triples&);
         // make
-        virtual void generator(Triples&, bool);
+        virtual void generate(Triples&, bool);
 
         // 输出地址分配
         void printAddrs(Triples& triples);
