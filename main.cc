@@ -121,6 +121,12 @@ int main(int argc, const char** argv) {
 	triples.resortTemp();
 	triples.print();
 
+	TriplesArmGenerator::ArmTripleGenerator generator(triples);
+
+	generator.make();
+
+	generator.printAddrs();
+
 	panic("DOING……");
 
 	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());

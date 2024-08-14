@@ -1095,6 +1095,7 @@ void Triples::setFuncParams()
     */
     // set lib functions
     func_params = {};
+    funcid_params.clear();
 
     for (auto& e : function_pointer) {
         assert(e);
@@ -1131,5 +1132,6 @@ void Triples::setFuncParams()
         }
 
         func_params.emplace(e.get_attr_str("name"), param_types);
+        funcid_params.push_back(param_types);
     }
 }

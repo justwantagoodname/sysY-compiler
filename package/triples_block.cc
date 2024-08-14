@@ -318,6 +318,7 @@ void Triples::resortTemp()
         sett(&(*it)->e2);
         sett(&(*it)->to);
     }
+    temp_count = stack_top;
 }
 
 

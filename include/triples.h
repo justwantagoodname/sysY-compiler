@@ -113,17 +113,23 @@ public:
 
 	std::vector<ValueTableElement> value_table;
 	
-	// func name -> [<param name, type>, ...]
+	// func name -> [<param id, type>, ...]
 	// 0,    1,   2,     3,     4
 	// void, int, float, int[], float[]
 	std::map<std::string, std::vector<std::pair<int, int>>> func_params;
+
+	// func id -> [<param id, type>, ...]
+	// 0,    1,   2,     3,     4
+	// void, int, float, int[], float[]
+	std::vector<std::vector<std::pair<int, int>>> funcid_params;
 
 private:
 	void setValueTable();
 	void setFuncParams();
 
-	int temp_count;
 public:
+	int temp_count;
+
 
 	std::vector<std::shared_ptr<Triple>> triples;
 	std::vector<Element> value_pointer;
