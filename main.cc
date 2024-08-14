@@ -8,6 +8,7 @@
 #include "codegen/const_inflater.hpp"
 #include "codegen/stack_translator.hpp"
 #include "codegen/arm_adapter.hpp"
+#include "arm_triple_gnerator.h"
 #define UNI_OPTIMIZTION
 
  //#define ASM_GEN
@@ -118,7 +119,7 @@ int main(int argc, const char** argv) {
 
 	printf("===After ResortTemp===\n");
 	triples.resortTemp();
-	//triples.print();
+	triples.print();
 
 	panic("DOING……");
 
