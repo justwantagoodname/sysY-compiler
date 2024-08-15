@@ -203,7 +203,7 @@ namespace TriplesArmGenerator {
         } else if (triple.type == TTT.value) {
             if (triple.added == NULL)
                 return value_addr[triple.value];
-            else if(triple.added->type == TTT.dimd) {
+            else if (triple.added->type == TTT.dimd) {
                 Addr addr = value_addr[triple.value];
                 addr.value + triple.added->value;
                 return addr;
@@ -249,20 +249,30 @@ namespace TriplesArmGenerator {
                 now_func_id = triple.e1.value;
 
                 // 分配函数参数地址到栈上
-                int n = 1;
-                func_reg[now_func_id] = { AB.s0 };
+                //int n = 1;
+                //func_reg[now_func_id] = { AB.s0 };
+                func_reg[now_func_id] = {};
+                //for (int j = 1; j < params.size(); ++j) {
+                //    value_addr[params[j].first] = Addr(AB.s0, j - 1 + n);// j - 1: 第j个参数（param第一位是返回值类型），+n：寄存器保存位置
+                //}
 
-                auto& params = triples.funcid_params[now_func_id];
-                for (int j = 1; j < params.size(); ++j) {
-                    value_addr[params[j].first] = Addr(AB.s0, j - 1 + n);// j - 1: 第j个参数（param第一位是返回值类型），+n：寄存器保存位置
-                }
-
-                stack_size = params.size() - 1;
-                stack_size += n; // 栈模式下仅保存上次栈顶指针
+                //stack_size = params.size() - 1;
+                //stack_size += n; // 栈模式下仅保存上次栈顶指针
+                stack_size = 0;
+                // 获得参数数目
             }
 
             // 结束函数，结束栈分析
             if (triple.cmd == TCmd.blke && triple.e1.value == now_func_block_id) {
+                auto& params = triples.funcid_params[now_func_id];
+
+                int param_size = params.size() - 1;
+
+                for (int j = 0; j < param_size; ++j) {
+                    value_addr[params[j + 1].first] = Addr(AB.sp, stack_size);
+                    ++stack_size;
+                }
+
                 //printf("out func\n");
                 // 退出当前函数分析
                 now_func_block_id = -1;
@@ -276,7 +286,7 @@ namespace TriplesArmGenerator {
             // 如果是var，分配栈
             if (triple.cmd == TCmd.var) {
                 //printf("var def\n");
-                value_addr[triple.e1.value] = Addr(AB.s0, stack_size);
+                value_addr[triple.e1.value] = Addr(AB.sp, stack_size);
                 stack_size += triple.e2.value;
             }
 
@@ -284,7 +294,7 @@ namespace TriplesArmGenerator {
             if (triple.to.type == TTT.temp
                 && temp_addr[triple.to.value].base == AB.null) {
                 //printf("temp def\n");
-                temp_addr[triple.to.value] = Addr(AB.s0, stack_size);
+                temp_addr[triple.to.value] = Addr(AB.sp, stack_size);
                 stack_size += 1;
             }
 

@@ -10,14 +10,14 @@ namespace TriplesArmGenerator {
         Addr to = triple2Addr(triples, triple.to);
         auto cmd = ACmd.nop;
 
-        if (triples.getValueType(triple.e1) == 1) {
+        if (triples.getValueType(triple.e1) != 2) {
             op1 = loadInt(op1);
         } else {
             op1 = loadFloat(op1);
         }
         setTempRegState(op1, true);
 
-        if (triples.getValueType(triple.e1) == 1) {
+        if (triples.getValueType(triple.e1) != 2) {
             op2 = loadInt(op2);
         } else {
             op2 = loadFloat(op2);
@@ -81,6 +81,26 @@ namespace TriplesArmGenerator {
             storeFloat(to, dst);
         }
 
+        setTempRegState(op1, false);
+        setTempRegState(op2, false);
+
+    }
+
+    void ArmTripleGenerator::genMove(Triples& triples, Triples::Triple& triple)
+    {
+        Addr op1 = triple2Addr(triples, triple.e1);
+        Addr dst = triple2Addr(triples, triple.to);
+        if (triples.getValueType(triple.e1) != 2) {
+            op1 = loadInt(op1);
+        } else {
+            op1 = loadFloat(op1);
+        }
+
+        if (triples.getValueType(triple.e1) != 2) {
+            storeInt(dst, op1);
+        } else {
+            storeFloat(dst, op1);
+        }
     }
 
     void ArmTripleGenerator::genReturn(Triples& triples, Triples::Triple& triple) {
@@ -191,17 +211,14 @@ namespace TriplesArmGenerator {
                 //genCompare(triples, cur_triple);
                 break;
 
-            case TCmd.load:
-            case TCmd.store:
-                //genMem(triples, cur_triple);
-                break;
-
             case TCmd.call:
                 //genCall(triples, cur_triple);
                 break;
 
+            case TCmd.load:
+            case TCmd.store:
             case TCmd.mov:
-                //genMove(triples, cur_triple);
+                genMove(triples, cur_triple);
                 break;
 
             case TCmd.tag:

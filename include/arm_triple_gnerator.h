@@ -173,7 +173,6 @@ namespace TriplesArmGenerator {
         int setTempRegState(const Addr&, bool);
 
         void genArith(Triples& triples, Triples::Triple& triple);
-        void genMem(Triples& triples, Triples::Triple& triple);
         void genCompare(Triples& triples, Triples::Triple& triple);
         void genCall(Triples& triples, Triples::Triple& triple);
         void genPutf(Triples& triples, Triples::Triple& triple);
