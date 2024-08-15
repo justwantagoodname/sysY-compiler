@@ -80,6 +80,9 @@ namespace TriplesArmGenerator {
             bge,
             bgt,
 
+            vcmp,
+            vmrs,
+
             tag,    // 需特判, 放置tag
             word,   // 需特判, 放置word
             ascii,  // 需特判, 放置ascii字符串
@@ -178,6 +181,7 @@ namespace TriplesArmGenerator {
         void genCompare(Triples& triples, Triples::Triple& triple);
         void genCall(Triples& triples, Triples::Triple& triple);
         void genPutf(Triples& triples, Triples::Triple& triple);
+        void genJmp(Triples& triples, Triples::Triple& triple);
         void genTag(Triples& triples, Triples::Triple& triple);
         void genMove(Triples& triples, Triples::Triple& triple);
         void genReturn(Triples& triples, Triples::Triple& triple);

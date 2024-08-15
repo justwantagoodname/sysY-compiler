@@ -641,7 +641,7 @@ void Triples::make()
         }
         ife("NotZero") {
             int temp = element[0].get_attr_int("temp");
-            triples.add(Cmd.jn0, { temp }, {}, {});
+            triples.add(Cmd.jn0, { temp }, { 0, TT.dimd }, {});
             triples.add(Cmd.jmp, {}, {}, {});
 
             element.add_attr("true", triples.size() - 2);

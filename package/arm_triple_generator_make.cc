@@ -86,6 +86,74 @@ namespace TriplesArmGenerator {
 
     }
 
+    void ArmTripleGenerator::genCompare(Triples& triples, Triples::Triple& triple)
+    {
+        printf("---genCompare\n");
+
+        bool is_float = false;
+        if (triples.getValueType(triple.e1) == 2
+            || triples.getValueType(triple.e2) == 2)
+            is_float = true;
+
+        Addr op1 = loadTripleValueAddr(triples, triple.e1);
+        Addr op2 = loadTripleValueAddr(triples, triple.e2);
+        auto cmd = ACmd.nop;
+
+        if (!is_float) {
+            op1 = loadInt(op1, triples.getValueType(triple.e1));
+        } else {
+            op1 = loadFloat(op1, triples.getValueType(triple.e1));
+        }
+
+        if (!is_float) {
+            op2 = loadInt(op2, triples.getValueType(triple.e2));
+        } else {
+            op2 = loadFloat(op2, triples.getValueType(triple.e2));
+        }
+
+        Addr dst;
+
+        switch (triple.cmd)
+        {
+        case TCmd.jeq:
+            cmd = ACmd.beq;
+            break;
+        case TCmd.jne:
+            cmd = ACmd.bne;
+            break;
+        case TCmd.jlt:
+            cmd = ACmd.blt;
+            break;
+        case TCmd.jle:
+            cmd = ACmd.ble;
+            break;
+        case TCmd.jgt:
+            cmd = ACmd.bgt;
+            break;
+        case TCmd.jge:
+            cmd = ACmd.bge;
+            break;
+        case TCmd.jn0:
+            cmd = ACmd.bne;
+            break;
+        default:
+            break;
+        }
+
+        if (!is_float) {
+            instrs.push_back({ ACmd.cmp, op1, op2 });
+        } else {
+            instrs.push_back({ ACmd.vcmp, op1, op2 });
+            instrs.push_back({ ACmd.vmrs, {"APSR_nzcv"}, {"FPSCR"} });
+        }
+
+        setTempRegState(op1, false);
+        setTempRegState(op2, false);
+
+        instrs.push_back({ cmd, ".l" + std::to_string(triple.to.value) });
+
+    }
+
     void ArmTripleGenerator::genCall(Triples& triples, Triples::Triple& triple)
     {
         printf("---genCall\n");
@@ -130,8 +198,15 @@ namespace TriplesArmGenerator {
         }
     }
 
+    void ArmTripleGenerator::genJmp(Triples& triples, Triples::Triple& triple)
+    {
+        printf("---genJmp\n");
+        instrs.push_back({ ACmd.b, ".l" + std::to_string(triple.to.value) });
+    }
+
     void ArmTripleGenerator::genTag(Triples& triples, Triples::Triple& triple)
     {
+        printf("---genTag\n");
         if (triple.e1.type == TTT.lamb)
             instrs.push_back({ ACmd.tag, triples.getLabelName(triple.e1) });
     }
@@ -267,6 +342,8 @@ namespace TriplesArmGenerator {
                 break;
 
             case TCmd.jmp:
+                genJmp(triples, cur_triple);
+                break;
             case TCmd.jn0:
             case TCmd.jeq:
             case TCmd.jne:
@@ -274,7 +351,7 @@ namespace TriplesArmGenerator {
             case TCmd.jlt:
             case TCmd.jge:
             case TCmd.jle:
-                //genCompare(triples, cur_triple);
+                genCompare(triples, cur_triple);
                 break;
 
             case TCmd.call:

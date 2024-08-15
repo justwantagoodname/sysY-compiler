@@ -275,7 +275,7 @@ namespace TriplesArmGenerator {
 
     Addr TriplesArmGenerator::ArmTripleGenerator::loadTripleValueAddr(const Triples& triples, const Triples::TripleValue& triple)
     {
-        if (triple.type == TTT.dimd) {
+         if (triple.type == TTT.dimd) {
             return triple.value;
         } else if (triple.type == TTT.fimd) {
             return { AB.dimd, triple.value };
@@ -450,6 +450,9 @@ namespace TriplesArmGenerator {
             "blt",
             "bge",
             "bgt",
+
+            "vcmpe.f32",
+            "vmrs",
 
             "tag",    // 需特判, 放置tag
             "word",   // 需特判, 放置word
