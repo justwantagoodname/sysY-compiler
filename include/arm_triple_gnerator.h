@@ -142,6 +142,8 @@ namespace TriplesArmGenerator {
         std::vector<int> func_stack_size;
         // 函数寄存器占用情况, 仅应被调用方保存寄存器
         std::vector<std::vector<ADDRBASE::ADDRBASEENUM>> func_reg;
+        // 每个函数参数进入前应保存位置
+        std::vector<std::vector<Addr>> func_params_load;
 
         // 临时寄存器及短时占用状态表（应当在任何跳转前结束占用）
         std::vector<std::pair<int, bool>>

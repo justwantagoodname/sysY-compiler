@@ -1,6 +1,8 @@
 ﻿#include "arm_triple_gnerator.h"
 namespace TriplesArmGenerator {
     void ArmTripleGenerator::genArith(Triples& triples, Triples::Triple& triple) {
+        printf("---genArith\n");
+
         bool is_float = false;
         if (triples.getValueType(triple.to) == 2)
             is_float = true;
@@ -15,14 +17,12 @@ namespace TriplesArmGenerator {
         } else {
             op1 = loadFloat(op1, triples.getValueType(triple.e1));
         }
-        setTempRegState(op1, true);
 
         if (!is_float) {
             op2 = loadInt(op2, triples.getValueType(triple.e2));
         } else {
             op2 = loadFloat(op2, triples.getValueType(triple.e2));
         }
-        setTempRegState(op2, true);
 
         Addr dst;
 
@@ -88,24 +88,46 @@ namespace TriplesArmGenerator {
 
     void ArmTripleGenerator::genCall(Triples& triples, Triples::Triple& triple)
     {
+        printf("---genCall\n");
         // TODO 特判putf
 
-        auto* cur = triple.e1.added; // 得到第一个参数
+        auto* cur = triple.e2.added; // 得到第一个参数
         int count = 0;
-        // 存入前第 参数到 r0 - r3
-        // 倒序存入 4 - 8 参数到栈顶下方
+
+        // 存入参数
         while (cur) {
 
+            int ptype = triples.getValueType(*cur);
 
+            Addr p = loadTripleValueAddr(triples, *cur);
+            Addr dst = func_params_load[triple.e1.value][count];
+
+            if (triples.funcid_params[triple.e1.value][count + 1].second != 2) {
+                p = loadInt(p, ptype);
+                storeInt(dst, p);
+            } else {
+                p = loadFloat(p, ptype);
+                storeFloat(dst, p);
+            }
 
             cur = cur->added;
-            ++count;
+            count++;
         }
-
-
         // call
+        instrs.push_back({ ACmd.bl, triples.getFuncName(triple.e1) });
 
         // 将r0存入临时变量
+        int ftype = triples.funcid_params[triple.e1.value][0].second;
+        if (ftype) {
+            Addr ret = ftype != 2 ? AB.r0 : AB.fa0;
+            Addr addr = loadTripleValueAddr(triples, triple.to);
+
+            if (triples.getValueType(triple.to) != 2) {
+                storeInt(addr, ret);
+            } else {
+                storeFloat(addr, ret);
+            }
+        }
     }
 
     void ArmTripleGenerator::genTag(Triples& triples, Triples::Triple& triple)
@@ -116,22 +138,28 @@ namespace TriplesArmGenerator {
 
     void ArmTripleGenerator::genMove(Triples& triples, Triples::Triple& triple)
     {
+        printf("---genMove\n");
+
         Addr op1 = loadTripleValueAddr(triples, triple.e1);
         Addr dst = loadTripleValueAddr(triples, triple.to);
-        if (triples.getValueType(triple.e1) != 2) {
-            op1 = loadInt(op1, triples.getValueType(triple.e1));
-        } else {
-            op1 = loadFloat(op1, triples.getValueType(triple.e1));
-        }
-
         if (triples.getValueType(triple.to) != 2) {
+            op1 = loadInt(op1, triples.getValueType(triple.e1));
             storeInt(dst, op1);
         } else {
+            op1 = loadFloat(op1, triples.getValueType(triple.e1));
             storeFloat(dst, op1);
         }
+
+        //if (triples.getValueType(triple.to) != 2) {
+        //    storeInt(dst, op1);
+        //} else {
+        //    storeFloat(dst, op1);
+        //}
     }
 
     void ArmTripleGenerator::genReturn(Triples& triples, Triples::Triple& triple) {
+        printf("---genReturn\n");
+
         int return_type = triples.funcid_params[now_func_id][0].second;
 
         if (return_type == 1) {
@@ -143,6 +171,7 @@ namespace TriplesArmGenerator {
             temp = loadInt(temp, triples.getValueType(triple.e1));
 
             instrs.push_back({ ACmd.mov, AB.r0, temp });
+            setTempRegState(temp, false);
 
         } else if (return_type == 2) {
             // float
@@ -153,6 +182,7 @@ namespace TriplesArmGenerator {
             ftemp = loadInt(ftemp, triples.getValueType(triple.e1));
 
             instrs.push_back({ ACmd.vmov, AB.fa0, ftemp });
+            setTempRegState(ftemp, false);
         }
 
         instrs.push_back({ ACmd.b, { ".endof" + triples.getFuncName({now_func_id, TTT.func})} });
@@ -169,10 +199,34 @@ namespace TriplesArmGenerator {
         instrs.push_back({ ACmd.mov, AB.s0, AB.sp });
         instrs.push_back({ ACmd.sub, AB.sp, AB.sp, func_stack_size[func_id] * 4 });
 
-        // TODO 考虑浮点数在浮点数寄存器上的存放
-        // 将r0 - r3 放入栈
-        for (int i = 1; i < std::min<int>(4 + 1, triples.funcid_params[func_id].size()); ++i) {
-            storeInt(value_addr[triples.funcid_params[func_id][i].first], { AB.reg, AB.r0 + i - 1 });
+        // 从参数存放位置读取参数并存入相应地址
+        auto& params = triples.funcid_params[func_id];
+        auto& param_loads = func_params_load[now_func_id];
+        for (int j = 0; j < param_loads.size(); ++j) {
+            bool mov_flg = true;
+            if (param_loads[j].base == AB.sp && value_addr[params[j + 1].first].base == AB.sp
+                && param_loads[j].value == value_addr[params[j + 1].first].value - func_stack_size[now_func_id]) {
+                mov_flg = false;
+            } else if (param_loads[j].base == value_addr[params[j + 1].first].base
+                && param_loads[j].value == value_addr[params[j + 1].first].value) {
+                mov_flg = false;
+            }
+
+            if (mov_flg) {
+                Addr load_addr = param_loads[j];
+                if (load_addr.base == AB.sp) {
+                    load_addr.value += func_stack_size[now_func_id];
+                }
+
+                if (params[j + 1].second != 2) {
+                    Addr temp = loadInt(load_addr);
+                    storeInt(value_addr[params[j + 1].first], temp);
+                } else {
+                    Addr temp = loadFloat(load_addr);
+                    storeFloat(value_addr[params[j + 1].first], temp);
+                }
+
+            }
         }
     }
 
@@ -224,7 +278,7 @@ namespace TriplesArmGenerator {
                 break;
 
             case TCmd.call:
-                //genCall(triples, cur_triple);
+                genCall(triples, cur_triple);
                 break;
 
             case TCmd.load:
