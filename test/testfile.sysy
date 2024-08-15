@@ -1,8 +1,13 @@
+int c = 10;
+
 int main() {
   int a[10] = {1, 2, 3};
   int b = 1;
 
   putint(a[b]);
+  putch(10);
+  putint(c);
+  putch(10);
   return 0;
-  }
+}
 

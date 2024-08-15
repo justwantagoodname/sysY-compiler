@@ -1,5 +1,62 @@
-#include "arm_triple_gnerator.h"
+ï»¿#include "arm_triple_gnerator.h"
 namespace TriplesArmGenerator {
+    void TriplesArmGenerator::ArmTripleGenerator::makeGlobeMap(Triples& triples)
+    {
+
+        int index = 0;
+        for (int i = 0; i < triples.value_pointer.size(); ++i) {
+            auto& value = triples.value_pointer[i];
+            if (value.get_attr("ex_var")) {
+                value_addr[i] = Addr(value.get_attr_str("name"));
+
+                std::vector<unsigned int> init_nums;
+                init_nums.clear();
+                printf("get ex var: %s\n", value.get_attr_str("name"));
+                int size = 0;
+                if (value.get_attr("size"))
+                    size = value.get_attr_int("size");
+                int type = 0;
+                type = strcmp(value.get_attr_str("type"), "Float") == 0;
+                type |= (value.get_attr("array") ? 1 : 0) << 1;
+                type += 1;
+
+                auto init = value % ("/InitValue");
+                for (auto item : init) {
+                    if (item.id_is("Number")) {
+                        init_nums.push_back(item.get_attr_int("value"));
+                    } else if (item.id_is("Exp")) {
+                        if (item[0].id_is("Number"))
+                            init_nums.push_back(item[0].get_attr_int("value"));
+                    } else {
+                        init_nums.push_back(0);
+                    }
+                }
+
+                globe_map[index] = { value.get_attr_str("name"), type, size, init_nums };
+            }
+            ++index;
+        }
+    }
+
+    void ArmTripleGenerator::setExFunc(Triples& triples)
+    {
+        func_params_load.resize(triples.function_pointer.size() - 13);
+
+        func_params_load.push_back({}); // putf
+        func_params_load.push_back({}); // getint
+        func_params_load.push_back({}); // getch
+        func_params_load.push_back({}); // getfloat
+        func_params_load.push_back({ AB.r0 }); // getarray
+        func_params_load.push_back({ AB.r0 }); // getfarray
+        func_params_load.push_back({ AB.r0 }); // putint
+        func_params_load.push_back({ AB.r0 }); // putch
+        func_params_load.push_back({ AB.fa0 }); // putfloat
+        func_params_load.push_back({ AB.r0 , AB.r1 }); // putarray
+        func_params_load.push_back({ AB.r0 , AB.r1 }); // putfarray
+        func_params_load.push_back({ AB.r0 }); // starttime
+        func_params_load.push_back({ AB.r0 }); // stoptime
+    }
+
     void TriplesArmGenerator::ArmTripleGenerator::getStackPlace(Triples& triples)
     {
         value_addr.clear();
@@ -23,31 +80,31 @@ namespace TriplesArmGenerator {
         int stack_size = 0;
         for (int i = 0; i < triples.size(); ++i) {
             Triples::Triple& triple = triples[i];
-            // ÊÇº¯Êı£¬ ½øÈëÕ»·ÖÎö
+            // æ˜¯å‡½æ•°ï¼Œ è¿›å…¥æ ˆåˆ†æ
             if (triple.cmd == TCmd.tag && triple.e1.type == TTT.func) {
                 //printf("into func\n");
-                // »ñµÃfunc ±àºÅ Óë block ±àºÅ
+                // è·å¾—func ç¼–å· ä¸ block ç¼–å·
                 now_func_block_id = triples[i + 1].e1.value;
                 now_func_id = triple.e1.value;
 
-                // ·ÖÅäº¯Êı²ÎÊıµØÖ·µ½Õ»ÉÏ
+                // åˆ†é…å‡½æ•°å‚æ•°åœ°å€åˆ°æ ˆä¸Š
                 //int n = 1;
                 //func_reg[now_func_id] = { AB.s0 };
                 func_reg[now_func_id] = {};
                 //for (int j = 1; j < params.size(); ++j) {
-                //    value_addr[params[j].first] = Addr(AB.s0, j - 1 + n);// j - 1: µÚj¸ö²ÎÊı£¨paramµÚÒ»Î»ÊÇ·µ»ØÖµÀàĞÍ£©£¬+n£º¼Ä´æÆ÷±£´æÎ»ÖÃ
+                //    value_addr[params[j].first] = Addr(AB.s0, j - 1 + n);// j - 1: ç¬¬jä¸ªå‚æ•°ï¼ˆparamç¬¬ä¸€ä½æ˜¯è¿”å›å€¼ç±»å‹ï¼‰ï¼Œ+nï¼šå¯„å­˜å™¨ä¿å­˜ä½ç½®
                 //}
 
                 //stack_size = params.size() - 1;
-                //stack_size += n; // Õ»Ä£Ê½ÏÂ½ö±£´æÉÏ´ÎÕ»¶¥Ö¸Õë
+                //stack_size += n; // æ ˆæ¨¡å¼ä¸‹ä»…ä¿å­˜ä¸Šæ¬¡æ ˆé¡¶æŒ‡é’ˆ
                 stack_size = 0;
-                // »ñµÃ²ÎÊıÊıÄ¿
+                // è·å¾—å‚æ•°æ•°ç›®
             }
 
-            // ½áÊøº¯Êı£¬½áÊøÕ»·ÖÎö
+            // ç»“æŸå‡½æ•°ï¼Œç»“æŸæ ˆåˆ†æ
             if (triple.cmd == TCmd.blke && triple.e1.value == now_func_block_id) {
 
-                // ´¦Àíº¯ÊıÕ»Çé¿ö
+                // å¤„ç†å‡½æ•°æ ˆæƒ…å†µ
                 auto& params = triples.funcid_params[now_func_id];
                 int param_size = params.size() - 1;
 
@@ -56,14 +113,14 @@ namespace TriplesArmGenerator {
                     ++stack_size;
                 }
 
-                // ÒÀ¾İº¯ÊıÕ»´óĞ¡´æ´¢º¯Êı²ÎÊıÓ¦µ±´æ´¢Î»ÖÃ
-                
-                // ÕûĞÍ¼ÆÊıÆ÷£¬¸¡µã¼ÆÊıÆ÷
+                // ä¾æ®å‡½æ•°æ ˆå¤§å°å­˜å‚¨å‡½æ•°å‚æ•°åº”å½“å­˜å‚¨ä½ç½®
+
+                // æ•´å‹è®¡æ•°å™¨ï¼Œæµ®ç‚¹è®¡æ•°å™¨
                 int int_count = 0, float_count = 0;
-                // ²ÎÊıÕûĞÎ¼Ä´æÆ÷Êı£¬ ¸¡µã¼Ä´æÆ÷Êı
+                // å‚æ•°æ•´å½¢å¯„å­˜å™¨æ•°ï¼Œ æµ®ç‚¹å¯„å­˜å™¨æ•°
                 int int_reg_number = 4, float_reg_number = 1;
 
-                // ³õÊ¼»¯º¯Êı¼ÓÔØµØÖ·ÁĞ±í
+                // åˆå§‹åŒ–å‡½æ•°åŠ è½½åœ°å€åˆ—è¡¨
                 func_params_load[now_func_id].clear();
                 func_params_load[now_func_id].resize(param_size);
 
@@ -73,7 +130,7 @@ namespace TriplesArmGenerator {
 
                     int ptype = params[j + 1].second;
                     if (ptype != 2) {
-                        // ÕûĞÎ
+                        // æ•´å½¢
                         if (int_count >= int_reg_number) {
                             flg = true;
                         } else {
@@ -81,7 +138,7 @@ namespace TriplesArmGenerator {
                         }
                         ++int_count;
                     } else {
-                        // ¸¡µã
+                        // æµ®ç‚¹
                         if (float_count >= float_reg_number) {
                             flg = true;
                         } else {
@@ -90,33 +147,33 @@ namespace TriplesArmGenerator {
                         ++float_count;
                     }
 
-                    if(flg){
-                        // ´æÈëÕ»µÄÇé¿ö
+                    if (flg) {
+                        // å­˜å…¥æ ˆçš„æƒ…å†µ
                         Addr r1 = value_addr[params[j + 1].first];
                         r1.value -= stack_size;
                         func_params_load[now_func_id][j] = r1;
                     }
                 }
 
-                // ´æ´¢º¯ÊıÕ»´óĞ¡
+                // å­˜å‚¨å‡½æ•°æ ˆå¤§å°
                 func_stack_size[now_func_id] = stack_size;
 
                 //printf("out func\n");
-                // ÍË³öµ±Ç°º¯Êı·ÖÎö
+                // é€€å‡ºå½“å‰å‡½æ•°åˆ†æ
                 now_func_block_id = -1;
                 now_func_id = -1;
                 stack_size = 0;
             }
 
-            // ÎªÁË£¨Ö»ÊÇÎªÁË£©·½±ã£¬»ìºÏ´æ´¢tempºÍvalue
-            // Èç¹ûÊÇvar£¬·ÖÅäÕ»
+            // ä¸ºäº†ï¼ˆåªæ˜¯ä¸ºäº†ï¼‰æ–¹ä¾¿ï¼Œæ··åˆå­˜å‚¨tempå’Œvalue
+            // å¦‚æœæ˜¯varï¼Œåˆ†é…æ ˆ
             if (triple.cmd == TCmd.var) {
                 //printf("var def\n");
                 value_addr[triple.e1.value] = Addr(AB.sp, stack_size);
                 stack_size += triple.e2.value;
             }
 
-            // Èç¹ûÊÇĞÂµÄtemp£¬·ÖÅäÕ»
+            // å¦‚æœæ˜¯æ–°çš„tempï¼Œåˆ†é…æ ˆ
             if (triple.to.type == TTT.temp
                 && temp_addr[triple.to.value].base == AB.null) {
                 //printf("temp def\n");
@@ -125,7 +182,9 @@ namespace TriplesArmGenerator {
             }
 
         }
-        // ÉèÖÃ¿âº¯Êı
-        setExFunc();
+        // è®¾ç½®åº“å‡½æ•°
+        setExFunc(triples);
+        // è®¾ç½®å…¨å±€å˜é‡
+        makeGlobeMap(triples);
     }
 }

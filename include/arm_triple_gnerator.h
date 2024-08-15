@@ -85,6 +85,7 @@ namespace TriplesArmGenerator {
 
             tag,    // 需特判, 放置tag
             word,   // 需特判, 放置word
+            space,  // 需特判, 空置空间
             ascii,  // 需特判, 放置ascii字符串
 
         };
@@ -148,6 +149,10 @@ namespace TriplesArmGenerator {
         // 每个函数参数进入前应保存位置
         std::vector<std::vector<Addr>> func_params_load;
 
+        // globe map
+        // index -> [name, type, size, init nums]
+        std::map<int, std::tuple<std::string, int, int, std::vector<unsigned int>>> globe_map;
+
         // 临时寄存器及短时占用状态表（应当在任何跳转前结束占用）
         std::vector<std::pair<int, bool>>
             int_temp_reg = {
@@ -181,6 +186,7 @@ namespace TriplesArmGenerator {
         void genCompare(Triples& triples, Triples::Triple& triple);
         void genCall(Triples& triples, Triples::Triple& triple);
         void genPutf(Triples& triples, Triples::Triple& triple);
+        void genMset(Triples& triples, Triples::Triple& triple);
         void genJmp(Triples& triples, Triples::Triple& triple);
         void genTag(Triples& triples, Triples::Triple& triple);
         void genMove(Triples& triples, Triples::Triple& triple);
@@ -190,9 +196,11 @@ namespace TriplesArmGenerator {
         void genFuncBegin(Triples& triples, int func_id);
         void genFuncEnd(Triples& triples, int func_id);
 
-    private:
-        void setExFunc();
+        void genAllGlobeVars();
 
+    private:
+        void setExFunc(Triples& triples);
+        void makeGlobeMap(Triples& triples);
     public:
         ArmTripleGenerator();
         // getplace

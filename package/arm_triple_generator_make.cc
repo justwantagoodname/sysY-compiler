@@ -263,6 +263,26 @@ namespace TriplesArmGenerator {
         instrs.push_back({ ACmd.b, { ".endof" + triples.getFuncName({now_func_id, TTT.func})} });
     }
 
+    void ArmTripleGenerator::genAllGlobeVars() {
+        for (auto& e : globe_map) {
+            int idx = e.first;
+            string& name = std::get<0>(e.second);
+            int type = std::get<1>(e.second);
+            int size = std::get<2>(e.second);
+            vector<unsigned int>& init_num = std::get<3>(e.second);
+
+            instrs.push_back({ ACmd.tag, {name} });
+
+            for (auto item : init_num) {
+                instrs.push_back({ ACmd.word, item });
+                size -= 1;
+            }
+            if (size > 0) {
+                instrs.push_back({ ACmd.space, size * 4});
+            }
+        }
+    }
+
     void ArmTripleGenerator::genFuncBegin(Triples& triples, int func_id)
     {
         instrs.push_back({ ACmd.tag, {triples.getFuncName({func_id, TTT.func})} });
@@ -344,6 +364,7 @@ namespace TriplesArmGenerator {
             case TCmd.jmp:
                 genJmp(triples, cur_triple);
                 break;
+
             case TCmd.jn0:
             case TCmd.jeq:
             case TCmd.jne:
@@ -362,6 +383,10 @@ namespace TriplesArmGenerator {
             case TCmd.store:
             case TCmd.mov:
                 genMove(triples, cur_triple);
+                break;
+
+            case TCmd.mset:
+                //genMset(triples, cur_triple);
                 break;
 
             case TCmd.tag:
@@ -390,6 +415,8 @@ namespace TriplesArmGenerator {
         getStackPlace(triples);
 
         printAddrs(triples);
+
+        genAllGlobeVars();
 
         for (int i = 0; i < triples.size(); ++i) {
             Triples::Triple& triple = triples[i];

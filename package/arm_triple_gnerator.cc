@@ -42,6 +42,7 @@ namespace TriplesArmGenerator {
             // 是立即数，读取
             Addr temp = getEmptyIntTempReg();
 
+            //TODO 限定范围
             instrs.push_back({ ACmd.mov, temp, addr });
 
             setTempRegState(temp, true); // 标记占用
@@ -53,10 +54,36 @@ namespace TriplesArmGenerator {
 
             int v = (int)*(float*)(&addr.value);
 
+            //TODO 限定范围
             instrs.push_back({ ACmd.mov, temp, {v} });
 
             setTempRegState(temp, true); // 标记占用
             return temp;
+        } else if (addr.base == AB.tag) {
+            // 全局变量
+            if (stack_type != 2) {
+                Addr temp = getEmptyIntTempReg();
+
+                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+                instrs.push_back({ ACmd.ldr,  temp, { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+
+                setTempRegState(temp, true); // 标记占用
+                return temp;
+            } else {
+                Addr ftemp = getEmptyFloatTempReg();
+                Addr temp = getEmptyIntTempReg();
+
+                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+                instrs.push_back({ ACmd.vldr, ftemp, { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+                instrs.push_back({ ACmd.vcvtf2d, ftemp, ftemp });
+                instrs.push_back({ ACmd.vmov, temp, ftemp });
+
+                setTempRegState(temp, true); // 标记占用
+                return temp;
+            }
+
         } else {
             panic("load bad addr ( like tag ) to int reg!");
         }
@@ -119,8 +146,33 @@ namespace TriplesArmGenerator {
             setTempRegState(ftemp, true); // 标记占用
             return ftemp;
 
+        } else if (addr.base == AB.tag) {
+            // 全局变量
+            if (stack_type != 2) {
+                Addr ftemp = getEmptyFloatTempReg();
+                Addr temp = getEmptyIntTempReg();
+
+                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+                instrs.push_back({ ACmd.ldr, temp,  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+                instrs.push_back({ ACmd.vmov, ftemp, temp });
+                instrs.push_back({ ACmd.vcvtd2f, ftemp, ftemp });
+
+                setTempRegState(ftemp, true); // 标记占用
+                return ftemp;
+            } else {
+                Addr ftemp = getEmptyFloatTempReg();
+                Addr temp = getEmptyIntTempReg();
+
+                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+                instrs.push_back({ ACmd.vldr, ftemp,  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+
+                setTempRegState(ftemp, true); // 标记占用
+                return ftemp;
+            }
         } else {
-            panic("load bad addr ( like tag ) to int reg!");
+            panic("load bad addr ( like tag ) to float reg!");
         }
     }
 
@@ -308,24 +360,6 @@ namespace TriplesArmGenerator {
         }
     }
 
-
-    void ArmTripleGenerator::setExFunc()
-    {
-        func_params_load.push_back({}); // putf
-        func_params_load.push_back({}); // getint
-        func_params_load.push_back({}); // getch
-        func_params_load.push_back({}); // getfloat
-        func_params_load.push_back({ AB.r0 }); // getarray
-        func_params_load.push_back({ AB.r0 }); // getfarray
-        func_params_load.push_back({ AB.r0 }); // putint
-        func_params_load.push_back({ AB.r0 }); // putch
-        func_params_load.push_back({ AB.fa0 }); // putfloat
-        func_params_load.push_back({ AB.r0 , AB.r1 }); // putarray
-        func_params_load.push_back({ AB.r0 , AB.r1 }); // putfarray
-        func_params_load.push_back({ AB.r0 }); // starttime
-        func_params_load.push_back({ AB.r0 }); // stoptime
-    }
-
     ArmTripleGenerator::ArmTripleGenerator() {}
 
     void ArmTripleGenerator::printAddrs(Triples& triples)
@@ -410,9 +444,9 @@ namespace TriplesArmGenerator {
         } else if (base == AB.tag) {
             return tag;
         } else if (base == AB.low_tag) {
-            return ":lower16:" + tag;
+            return "#:lower16:" + tag;
         } else if (base == AB.up_tag) {
-            return ":upper16:" + tag;
+            return "#:upper16:" + tag;
         } else if (base == AB.reglist) {
             std::string regl = "{ ";
             bool con_flg = false;
@@ -482,13 +516,14 @@ namespace TriplesArmGenerator {
 
             "tag",    // 需特判, 放置tag
             "word",   // 需特判, 放置word
+            "space",
             "ascii",  // 需特判, 放置ascii字符串
         };
 
         if (cmd == ACmd.tag) {
             ans = e1.tag + ":";
-        } else if (cmd == ACmd.word) {
-            ans = "." + cmds[cmd] + " " + std::to_string(e1.value);
+        } else if (cmd >= ACmd.word && cmd <= ACmd.space) {
+            ans = "\t." + cmds[cmd] + " " + std::to_string(e1.value);
         } else {
             ans = "\t" + cmds[cmd];
             if (e1.base != AB.null)
