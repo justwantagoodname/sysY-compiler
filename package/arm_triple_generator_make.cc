@@ -5,22 +5,22 @@ namespace TriplesArmGenerator {
         if (triples.getValueType(triple.to) == 2)
             is_float = true;
 
-        Addr op1 = triple2Addr(triples, triple.e1);
-        Addr op2 = triple2Addr(triples, triple.e2);
-        Addr to = triple2Addr(triples, triple.to);
+        Addr op1 = loadTripleValueAddr(triples, triple.e1);
+        Addr op2 = loadTripleValueAddr(triples, triple.e2);
+        Addr to = loadTripleValueAddr(triples, triple.to);
         auto cmd = ACmd.nop;
 
-        if (triples.getValueType(triple.e1) != 2) {
-            op1 = loadInt(op1);
+        if (!is_float) {
+            op1 = loadInt(op1, triples.getValueType(triple.e1));
         } else {
-            op1 = loadFloat(op1);
+            op1 = loadFloat(op1, triples.getValueType(triple.e1));
         }
         setTempRegState(op1, true);
 
-        if (triples.getValueType(triple.e1) != 2) {
-            op2 = loadInt(op2);
+        if (!is_float) {
+            op2 = loadInt(op2, triples.getValueType(triple.e2));
         } else {
-            op2 = loadFloat(op2);
+            op2 = loadFloat(op2, triples.getValueType(triple.e2));
         }
         setTempRegState(op2, true);
 
@@ -86,17 +86,44 @@ namespace TriplesArmGenerator {
 
     }
 
-    void ArmTripleGenerator::genMove(Triples& triples, Triples::Triple& triple)
+    void ArmTripleGenerator::genCall(Triples& triples, Triples::Triple& triple)
     {
-        Addr op1 = triple2Addr(triples, triple.e1);
-        Addr dst = triple2Addr(triples, triple.to);
-        if (triples.getValueType(triple.e1) != 2) {
-            op1 = loadInt(op1);
-        } else {
-            op1 = loadFloat(op1);
+        // TODO 特判putf
+            
+        auto* cur = triple.e1.added; // 得到第一个参数
+        int count = 0;
+        // 存入第 0 - 3 参数到 r0 - r3
+        // 倒序存入 4 - 8 参数到栈顶下方
+        while (cur) {
+            
+
+            
+            cur = cur->added;
+            ++count;
         }
 
+
+        // call
+        
+        // 将r0存入临时变量
+    }
+
+    void ArmTripleGenerator::genTag(Triples& triples, Triples::Triple& triple)
+    {
+        instrs.push_back({ ACmd.tag, triples.getLabelName(triple.e1.value) });
+    }
+
+    void ArmTripleGenerator::genMove(Triples& triples, Triples::Triple& triple)
+    {
+        Addr op1 = loadTripleValueAddr(triples, triple.e1);
+        Addr dst = loadTripleValueAddr(triples, triple.to);
         if (triples.getValueType(triple.e1) != 2) {
+            op1 = loadInt(op1, triples.getValueType(triple.e1));
+        } else {
+            op1 = loadFloat(op1, triples.getValueType(triple.e1));
+        }
+
+        if (triples.getValueType(triple.to) != 2) {
             storeInt(dst, op1);
         } else {
             storeFloat(dst, op1);
@@ -110,38 +137,21 @@ namespace TriplesArmGenerator {
             // int
             auto& ret = triple.e1;
             Addr temp;
-            if (ret.type == TTT.dimd) {
-                temp = loadInt({ ret.value });
-                instrs.push_back({ ACmd.mov, AB.r0, temp });
-            } else if (ret.type == TTT.fimd) {
-                temp = loadInt({ AB.dimd, ret.value });
-                instrs.push_back({ ACmd.mov, AB.r0, temp });
-            } else if (ret.type == TTT.temp && triples.getTempType(ret.value) == 1) {
-                temp = loadInt({ temp_addr[ret.value] });
-                instrs.push_back({ ACmd.mov, AB.r0, temp });
-            } else if (ret.type == TTT.temp && triples.getTempType(ret.value) == 2) {
-                Addr ftemp = loadFloat({ temp_addr[ret.value] });
-                instrs.push_back({ ACmd.vcvtf2d, ftemp, ftemp });
-                instrs.push_back({ ACmd.vmov, AB.r0, ftemp });
-            }
+
+            temp = loadTripleValueAddr(triples, triple.e1);
+            temp = loadInt(temp, triples.getValueType(triple.e1));
+
+            instrs.push_back({ ACmd.mov, AB.r0, temp });
+
         } else if (return_type == 2) {
             // float
             auto& ret = triple.e1;
             Addr ftemp;
-            if (ret.type == TTT.dimd) {
-                ftemp = loadFloat({ ret.value });
-                instrs.push_back({ ACmd.vmov, AB.fa0, ftemp });
-            } else if (ret.type == TTT.fimd) {
-                ftemp = loadFloat({ AB.dimd,ret.value });
-                instrs.push_back({ ACmd.vmov, AB.fa0, ftemp });
-            } else if (ret.type == TTT.temp && triples.getTempType(ret.value) == 2) {
-                ftemp = loadFloat(temp_addr[ret.value]);
-                instrs.push_back({ ACmd.vmov, AB.fa0, ftemp });
-            } else if (ret.type == TTT.temp && triples.getTempType(ret.value) == 1) {
-                Addr temp = loadInt({ temp_addr[ret.value] });
-                instrs.push_back({ ACmd.vmov, AB.fa0, temp });
-                instrs.push_back({ ACmd.vcvtd2f, AB.fa0, AB.fa0 });
-            }
+
+            ftemp = loadTripleValueAddr(triples, triple.e1);
+            ftemp = loadInt(ftemp, triples.getValueType(triple.e1));
+
+            instrs.push_back({ ACmd.vmov, AB.fa0, ftemp });
         }
 
         instrs.push_back({ ACmd.b, { ".endof" + triples.getFuncName({now_func_id, TTT.func})} });
@@ -158,7 +168,8 @@ namespace TriplesArmGenerator {
         instrs.push_back({ ACmd.mov, AB.s0, AB.sp });
         instrs.push_back({ ACmd.sub, AB.sp, AB.sp, func_stack_size[func_id] * 4 });
 
-        //将r0 - r3 放入栈
+        // TODO 考虑浮点数在浮点数寄存器上的存放
+        // 将r0 - r3 放入栈
         for (int i = 1; i < std::min<int>(4 + 1, triples.funcid_params[func_id].size()); ++i) {
             storeInt(value_addr[triples.funcid_params[func_id][i].first], { AB.reg, AB.r0 + i - 1 });
         }
@@ -212,7 +223,7 @@ namespace TriplesArmGenerator {
                 break;
 
             case TCmd.call:
-                //genCall(triples, cur_triple);
+                genCall(triples, cur_triple);
                 break;
 
             case TCmd.load:
@@ -222,7 +233,7 @@ namespace TriplesArmGenerator {
                 break;
 
             case TCmd.tag:
-                //genTag(triples, cur_triple);
+                genTag(triples, cur_triple);
                 break;
 
             case TCmd.ret:

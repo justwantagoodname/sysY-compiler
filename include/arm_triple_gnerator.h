@@ -161,12 +161,12 @@ namespace TriplesArmGenerator {
         int now_func_id;
 
     private:
-        Addr loadInt(const Addr&);
-        Addr loadFloat(const Addr&);
+        Addr loadInt(const Addr&, int f = 1);
+        Addr loadFloat(const Addr&, int f = 2);
         void storeInt(const Addr&, const Addr&);
         void storeFloat(const Addr&, const Addr&);
 
-        Addr triple2Addr(const Triples& triples, const Triples::TripleValue&);
+        Addr loadTripleValueAddr(const Triples& triples, const Triples::TripleValue&);
 
         Addr getEmptyIntTempReg();
         Addr getEmptyFloatTempReg();
