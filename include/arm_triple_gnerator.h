@@ -190,6 +190,8 @@ namespace TriplesArmGenerator {
         void genFuncBegin(Triples& triples, int func_id);
         void genFuncEnd(Triples& triples, int func_id);
 
+    private:
+        void setExFunc();
 
     public:
         ArmTripleGenerator();

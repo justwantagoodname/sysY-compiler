@@ -275,7 +275,7 @@ namespace TriplesArmGenerator {
 
     Addr TriplesArmGenerator::ArmTripleGenerator::loadTripleValueAddr(const Triples& triples, const Triples::TripleValue& triple)
     {
-         if (triple.type == TTT.dimd) {
+        if (triple.type == TTT.dimd) {
             return triple.value;
         } else if (triple.type == TTT.fimd) {
             return { AB.dimd, triple.value };
@@ -298,6 +298,24 @@ namespace TriplesArmGenerator {
         } else if (triple.type == TTT.func) {
             return triples.getFuncName(triple.value);
         }
+    }
+
+
+    void ArmTripleGenerator::setExFunc()
+    {
+        func_params_load.push_back({}); // putf
+        func_params_load.push_back({}); // getint
+        func_params_load.push_back({}); // getch
+        func_params_load.push_back({}); // getfloat
+        func_params_load.push_back({ AB.r0 }); // getarray
+        func_params_load.push_back({ AB.r0 }); // getfarray
+        func_params_load.push_back({ AB.r0 }); // putint
+        func_params_load.push_back({ AB.r0 }); // putch
+        func_params_load.push_back({ AB.fa0 }); // putfloat
+        func_params_load.push_back({ AB.r0 , AB.r1 }); // putarray
+        func_params_load.push_back({ AB.r0 , AB.r1 }); // putfarray
+        func_params_load.push_back({ AB.r0 }); // starttime
+        func_params_load.push_back({ AB.r0 }); // stoptime
     }
 
     ArmTripleGenerator::ArmTripleGenerator() {}

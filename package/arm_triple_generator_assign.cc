@@ -9,13 +9,13 @@ namespace TriplesArmGenerator {
         temp_addr.resize(triples.temp_count);
 
         func_stack_size.clear();
-        func_stack_size.resize(triples.funcid_params.size() - 14);
+        func_stack_size.resize(triples.funcid_params.size() - 13);
 
         func_reg.clear();
-        func_reg.resize(triples.funcid_params.size() - 14);
+        func_reg.resize(triples.funcid_params.size() - 13);
 
         func_params_load.clear();
-        func_params_load.resize(triples.funcid_params.size() - 14);
+        func_params_load.resize(triples.funcid_params.size() - 13);
 
 
         int now_func_block_id = -1;
@@ -125,5 +125,7 @@ namespace TriplesArmGenerator {
             }
 
         }
+        // …Ë÷√ø‚∫Ø ˝
+        setExFunc();
     }
 }

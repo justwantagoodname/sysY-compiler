@@ -105,20 +105,6 @@ void Triples::pretreat()
         )
         .add_child(
             Element("Function")
-            .add_attr("name", "putint")
-            .add_attr("return", "Void")
-            .add_attr("ex_func", "true")
-            .add_child(
-                Element("Params")
-                .add_child(
-                    Element("ParamDecl")
-                    .add_attr("name", "a")
-                    .add_attr("type", "Int")
-                )
-            )
-        )
-        .add_child(
-            Element("Function")
             .add_attr("name", "putfloat")
             .add_attr("return", "Void")
             .add_attr("ex_func", "true")
