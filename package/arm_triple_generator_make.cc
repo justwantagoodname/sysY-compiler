@@ -89,28 +89,29 @@ namespace TriplesArmGenerator {
     void ArmTripleGenerator::genCall(Triples& triples, Triples::Triple& triple)
     {
         // TODO 特判putf
-            
+
         auto* cur = triple.e1.added; // 得到第一个参数
         int count = 0;
-        // 存入第 0 - 3 参数到 r0 - r3
+        // 存入前第 参数到 r0 - r3
         // 倒序存入 4 - 8 参数到栈顶下方
         while (cur) {
-            
 
-            
+
+
             cur = cur->added;
             ++count;
         }
 
 
         // call
-        
+
         // 将r0存入临时变量
     }
 
     void ArmTripleGenerator::genTag(Triples& triples, Triples::Triple& triple)
     {
-        instrs.push_back({ ACmd.tag, triples.getLabelName(triple.e1.value) });
+        if (triple.e1.type == TTT.lamb)
+            instrs.push_back({ ACmd.tag, triples.getLabelName(triple.e1) });
     }
 
     void ArmTripleGenerator::genMove(Triples& triples, Triples::Triple& triple)
@@ -223,7 +224,7 @@ namespace TriplesArmGenerator {
                 break;
 
             case TCmd.call:
-                genCall(triples, cur_triple);
+                //genCall(triples, cur_triple);
                 break;
 
             case TCmd.load:
