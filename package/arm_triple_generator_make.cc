@@ -1,4 +1,4 @@
-#include "arm_triple_gnerator.h"
+ï»¿#include "arm_triple_gnerator.h"
 namespace TriplesArmGenerator {
     void ArmTripleGenerator::genArith(Triples& triples, Triples::Triple& triple) {
         bool is_float = false;
@@ -88,12 +88,12 @@ namespace TriplesArmGenerator {
 
     void ArmTripleGenerator::genCall(Triples& triples, Triples::Triple& triple)
     {
-        // TODO ÌØÅĞputf
+        // TODO ç‰¹åˆ¤putf
 
-        auto* cur = triple.e1.added; // µÃµ½µÚÒ»¸ö²ÎÊı
+        auto* cur = triple.e1.added; // å¾—åˆ°ç¬¬ä¸€ä¸ªå‚æ•°
         int count = 0;
-        // ´æÈëÇ°µÚ ²ÎÊıµ½ r0 - r3
-        // µ¹Ğò´æÈë 4 - 8 ²ÎÊıµ½Õ»¶¥ÏÂ·½
+        // å­˜å…¥å‰ç¬¬ å‚æ•°åˆ° r0 - r3
+        // å€’åºå­˜å…¥ 4 - 8 å‚æ•°åˆ°æ ˆé¡¶ä¸‹æ–¹
         while (cur) {
 
 
@@ -105,7 +105,7 @@ namespace TriplesArmGenerator {
 
         // call
 
-        // ½«r0´æÈëÁÙÊ±±äÁ¿
+        // å°†r0å­˜å…¥ä¸´æ—¶å˜é‡
     }
 
     void ArmTripleGenerator::genTag(Triples& triples, Triples::Triple& triple)
@@ -169,8 +169,8 @@ namespace TriplesArmGenerator {
         instrs.push_back({ ACmd.mov, AB.s0, AB.sp });
         instrs.push_back({ ACmd.sub, AB.sp, AB.sp, func_stack_size[func_id] * 4 });
 
-        // TODO ¿¼ÂÇ¸¡µãÊıÔÚ¸¡µãÊı¼Ä´æÆ÷ÉÏµÄ´æ·Å
-        // ½«r0 - r3 ·ÅÈëÕ»
+        // TODO è€ƒè™‘æµ®ç‚¹æ•°åœ¨æµ®ç‚¹æ•°å¯„å­˜å™¨ä¸Šçš„å­˜æ”¾
+        // å°†r0 - r3 æ”¾å…¥æ ˆ
         for (int i = 1; i < std::min<int>(4 + 1, triples.funcid_params[func_id].size()); ++i) {
             storeInt(value_addr[triples.funcid_params[func_id][i].first], { AB.reg, AB.r0 + i - 1 });
         }
@@ -198,7 +198,7 @@ namespace TriplesArmGenerator {
         int i = begin;
         for (; i < triples.size(); ++i) {
             Triples::Triple& cur_triple = triples[i];
-            // µ±Ç°º¯Êı½áÊø
+            // å½“å‰å‡½æ•°ç»“æŸ
             if (cur_triple.cmd == TCmd.blke && cur_triple.e1.value == block_id) {
                 break;
             }
@@ -262,7 +262,7 @@ namespace TriplesArmGenerator {
 
         for (int i = 0; i < triples.size(); ++i) {
             Triples::Triple& triple = triples[i];
-            // ÊÇº¯Êı£¬ ½øÈëº¯Êı·ÖÎö
+            // æ˜¯å‡½æ•°ï¼Œ è¿›å…¥å‡½æ•°åˆ†æ
             if (triple.cmd == TCmd.tag && triple.e1.type == TTT.func) {
                 i = genFunction(triples, i);
             }
