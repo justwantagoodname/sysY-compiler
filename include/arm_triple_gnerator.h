@@ -1,7 +1,11 @@
 ﻿#pragma once
 #include "triples.h"
 #include "codegen/generator.h"
+#include <codegen/asm_helper.hpp>
 namespace TriplesArmGenerator {
+
+    static auto& TTT = Triples::TT;
+    static auto& TCmd = Triples::Cmd;
     static class ADDRBASE {
     public:
         enum ADDRBASEENUM {
@@ -21,7 +25,8 @@ namespace TriplesArmGenerator {
 
             imd, dimd, //立即数, 双字立即数
             tag, // 是tag
-            up_tag, low_tag //高位读取， 低位读取
+            up_tag, low_tag, //高位读取， 低位读取
+            reglist, // 寄存器列表
         };
     } AddrBase;
     static ADDRBASE& AB = AddrBase;
@@ -78,6 +83,7 @@ namespace TriplesArmGenerator {
             tag,    // 需特判, 放置tag
             word,   // 需特判, 放置word
             ascii,  // 需特判, 放置ascii字符串
+
         };
     }ACmd;
 
@@ -102,7 +108,11 @@ namespace TriplesArmGenerator {
             :base(b), tag(s), value(0) {}
         Addr(ADDRBASE::ADDRBASEENUM b, int v, std::string s)
             :base(b), tag(s), value(v) {}
-        std::string toString();
+        Addr(const std::vector<ADDRBASE::ADDRBASEENUM>& inits)
+            :base(AB.reglist), value(0) {
+            for (auto& r : inits) tag.push_back(r);
+        }
+        std::string toString() const;
     };
 
     struct Instr {
@@ -116,6 +126,8 @@ namespace TriplesArmGenerator {
             :cmd(c), e1(e1), e2(e2) {}
         Instr(ARMCMD::ARMCMDENUM c, Addr e1, Addr e2, Addr e3)
             :cmd(c), e1(e1), e2(e2), e3(e3) {}
+
+        std::string toASM();
     };
 
     class ArmTripleGenerator : ::Generator {
@@ -128,8 +140,10 @@ namespace TriplesArmGenerator {
         std::vector<Addr> temp_addr;
         // 函数栈大小
         std::vector<int> func_stack_size;
+        // 函数寄存器占用情况, 仅应被调用方保存寄存器
+        std::vector<std::vector<ADDRBASE::ADDRBASEENUM>> func_reg;
 
-        // 临时寄存器及占用情况表
+        // 临时寄存器及短时占用状态表（应当在任何跳转前结束占用）
         std::vector<std::pair<int, bool>>
             int_temp_reg = {
                 {AB.r1, false},
@@ -143,14 +157,35 @@ namespace TriplesArmGenerator {
         };
 
     private:
+        // 正在解析的函数id
+        int now_func_id;
+
+    private:
         Addr loadInt(const Addr&);
         Addr loadFloat(const Addr&);
         void storeInt(const Addr&, const Addr&);
         void storeFloat(const Addr&, const Addr&);
 
+        Addr triple2Addr(const Triples& triples, const Triples::TripleValue&);
+
         Addr getEmptyIntTempReg();
         Addr getEmptyFloatTempReg();
-        void setTempRegState(const Addr&, bool);
+        int setTempRegState(const Addr&, bool);
+
+        void genArith(Triples& triples, Triples::Triple& triple);
+        void genMem(Triples& triples, Triples::Triple& triple);
+        void genCompare(Triples& triples, Triples::Triple& triple);
+        void genCall(Triples& triples, Triples::Triple& triple);
+        void genPutf(Triples& triples, Triples::Triple& triple);
+        void genTag(Triples& triples, Triples::Triple& triple);
+        void genMove(Triples& triples, Triples::Triple& triple);
+        void genReturn(Triples& triples, Triples::Triple& triple);
+
+        int genFunction(Triples& triples, int begin);
+        void genFuncBegin(Triples& triples, int func_id);
+        void genFuncEnd(Triples& triples, int func_id);
+
+
     public:
         ArmTripleGenerator();
         // getplace
@@ -160,6 +195,8 @@ namespace TriplesArmGenerator {
 
         // 输出地址分配
         void printAddrs(Triples& triples);
+        void print();
 
+        void write(AssemblyBuilder&);
     };
 }

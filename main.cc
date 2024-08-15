@@ -125,15 +125,14 @@ int main(int argc, const char** argv) {
 
 	generator.generate(triples, false);
 
-	generator.printAddrs(triples);
+	//generator.printAddrs(triples);
+	generator.print();
 
-	panic("DOING……");
+	//panic("DOING……");
 
 	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());
 	asm_file.raw(".global main\n.text\n.align 2\n.type main, %function\n");
-	//for (auto p : g.instrs) {
-	//	asm_file.raw(p->toASM().c_str());
-	//}
+	generator.write(asm_file);
 	asm_file.raw(".section	.note.GNU-stack,\"\",%progbits\n.ident	\"SysY-Compiler\"\n");
 #endif
 
