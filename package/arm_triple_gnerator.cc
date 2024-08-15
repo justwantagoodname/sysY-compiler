@@ -286,12 +286,20 @@ namespace TriplesArmGenerator {
                 return value_addr[triple.value];
             else if (triple.added->type == TTT.dimd) {
                 Addr addr = value_addr[triple.value];
-                addr.value + triple.added->value;
+                addr.value += triple.added->value;
                 return addr;
             } else if (triple.added->type == TTT.temp) {
-                // TODO
-                printf("get triple addr by temp for array");
-                return value_addr[triple.value];
+                Addr temp = loadInt(temp_addr[triple.added->value]);
+                Addr lst = value_addr[triple.value];
+                // 数组只能在栈上
+                assert(lst.base >= AB.r0 && lst.base <= AB.pc);
+
+                instrs.push_back({ ACmd.lsls, temp, temp, 2 });
+                instrs.push_back({ ACmd.add, temp, lst.base, temp });
+                // 提前释放（有点危险，是下策）
+                setTempRegState(temp, false);
+
+                return { (ADDRBASE::ADDRBASEENUM)temp.value, lst.value };
             }
         } else if (triple.type == TTT.lamb) {
             return ".l" + std::to_string(triple.value);
