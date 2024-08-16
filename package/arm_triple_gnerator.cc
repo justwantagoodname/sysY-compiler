@@ -280,7 +280,7 @@ namespace TriplesArmGenerator {
 
         } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
             // 在栈上（以某个寄存器为基偏移）， 读取
-            if (stack_type != 2) {\
+            if (stack_type != 2) {
                 Addr temp = getEmptyIntTempReg();
 
                 instrs.push_back({ ACmd.ldr, temp, addr });
