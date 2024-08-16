@@ -219,7 +219,7 @@ namespace TriplesArmGenerator {
         } else if (addr.base == AB.imd) {
             // 限定范围
             unsigned int d = addr.value;
-            if(d < 0xFFFFFF)
+            if(d < 0xFFFF)
                 instrs.push_back({ ACmd.mov, reg, addr });
             else{
                 instrs.push_back({ ACmd.movw, reg, d & 0xFFFF });
@@ -231,7 +231,7 @@ namespace TriplesArmGenerator {
             unsigned int d = (int)*(float*)(&addr.value);
 
             // 限定范围
-            if(d < 0xFFFFFF)
+            if(d < 0xFFFF)
                 instrs.push_back({ ACmd.mov, reg, addr });
             else {
                 instrs.push_back({ACmd.movw, reg, d & 0xFFFF});
