@@ -1093,7 +1093,6 @@ void Triples::setFuncParams()
         param_types.push_back({ -1 , ret });
 
         auto params = e("/Params/*");
-        auto decl = e % ("/Scope/Decl");
         for (auto param : params) {
             int type;
             if (strcmp(param.get_attr_str("type"), "StringConst") == 0) {
@@ -1107,13 +1106,18 @@ void Triples::setFuncParams()
             std::string name = param.get_attr_str("name");
             Element value = e.qo("/Scope/Decl/*[@name='%s']", name.c_str());
 
+            bool if_finded = false;
             for (int i = 0; i < value_pointer.size(); ++i) {
                 //printf("makeing i: %d\n", i);
 
                 if (value_pointer[i] == value) {
                     param_types.push_back({ i , type });
+                    if_finded = true;
                     break;
                 }
+            }
+            if(!if_finded) {
+                param_types.push_back({ -1 , type });
             }
         }
 

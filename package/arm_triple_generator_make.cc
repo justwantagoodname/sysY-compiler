@@ -49,6 +49,8 @@ namespace TriplesArmGenerator {
                 instrs.push_back({ACmd.mov, AB.r1, r1_save});
                 setTempRegState(r1_save, false);
             }
+
+            setTempRegState(AB.r1, false);
         }
         else {
             if (!is_float) {
