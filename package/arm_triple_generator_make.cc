@@ -12,77 +12,111 @@ namespace TriplesArmGenerator {
         Addr to = loadTripleValueAddr(triples, triple.to);
         auto cmd = ACmd.nop;
 
-        if (!is_float) {
-            op1 = loadInt(op1, triples.getValueType(triple.e1));
-        } else {
-            op1 = loadFloat(op1, triples.getValueType(triple.e1));
-        }
+        bool if_r1_save_flg = false;
+        Addr r1_save;
 
-        if (!is_float) {
-            op2 = loadInt(op2, triples.getValueType(triple.e2));
-        } else {
-            op2 = loadFloat(op2, triples.getValueType(triple.e2));
-        }
+        if (!is_float && (triple.cmd == TCmd.div || triple.cmd == TCmd.mod)) {
+            // 除法和取模
+            // 将op1放入r0
+            instrs.push_back({ACmd.ldr, AB.r0, op1});
 
-        Addr dst;
-
-        if (!is_float) {
-
-            switch (triple.cmd)
-            {
-            case TCmd.add:
-                cmd = ACmd.add;
-                break;
-            case TCmd.sub:
-                cmd = ACmd.sub;
-                break;
-            case TCmd.mul:
-                cmd = ACmd.mul;
-                break;
-            case TCmd.div:
-                cmd = ACmd.div;
-                break;
-            case TCmd.mod:
-                cmd = ACmd.mod;
-                break;
-            default:
-                panic("ERROR: gen arith int oper.");
-                break;
+            // 检测r1是否被占用
+            if (int_temp_reg[0].second) {
+                // 将r1存入新的临时变量
+                r1_save = getEmptyIntTempReg();
+                instrs.push_back({ACmd.mov, r1_save, AB.r1});
+                if_r1_save_flg = true;
+                setTempRegState(r1_save, true);// 设置为占用
             }
+            int_temp_reg[0].second = true;
+            // 将op2放入r1
+            instrs.push_back({ACmd.ldr, AB.r1, op2});
 
-            dst = getEmptyIntTempReg();
-            instrs.push_back({ cmd, dst, op1, op2 });
+
+
+            Addr dst;
+            if(triple.cmd == TCmd.div) {
+                instrs.push_back({ACmd.bl, {"__aeabi_idiv"}});
+                dst = AB.r0;
+            } else {
+                instrs.push_back({ACmd.bl, {"__aeabi_idivmod"}});
+                dst = AB.r1;
+            }
 
             storeInt(to, dst);
 
-        } else {
-
-            switch (triple.cmd) {
-            case TCmd.add:
-                cmd = ACmd.vadd;
-                break;
-            case TCmd.sub:
-                cmd = ACmd.vsub;
-                break;
-            case TCmd.mul:
-                cmd = ACmd.vmul;
-                break;
-            case TCmd.div:
-                cmd = ACmd.vdiv;
-                break;
-            default:
-                panic("ERROR: gen arith float oper.");
-                break;
+            if(if_r1_save_flg) {
+                instrs.push_back({ACmd.mov, AB.r1, r1_save});
+                setTempRegState(r1_save, false);
+            }
+        }
+        else {
+            if (!is_float) {
+                op1 = loadInt(op1, triples.getValueType(triple.e1));
+            } else {
+                op1 = loadFloat(op1, triples.getValueType(triple.e1));
             }
 
-            dst = getEmptyFloatTempReg();
-            instrs.push_back({ cmd, dst, op1, op2 });
+            if (!is_float) {
+                op2 = loadInt(op2, triples.getValueType(triple.e2));
+            } else {
+                op2 = loadFloat(op2, triples.getValueType(triple.e2));
+            }
 
-            storeFloat(to, dst);
+            Addr dst;
+
+            if (!is_float) {
+
+                switch (triple.cmd) {
+                    case TCmd.add:
+                        cmd = ACmd.add;
+                        break;
+                    case TCmd.sub:
+                        cmd = ACmd.sub;
+                        break;
+                    case TCmd.mul:
+                        cmd = ACmd.mul;
+                        break;
+                    default:
+                        panic("ERROR: gen arith int oper.");
+                        break;
+                }
+
+                dst = getEmptyIntTempReg();
+                instrs.push_back({cmd, dst, op1, op2});
+
+                storeInt(to, dst);
+
+            } else {
+
+                switch (triple.cmd) {
+                    case TCmd.add:
+                        cmd = ACmd.vadd;
+                        break;
+                    case TCmd.sub:
+                        cmd = ACmd.vsub;
+                        break;
+                    case TCmd.mul:
+                        cmd = ACmd.vmul;
+                        break;
+                    case TCmd.div:
+                        cmd = ACmd.vdiv;
+                        break;
+                    default:
+                        panic("ERROR: gen arith float oper.");
+                        break;
+                }
+
+                dst = getEmptyFloatTempReg();
+                instrs.push_back({cmd, dst, op1, op2});
+
+                storeFloat(to, dst);
+            }
+
+            setTempRegState(op1, false);
+            setTempRegState(op2, false);
         }
 
-        setTempRegState(op1, false);
-        setTempRegState(op2, false);
 
     }
 

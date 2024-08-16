@@ -126,7 +126,7 @@ int main(int argc, const char** argv) {
 	generator.generate(triples, false);
 
 	//generator.printAddrs(triples);
-	generator.print();
+    //generator.print();
 
 	//panic("DOING……");
 

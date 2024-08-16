@@ -356,6 +356,7 @@ std::string RVSext::toASM() {
         panic("RVSext error");
         break;
     }
+    return result;
 }
 RVCompare::RVCompare(RVOp opt, const RVOperand& dst, const RVOperand& op1, const RVOperand& op2)
     : RVInstr(opt), dst(dst), op1(op1), op2(op2)

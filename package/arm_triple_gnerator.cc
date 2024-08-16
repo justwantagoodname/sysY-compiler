@@ -379,6 +379,7 @@ namespace TriplesArmGenerator {
         } else if (triple.type == TTT.func) {
             return triples.getFuncName(triple.value);
         }
+        return AB.r0;
     }
 
     ArmTripleGenerator::ArmTripleGenerator() {}
