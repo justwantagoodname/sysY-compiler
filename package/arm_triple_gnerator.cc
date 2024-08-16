@@ -293,7 +293,7 @@ namespace TriplesArmGenerator {
         } else if (addr.base == AB.imd || addr.base == AB.dimd) {
             // 是立即数，读取，整形转换为浮点读取
             float v;
-            int d;
+            unsigned int d;
             if (addr.base == AB.imd) {
                 v = addr.value;
             } else if (addr.base == AB.dimd) {
@@ -486,7 +486,7 @@ namespace TriplesArmGenerator {
         if (triple.type == TTT.dimd) {
             return triple.value;
         } else if (triple.type == TTT.fimd) {
-            return { AB.dimd, triple.value };
+            return { AB.imd, triple.value };
         } else if (triple.type == TTT.temp) {
             return temp_addr[triple.value];
         } else if (triple.type == TTT.value) {
