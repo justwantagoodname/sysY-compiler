@@ -100,12 +100,16 @@ namespace TriplesArmGenerator {
         // stack 地址
         Addr(ADDRBASE::ADDRBASEENUM b, int v)
             :base(b), value(v) {}
+        Addr(ADDRBASE::ADDRBASEENUM b, unsigned v)
+                :base(b), value(v) {}
         // 寄存器地址
         Addr(ADDRBASE::ADDRBASEENUM r)
             :base(AB.reg), value(r) {}
         // 立即数
         Addr(int n)
             :base(AB.imd), value(n) {}
+        Addr(unsigned n)
+                :base(AB.imd), value(n) {}
         // tag
         Addr(std::string s)
             :base(AB.tag), tag(s), value(0) {}
