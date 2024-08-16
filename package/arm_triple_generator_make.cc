@@ -328,7 +328,14 @@ namespace TriplesArmGenerator {
         func_reg[func_id].pop_back();
 
         instrs.push_back({ ACmd.mov, AB.s0, AB.sp });
-        instrs.push_back({ ACmd.sub, AB.sp, AB.sp, func_stack_size[func_id] * 4 });
+        unsigned int d = func_stack_size[func_id] * 4;
+        if(d < 4096)
+            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, {(int)d}});
+        else {
+            Addr temp = loadInt({(int)d});
+            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, temp});
+            setTempRegState(temp, false);
+        }
 
         // 从参数存放位置读取参数并存入相应地址
         auto& params = triples.funcid_params[func_id];
@@ -365,7 +372,14 @@ namespace TriplesArmGenerator {
     {
         instrs.push_back({ ACmd.tag, { ".endof" + triples.getFuncName({func_id, TTT.func})} });
 
-        instrs.push_back({ ACmd.add, AB.sp, AB.sp, func_stack_size[func_id] * 4 });
+        unsigned int d = func_stack_size[func_id] * 4;
+        if(d < 4096)
+            instrs.push_back({ ACmd.add, AB.sp, AB.sp, {(int)d}});
+        else {
+            Addr temp = loadInt({(int) d});
+            instrs.push_back({ACmd.add, AB.sp, AB.sp, temp});
+            setTempRegState(temp, false);
+        }
 
         func_reg[func_id].push_back(AB.pc);
         instrs.push_back({ ACmd.pop, func_reg[func_id] });
