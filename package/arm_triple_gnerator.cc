@@ -42,7 +42,7 @@ namespace TriplesArmGenerator {
 //            // 是立即数，读取
 //            Addr temp = getEmptyIntTempReg();
 //
-//            //TODO 限定范围
+//            //TOnnDO 限定范围
 //            instrs.push_back({ ACmd.mov, temp, addr });
 //
 //            setTempRegState(temp, true); // 标记占用
@@ -54,7 +54,7 @@ namespace TriplesArmGenerator {
 //
 //            int v = (int)*(float*)(&addr.value);
 //
-//            //TODO 限定范围
+//            //TOnnDO 限定范围
 //            instrs.push_back({ ACmd.mov, temp, {v} });
 //
 //            setTempRegState(temp, true); // 标记占用
@@ -205,7 +205,6 @@ namespace TriplesArmGenerator {
         } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
             // 在栈上（以某个寄存器为基偏移）， 读取
             if (stack_type != 2) {
-
                 instrs.push_back({ ACmd.ldr, reg, addr });
 
             } else {
@@ -218,16 +217,26 @@ namespace TriplesArmGenerator {
             }
 
         } else if (addr.base == AB.imd) {
-            //TODO 限定范围
-            instrs.push_back({ ACmd.mov, reg, addr });
+            // 限定范围
+            unsigned int d = addr.value;
+            if(d < 0xFFFFFF)
+                instrs.push_back({ ACmd.mov, reg, addr });
+            else{
+                instrs.push_back({ ACmd.movw, reg, d & 0xFFFF });
+                instrs.push_back({ ACmd.movt, reg, d >> 16 });
+            }
 
         } else if (addr.base == AB.dimd) {
             // 是浮点立即数，转换为整形读取
-            int v = (int)*(float*)(&addr.value);
+            unsigned int d = (int)*(float*)(&addr.value);
 
-            //TODO 限定范围
-            instrs.push_back({ ACmd.mov, reg, {v} });
-
+            // 限定范围
+            if(d < 0xFFFFFF)
+                instrs.push_back({ ACmd.mov, reg, addr });
+            else {
+                instrs.push_back({ACmd.movw, reg, d & 0xFFFF});
+                instrs.push_back({ACmd.movt, reg, d >> 16});
+            }
         } else if (addr.base == AB.tag) {
             // 全局变量
             if (stack_type != 2) {
@@ -610,7 +619,7 @@ namespace TriplesArmGenerator {
         } else if (base == AB.reg) {
             return names[value];
         } else if (base == AB.imd) {
-            return "#" + std::to_string(value);
+            return "#" + std::to_string((unsigned int)value);
         } else if (base == AB.tag) {
             return tag;
         } else if (base == AB.low_tag) {
