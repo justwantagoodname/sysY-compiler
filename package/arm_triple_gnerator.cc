@@ -90,6 +90,7 @@ namespace TriplesArmGenerator {
 
         Addr temp = getEmptyIntTempReg();
         loadInt(addr, temp, stack_type);
+        setTempRegState(temp, true);
         return temp;
     }
 
@@ -180,6 +181,7 @@ namespace TriplesArmGenerator {
 //        }
         Addr ftemp = getEmptyFloatTempReg();
         loadFloat(addr, ftemp, stack_type);
+        setTempRegState(ftemp, true);
         return ftemp;
 
     }

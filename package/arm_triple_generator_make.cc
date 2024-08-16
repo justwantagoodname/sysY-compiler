@@ -18,7 +18,7 @@ namespace TriplesArmGenerator {
         if (!is_float && (triple.cmd == TCmd.div || triple.cmd == TCmd.mod)) {
             // 除法和取模
             // 将op1放入r0
-            loadInt(op1, Addr(AB.r1));
+            loadInt(op1, Addr(AB.r0));
 
             // 检测r1是否被占用
             if (int_temp_reg[0].second) {
