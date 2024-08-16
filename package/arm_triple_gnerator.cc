@@ -3,85 +3,246 @@ namespace TriplesArmGenerator {
 
     Addr ArmTripleGenerator::loadInt(const Addr& addr, int stack_type)
     {
+//        if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc)) {
+//            // 已分配给通用寄存器，直接返回
+//            return addr;
+//        } else if (addr.base == AB.reg && (addr.value >= AB.fa0 && addr.value <= AB.fa15)) {
+//            // 已分配给浮点寄存器，移动到整形寄存器
+//            Addr ftemp = getEmptyFloatTempReg();
+//            Addr temp = getEmptyIntTempReg();
+//
+//            instrs.push_back({ ACmd.vcvtf2d, ftemp, addr });
+//            instrs.push_back({ ACmd.vmov, temp, ftemp });
+//
+//            setTempRegState(temp, true); // 标记占用
+//            return temp;
+//
+//        } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
+//            // 在栈上（以某个寄存器为基偏移）， 读取
+//            if (stack_type != 2) {
+//                Addr temp = getEmptyIntTempReg();
+//
+//                instrs.push_back({ ACmd.ldr, temp, addr });
+//
+//                setTempRegState(temp, true); // 标记占用
+//                return temp;
+//            } else {
+//                Addr ftemp = getEmptyFloatTempReg();
+//                Addr temp = getEmptyIntTempReg();
+//
+//                instrs.push_back({ ACmd.vldr, ftemp, addr });
+//                instrs.push_back({ ACmd.vcvtf2d, ftemp, ftemp });
+//                instrs.push_back({ ACmd.vmov, temp, ftemp });
+//
+//                setTempRegState(temp, true); // 标记占用
+//                return temp;
+//            }
+//
+//        } else if (addr.base == AB.imd) {
+//            // 是立即数，读取
+//            Addr temp = getEmptyIntTempReg();
+//
+//            //TODO 限定范围
+//            instrs.push_back({ ACmd.mov, temp, addr });
+//
+//            setTempRegState(temp, true); // 标记占用
+//            return temp;
+//
+//        } else if (addr.base == AB.dimd) {
+//            // 是浮点立即数，转换为整形读取
+//            Addr temp = getEmptyIntTempReg();
+//
+//            int v = (int)*(float*)(&addr.value);
+//
+//            //TODO 限定范围
+//            instrs.push_back({ ACmd.mov, temp, {v} });
+//
+//            setTempRegState(temp, true); // 标记占用
+//            return temp;
+//        } else if (addr.base == AB.tag) {
+//            // 全局变量
+//            if (stack_type != 2) {
+//                Addr temp = getEmptyIntTempReg();
+//
+//                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+//                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+//                instrs.push_back({ ACmd.ldr,  temp, { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+//
+//                setTempRegState(temp, true); // 标记占用
+//                return temp;
+//            } else {
+//                Addr ftemp = getEmptyFloatTempReg();
+//                Addr temp = getEmptyIntTempReg();
+//
+//                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+//                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+//                instrs.push_back({ ACmd.vldr, ftemp, { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+//                instrs.push_back({ ACmd.vcvtf2d, ftemp, ftemp });
+//                instrs.push_back({ ACmd.vmov, temp, ftemp });
+//
+//                setTempRegState(temp, true); // 标记占用
+//                return temp;
+//            }
+//
+//        } else {
+//            panic("load bad addr ( like tag ) to int reg!");
+//        }
+
+        Addr temp = getEmptyIntTempReg();
+        loadInt(addr, temp, stack_type);
+        return temp;
+    }
+
+    Addr ArmTripleGenerator::loadFloat(const Addr& addr, int stack_type)
+    {
+//        if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc)) {
+//            // 已分配给通用寄存器，移动到浮点寄存器
+//            Addr ftemp = getEmptyFloatTempReg();
+//
+//            instrs.push_back({ ACmd.vmov, ftemp, addr });
+//            instrs.push_back({ ACmd.vcvtd2f, ftemp, ftemp });
+//
+//            setTempRegState(ftemp, true); // 标记占用
+//            return ftemp;
+//
+//        } else if (addr.base == AB.reg && (addr.value >= AB.fa0 && addr.value <= AB.fa15)) {
+//            // 已分配给浮点寄存器，直接返回
+//            return addr;
+//
+//        } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
+//            // 在栈上（以某个寄存器为基偏移）， 读取
+//            if (stack_type != 2) {
+//                Addr ftemp = getEmptyFloatTempReg();
+//                Addr temp = getEmptyIntTempReg();
+//
+//                instrs.push_back({ ACmd.ldr, temp, addr });
+//                instrs.push_back({ ACmd.vmov, ftemp, temp });
+//                instrs.push_back({ ACmd.vcvtd2f, ftemp, ftemp });
+//
+//                setTempRegState(ftemp, true); // 标记占用
+//                return ftemp;
+//            } else {
+//                Addr ftemp = getEmptyFloatTempReg();
+//
+//                instrs.push_back({ ACmd.vldr, ftemp, addr });
+//
+//                setTempRegState(ftemp, true); // 标记占用
+//                return ftemp;
+//            }
+//        } else if (addr.base == AB.imd || addr.base == AB.dimd) {
+//            // 是立即数，读取，整形转换为浮点读取
+//            float v;
+//            int d;
+//            if (addr.base == AB.imd) {
+//                v = addr.value;
+//            } else if (addr.base == AB.dimd) {
+//                v = *(float*)(&addr.value);
+//            }
+//            d = *(int*)(&v);
+//            Addr ftemp = getEmptyFloatTempReg();
+//            Addr temp = getEmptyIntTempReg();
+//            //加载立即数
+//
+//            instrs.push_back({ ACmd.movw, temp, d & 0xFFFF });
+//            instrs.push_back({ ACmd.movt, temp, d >> 16 });
+//            instrs.push_back({ ACmd.vmov, ftemp, temp });
+//
+//            setTempRegState(ftemp, true); // 标记占用
+//            return ftemp;
+//
+//        } else if (addr.base == AB.tag) {
+//            // 全局变量
+//            if (stack_type != 2) {
+//                Addr ftemp = getEmptyFloatTempReg();
+//                Addr temp = getEmptyIntTempReg();
+//
+//                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+//                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+//                instrs.push_back({ ACmd.ldr, temp,  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+//                instrs.push_back({ ACmd.vmov, ftemp, temp });
+//                instrs.push_back({ ACmd.vcvtd2f, ftemp, ftemp });
+//
+//                setTempRegState(ftemp, true); // 标记占用
+//                return ftemp;
+//            } else {
+//                Addr ftemp = getEmptyFloatTempReg();
+//                Addr temp = getEmptyIntTempReg();
+//
+//                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+//                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+//                instrs.push_back({ ACmd.vldr, ftemp,  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+//
+//                setTempRegState(ftemp, true); // 标记占用
+//                return ftemp;
+//            }
+//        } else {
+//            panic("load bad addr ( like tag ) to float reg!");
+//        }
+        Addr ftemp = getEmptyFloatTempReg();
+        loadFloat(addr, ftemp, stack_type);
+        return ftemp;
+
+    }
+
+    void ArmTripleGenerator::loadInt(const Addr &addr, const Addr &reg, int stack_type) {
         if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc)) {
             // 已分配给通用寄存器，直接返回
-            return addr;
+            if(reg.value == addr.value)
+                return;
+            else{
+                instrs.push_back({ACmd.mov, reg, addr});
+            }
+            return;
         } else if (addr.base == AB.reg && (addr.value >= AB.fa0 && addr.value <= AB.fa15)) {
             // 已分配给浮点寄存器，移动到整形寄存器
             Addr ftemp = getEmptyFloatTempReg();
-            Addr temp = getEmptyIntTempReg();
 
             instrs.push_back({ ACmd.vcvtf2d, ftemp, addr });
-            instrs.push_back({ ACmd.vmov, temp, ftemp });
-
-            setTempRegState(temp, true); // 标记占用
-            return temp;
+            instrs.push_back({ ACmd.vmov, reg, ftemp });
 
         } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
             // 在栈上（以某个寄存器为基偏移）， 读取
             if (stack_type != 2) {
-                Addr temp = getEmptyIntTempReg();
 
-                instrs.push_back({ ACmd.ldr, temp, addr });
+                instrs.push_back({ ACmd.ldr, reg, addr });
 
-                setTempRegState(temp, true); // 标记占用
-                return temp;
             } else {
                 Addr ftemp = getEmptyFloatTempReg();
-                Addr temp = getEmptyIntTempReg();
 
                 instrs.push_back({ ACmd.vldr, ftemp, addr });
                 instrs.push_back({ ACmd.vcvtf2d, ftemp, ftemp });
-                instrs.push_back({ ACmd.vmov, temp, ftemp });
+                instrs.push_back({ ACmd.vmov, reg, ftemp });
 
-                setTempRegState(temp, true); // 标记占用
-                return temp;
             }
 
         } else if (addr.base == AB.imd) {
-            // 是立即数，读取
-            Addr temp = getEmptyIntTempReg();
-
             //TODO 限定范围
-            instrs.push_back({ ACmd.mov, temp, addr });
-
-            setTempRegState(temp, true); // 标记占用
-            return temp;
+            instrs.push_back({ ACmd.mov, reg, addr });
 
         } else if (addr.base == AB.dimd) {
             // 是浮点立即数，转换为整形读取
-            Addr temp = getEmptyIntTempReg();
-
             int v = (int)*(float*)(&addr.value);
 
             //TODO 限定范围
-            instrs.push_back({ ACmd.mov, temp, {v} });
+            instrs.push_back({ ACmd.mov, reg, {v} });
 
-            setTempRegState(temp, true); // 标记占用
-            return temp;
         } else if (addr.base == AB.tag) {
             // 全局变量
             if (stack_type != 2) {
-                Addr temp = getEmptyIntTempReg();
 
-                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
-                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
-                instrs.push_back({ ACmd.ldr,  temp, { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+                instrs.push_back({ ACmd.movw, reg, {AB.low_tag, addr.tag} });
+                instrs.push_back({ ACmd.movt, reg, {AB.up_tag, addr.tag} });
+                instrs.push_back({ ACmd.ldr,  reg, { (ADDRBASE::ADDRBASEENUM)reg.value, 0 } });
 
-                setTempRegState(temp, true); // 标记占用
-                return temp;
             } else {
                 Addr ftemp = getEmptyFloatTempReg();
-                Addr temp = getEmptyIntTempReg();
 
-                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
-                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
-                instrs.push_back({ ACmd.vldr, ftemp, { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+                instrs.push_back({ ACmd.movw, reg, {AB.low_tag, addr.tag} });
+                instrs.push_back({ ACmd.movt, reg, {AB.up_tag, addr.tag} });
+                instrs.push_back({ ACmd.vldr, ftemp, { (ADDRBASE::ADDRBASEENUM)reg.value, 0 } });
                 instrs.push_back({ ACmd.vcvtf2d, ftemp, ftemp });
-                instrs.push_back({ ACmd.vmov, temp, ftemp });
+                instrs.push_back({ ACmd.vmov, reg, ftemp });
 
-                setTempRegState(temp, true); // 标记占用
-                return temp;
             }
 
         } else {
@@ -89,41 +250,34 @@ namespace TriplesArmGenerator {
         }
     }
 
-    Addr ArmTripleGenerator::loadFloat(const Addr& addr, int stack_type)
-    {
+    void ArmTripleGenerator::loadFloat(const Addr &addr, const Addr &reg, int stack_type) {
         if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc)) {
             // 已分配给通用寄存器，移动到浮点寄存器
-            Addr ftemp = getEmptyFloatTempReg();
 
-            instrs.push_back({ ACmd.vmov, ftemp, addr });
-            instrs.push_back({ ACmd.vcvtd2f, ftemp, ftemp });
+            instrs.push_back({ ACmd.vmov, reg, addr });
+            instrs.push_back({ ACmd.vcvtd2f, reg, reg });
 
-            setTempRegState(ftemp, true); // 标记占用
-            return ftemp;
 
         } else if (addr.base == AB.reg && (addr.value >= AB.fa0 && addr.value <= AB.fa15)) {
             // 已分配给浮点寄存器，直接返回
-            return addr;
+            if(reg.value == addr.value)
+                return;
+            else{
+                instrs.push_back({ACmd.vmov, reg, addr});
+            }
 
         } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
             // 在栈上（以某个寄存器为基偏移）， 读取
-            if (stack_type != 2) {
-                Addr ftemp = getEmptyFloatTempReg();
+            if (stack_type != 2) {\
                 Addr temp = getEmptyIntTempReg();
 
                 instrs.push_back({ ACmd.ldr, temp, addr });
-                instrs.push_back({ ACmd.vmov, ftemp, temp });
-                instrs.push_back({ ACmd.vcvtd2f, ftemp, ftemp });
+                instrs.push_back({ ACmd.vmov, reg, temp });
+                instrs.push_back({ ACmd.vcvtd2f, reg, reg });
 
-                setTempRegState(ftemp, true); // 标记占用
-                return ftemp;
             } else {
-                Addr ftemp = getEmptyFloatTempReg();
 
-                instrs.push_back({ ACmd.vldr, ftemp, addr });
-
-                setTempRegState(ftemp, true); // 标记占用
-                return ftemp;
+                instrs.push_back({ ACmd.vldr, reg, addr });
             }
         } else if (addr.base == AB.imd || addr.base == AB.dimd) {
             // 是立即数，读取，整形转换为浮点读取
@@ -135,41 +289,32 @@ namespace TriplesArmGenerator {
                 v = *(float*)(&addr.value);
             }
             d = *(int*)(&v);
-            Addr ftemp = getEmptyFloatTempReg();
             Addr temp = getEmptyIntTempReg();
             //加载立即数
 
             instrs.push_back({ ACmd.movw, temp, d & 0xFFFF });
             instrs.push_back({ ACmd.movt, temp, d >> 16 });
-            instrs.push_back({ ACmd.vmov, ftemp, temp });
+            instrs.push_back({ ACmd.vmov, reg, temp });
 
-            setTempRegState(ftemp, true); // 标记占用
-            return ftemp;
 
         } else if (addr.base == AB.tag) {
             // 全局变量
             if (stack_type != 2) {
-                Addr ftemp = getEmptyFloatTempReg();
                 Addr temp = getEmptyIntTempReg();
 
                 instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
                 instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
                 instrs.push_back({ ACmd.ldr, temp,  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
-                instrs.push_back({ ACmd.vmov, ftemp, temp });
-                instrs.push_back({ ACmd.vcvtd2f, ftemp, ftemp });
+                instrs.push_back({ ACmd.vmov, reg, temp });
+                instrs.push_back({ ACmd.vcvtd2f, reg, reg });
 
-                setTempRegState(ftemp, true); // 标记占用
-                return ftemp;
             } else {
-                Addr ftemp = getEmptyFloatTempReg();
                 Addr temp = getEmptyIntTempReg();
 
                 instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
                 instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
-                instrs.push_back({ ACmd.vldr, ftemp,  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
+                instrs.push_back({ ACmd.vldr, reg,  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
 
-                setTempRegState(ftemp, true); // 标记占用
-                return ftemp;
             }
         } else {
             panic("load bad addr ( like tag ) to float reg!");

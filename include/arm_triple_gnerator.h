@@ -179,6 +179,8 @@ namespace TriplesArmGenerator {
     private:
         Addr loadInt(const Addr&, int f = 1);
         Addr loadFloat(const Addr&, int f = 2);
+        void loadInt(const Addr&, const Addr&, int f = 1);
+        void loadFloat(const Addr&, const Addr&, int f = 2);
         void storeInt(const Addr&, const Addr&);
         void storeFloat(const Addr&, const Addr&);
 
