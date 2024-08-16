@@ -17,7 +17,7 @@ namespace TriplesArmGenerator {
             setTempRegState(temp, true); // 标记占用
             return temp;
 
-        } else if (addr.base >= AB.r0 && addr.base <= AB.pc) {
+        } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
             // 在栈上（以某个寄存器为基偏移）， 读取
             if (stack_type != 2) {
                 Addr temp = getEmptyIntTempReg();
@@ -105,7 +105,7 @@ namespace TriplesArmGenerator {
             // 已分配给浮点寄存器，直接返回
             return addr;
 
-        } else if (addr.base >= AB.r0 && addr.base <= AB.pc) {
+        } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
             // 在栈上（以某个寄存器为基偏移）， 读取
             if (stack_type != 2) {
                 Addr ftemp = getEmptyFloatTempReg();
@@ -192,7 +192,7 @@ namespace TriplesArmGenerator {
                 // 存储到浮点寄存器，报错
                 panic("can not save int into float reg!");
 
-            } else if (addr.base >= AB.r0 && addr.base <= AB.pc) {
+            } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
                 // 在栈上（以某个寄存器为基偏移）， 存储
                 instrs.push_back({ ACmd.str, reg, addr });
 
@@ -213,7 +213,7 @@ namespace TriplesArmGenerator {
                 // 存储到浮点寄存器，报错
                 panic("can not save int into float reg!");
 
-            } else if (addr.base >= AB.r0 && addr.base <= AB.pc) {
+            } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
                 // 在栈上（以某个寄存器为基偏移）， 类型转换， 存储
                 Addr ftemp = getEmptyFloatTempReg();
 
@@ -246,7 +246,7 @@ namespace TriplesArmGenerator {
                 instrs.push_back({ ACmd.vmov, addr, reg });
                 instrs.push_back({ ACmd.vcvtd2f, addr, addr });
 
-            } else if (addr.base >= AB.r0 && addr.base <= AB.pc) {
+            } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
                 // 在栈上（以某个寄存器为基偏移）， 存储
                 Addr ftemp = getEmptyFloatTempReg();
 
@@ -270,7 +270,7 @@ namespace TriplesArmGenerator {
                     instrs.push_back({ ACmd.vmov, addr, reg });
                 }
 
-            } else if (addr.base >= AB.r0 && addr.base <= AB.pc) {
+            } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
                 // 在栈上（以某个寄存器为基偏移）， 存储
                 instrs.push_back({ ACmd.vstr, reg, addr });
 
@@ -334,24 +334,45 @@ namespace TriplesArmGenerator {
         } else if (triple.type == TTT.temp) {
             return temp_addr[triple.value];
         } else if (triple.type == TTT.value) {
-            if (triple.added == NULL)
-                return value_addr[triple.value];
-            else if (triple.added->type == TTT.dimd) {
+            if (triple.added == NULL) {
+
+                if (value_addr[triple.value].base == AB.tag) {
+                    Addr addr = value_addr[triple.value];
+                    Addr temp = getEmptyIntTempReg();
+                    instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+                    instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+                    return { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
+                } else {
+                    return value_addr[triple.value];
+                }
+            } else if (triple.added->type == TTT.dimd) {
                 Addr addr = value_addr[triple.value];
                 addr.value += triple.added->value;
                 return addr;
             } else if (triple.added->type == TTT.temp) {
                 Addr temp = loadInt(temp_addr[triple.added->value]);
                 Addr lst = value_addr[triple.value];
-                // 数组只能在栈上
-                assert(lst.base >= AB.r0 && lst.base <= AB.pc);
+                // 数组只能在栈上或全局
+                assert(lst.base >= AB.r0 && lst.base <= AB.pc || lst.base == AB.tag);
 
-                instrs.push_back({ ACmd.lsls, temp, temp, 2 });
-                instrs.push_back({ ACmd.add, temp, lst.base, temp });
-                // 提前释放（有点危险，是下策）
-                setTempRegState(temp, false);
+                if (lst.base >= AB.r0 && lst.base <= AB.pc) {
+                    // 栈上
+                    instrs.push_back({ ACmd.lsls, temp, temp, 2 });
+                    instrs.push_back({ ACmd.add, temp, lst.base, temp });
+                    // 提前释放（有点危险，是下策）
+                    setTempRegState(temp, false);
 
-                return { (ADDRBASE::ADDRBASEENUM)temp.value, lst.value };
+                    return { (ADDRBASE::ADDRBASEENUM)temp.value, lst.value };
+                } else if (lst.base == AB.tag) {
+                    // 全局
+                    Addr temp2 = getEmptyIntTempReg();
+                    instrs.push_back({ ACmd.movw, temp2, {AB.low_tag, lst.tag} });
+                    instrs.push_back({ ACmd.movt, temp2, {AB.up_tag, lst.tag} });
+
+                    setTempRegState(temp, false);
+
+                    return  { (ADDRBASE::ADDRBASEENUM)temp2.value, (ADDRBASE::ADDRBASEENUM)temp.value };
+                }
             }
         } else if (triple.type == TTT.lamb) {
             return ".l" + std::to_string(triple.value);
@@ -432,7 +453,8 @@ namespace TriplesArmGenerator {
             "imd", "dimd",
             "tag", // 是tag
             "up_tag", "low_tag", //高位读取， 低位读取
-            "reglist" // 寄存器列表
+            "reglist", // 寄存器列表
+            "reglsl_stack"
         };
 
         if (base == AB.null) {
@@ -447,6 +469,8 @@ namespace TriplesArmGenerator {
             return "#:lower16:" + tag;
         } else if (base == AB.up_tag) {
             return "#:upper16:" + tag;
+        } else if (base == AB.reglsl_stack) {
+            return "[ " + names[tag[0]] + ", " + names[tag[1]] + ", lsl #2 ]";
         } else if (base == AB.reglist) {
             std::string regl = "{ ";
             bool con_flg = false;

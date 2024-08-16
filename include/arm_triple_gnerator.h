@@ -27,6 +27,7 @@ namespace TriplesArmGenerator {
             tag, // 是tag
             up_tag, low_tag, //高位读取， 低位读取
             reglist, // 寄存器列表
+            reglsl_stack, // 寄存器间接寻址
         };
     } AddrBase;
     static ADDRBASE& AB = AddrBase;
@@ -112,6 +113,11 @@ namespace TriplesArmGenerator {
             :base(b), tag(s), value(0) {}
         Addr(ADDRBASE::ADDRBASEENUM b, int v, std::string s)
             :base(b), tag(s), value(v) {}
+        Addr(ADDRBASE::ADDRBASEENUM r1, ADDRBASE::ADDRBASEENUM r2)
+            :base(AB.reglsl_stack), value(r1) {
+            tag = "  ";
+            tag[0] = r1; tag[1] = r2;
+        }
         Addr(const std::vector<ADDRBASE::ADDRBASEENUM>& inits)
             :base(AB.reglist), value(0) {
             for (auto& r : inits) tag.push_back(r);
