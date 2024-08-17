@@ -21,6 +21,12 @@
 // 需要可以直接添加
 using std::string;
 using std::vector;
+using std::map;
+using std::shared_ptr;
+using std::make_shared;
+using std::cout;
+using std::cerr;
+using std::endl;
 #endif
 
 #ifdef __cplusplus

@@ -41,6 +41,7 @@ struct ASTNode
     struct ASTNode *next, *prev; // for siblings
 };
 typedef struct ASTNode ASTNode;
+typedef ASTNode* NodeRef;
 
     /* ASTNode */
 ASTNode *ASTNode_create(const char* id);
@@ -67,6 +68,9 @@ bool ASTNode_set_attr_int(ASTNode *node, const char* key, int value);
 bool ASTNode_set_attr_float(ASTNode *node, const char* key, float value);
 bool ASTNode_set_attr_str(ASTNode *node, const char* key, const char* value);
 
+void ASTNode_set_attr_str_s(ASTNode *node, const string& key, const string& value);
+void ASTNode_get_attr_str_s(const ASTNode *node, const string& key, std::string& value);
+
     /* Attribute Comparisons */
 bool ASTNode_attr_eq_int(const ASTNode *node, const char* key, int value);
 bool ASTNode_attr_eq_str(const ASTNode *node, const char* key, const char* value);
@@ -86,6 +90,17 @@ bool ASTNode_id_is(const ASTNode *node, const char* id);
 struct QueryResult {
     ASTNode *node;
     struct QueryResult *next, *prev;
+
+    operator NodeRef() {
+        return node;
+    }
+
+    void foreach(std::function<void(NodeRef)> func) {
+        QueryResult* cur, *tmp = nullptr;
+        DL_FOREACH_SAFE(this, cur, tmp) {
+            func(cur->node);
+        }
+    }
 };
 typedef struct QueryResult QueryResult;
 

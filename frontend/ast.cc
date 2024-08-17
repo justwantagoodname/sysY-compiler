@@ -258,6 +258,12 @@ bool ASTNode_get_attr_str(const ASTNode *node, const char* key, const char **val
     }
 }
 
+void ASTNode_get_attr_str_s(const ASTNode *node, const string& key, std::string& value) {
+    assert(node != nullptr);
+    bool hasAttr = ASTNode_get_attr_str(node, key.c_str(), value);
+    assert(hasAttr);
+}
+
 bool ASTNode_get_attr_str(const ASTNode *node, const char* key, std::string& value) {
     assert(node != NULL && key != NULL);
 
@@ -496,4 +502,10 @@ void ASTNode_set_id(ASTNode *node, const char* id) {
 
     free((char *)node->id);
     node->id = strdup(id);
+}
+
+void ASTNode_set_attr_str_s(ASTNode *node, const string& key, const string& value) {
+    assert(node);
+    bool modified = ASTNode_set_attr_str(node, key.c_str(), value.c_str());
+    assert(modified);
 }

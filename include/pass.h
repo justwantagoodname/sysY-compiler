@@ -7,5 +7,5 @@
 
 void ConstNode_fold(ASTNode* root);
 void ArrayDecl_flatten(ASTNode* root);
-
+void SyType_linter(ASTNode* root);
 #endif // PASS_H
