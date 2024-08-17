@@ -271,6 +271,8 @@ namespace TriplesArmGenerator {
     }
 
     void ArmTripleGenerator::loadFloat(const Addr &addr, const Addr &reg, int stack_type) {
+        printf("load float from %s to %s\n", addr.toString().c_str(), reg.toString().c_str());
+
         if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc)) {
             // 已分配给通用寄存器，移动到浮点寄存器
 
@@ -407,6 +409,7 @@ namespace TriplesArmGenerator {
 
     void ArmTripleGenerator::storeFloat(const Addr& addr, const Addr& reg)
     {
+        printf("store float from %s to %s\n", reg.toString().c_str(), addr.toString().c_str());
         //assert(reg.base == AB.reg && (reg.value >= AB.fa0 && reg.value <= AB.fa15));
         if (reg.base == AB.reg && (reg.value >= AB.r0 && reg.value <= AB.pc)) {
             if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc)) {

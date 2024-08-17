@@ -194,6 +194,17 @@ namespace TriplesArmGenerator {
         printf("---genCall\n");
         // TODO 特判putf
 
+        // 保留寄存器, 整形和浮点各一个
+        Addr int_reg = getEmptyIntTempReg();
+        Addr float_reg = getEmptyFloatTempReg();
+
+        setTempRegState(int_reg, true);
+        setTempRegState(float_reg, true);
+
+        Triples::TripleValue* icur = nullptr, *fcur = nullptr;
+
+        auto& param_loads = func_params_load[triple.e1.value];
+
         auto* cur = triple.e2.added; // 得到第一个参数
         int count = 0;
 
@@ -201,22 +212,48 @@ namespace TriplesArmGenerator {
         while (cur) {
             int ptype = triples.getValueType(*cur);
 
-            Addr p = loadTripleValueAddr(triples, *cur);
             Addr dst = func_params_load[triple.e1.value][count];
 
-            if (triples.funcid_params[triple.e1.value][count + 1].second != 2) {
-                p = loadInt(p, ptype);
-                storeInt(dst, p);
+            if(dst.base == AB.reg &&
+                (dst.value == float_reg.value
+                || dst.value == int_reg.value)){
+                if(dst.value == int_reg.value)
+                    icur = cur;
+                else
+                    fcur = cur;
             } else {
-                p = loadFloat(p, ptype);
-                storeFloat(dst, p);
+
+                Addr p = loadTripleValueAddr(triples, *cur);
+
+                if (triples.funcid_params[triple.e1.value][count + 1].second != 2) {
+                    loadInt(p, int_reg, ptype);
+                    storeInt(dst, int_reg);
+                } else {
+                    loadFloat(p, float_reg, ptype);
+                    storeFloat(dst, float_reg);
+                }
             }
 
             cur = cur->added;
             count++;
         }
+
+        // 将应当保存到临时寄存器上的放寄存器上
+        if(icur){
+            Addr p = loadTripleValueAddr(triples, *icur);
+            int ptype = triples.getValueType(*icur);
+            loadInt(p, int_reg, ptype);
+        }
+        if(fcur){
+            Addr p = loadTripleValueAddr(triples, *fcur);
+            int ptype = triples.getValueType(*fcur);
+            loadInt(p, float_reg, ptype);
+        }
+
         // call
         instrs.push_back({ ACmd.bl, triples.getFuncName(triple.e1) });
+        setTempRegState(int_reg, false);
+        setTempRegState(float_reg, false);
 
         for(auto& a: func_params_load[triple.e1.value]){
             setTempRegState(a, false);
@@ -349,8 +386,8 @@ namespace TriplesArmGenerator {
         auto& param_loads = func_params_load[now_func_id];
 
         // 对参数存储寄存器标记占用
-        for (const auto & param_load : param_loads) {
-            setTempRegState(param_load, true);
+        for (int j = 0; j < param_loads.size(); ++j) {
+            setTempRegState(param_loads[j], true);
         }
 
         for (int j = 0; j < param_loads.size(); ++j) {
