@@ -585,8 +585,8 @@ namespace TriplesArmGenerator {
                     return  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
                 }
             } else if (triple.added->type == TTT.temp || triple.added->type == TTT.value ) {
-                Addr temp ;
-                temp = loadInt(loadTripleValueAddr(triples, *triple.added));
+                Addr temp = loadTripleValueAddr(triples, *triple.added);
+                temp = loadInt(temp);
                 Addr lst = value_addr[triple.value];
 
                 // 特判是不是参数，是参数就再加载一次

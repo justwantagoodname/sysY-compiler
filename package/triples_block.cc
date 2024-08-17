@@ -187,6 +187,8 @@ void Triples::eliUnnecVar()
 
         sett(&(*it)->e1);
         sett(&(*it)->e2);
+        if((*it)->to.type == TT.value && (*it)->to.added != NULL)
+            sett((*it)->to.added);
 
         // 获取某个立即数并绑定到临时变量
         if ((*it)->cmd == Cmd.mov &&
