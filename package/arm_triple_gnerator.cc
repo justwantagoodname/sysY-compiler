@@ -586,6 +586,7 @@ namespace TriplesArmGenerator {
         } else if (triple.type == TTT.func) {
             return triples.getFuncName(triple.value);
         }
+        panic("Error!  load unknowing type.");
         return AB.r0;
     }
 

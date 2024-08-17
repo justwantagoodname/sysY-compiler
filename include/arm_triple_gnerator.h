@@ -28,6 +28,7 @@ namespace TriplesArmGenerator {
             up_tag, low_tag, //高位读取， 低位读取
             reglist, // 寄存器列表
             reglsl_stack, // 寄存器间接寻址
+            addr, // 地址，仅作为中间变量传递
         };
     } AddrBase;
     static ADDRBASE& AB = AddrBase;
