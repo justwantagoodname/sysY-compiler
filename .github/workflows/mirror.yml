@@ -1,0 +1,25 @@
+name: Mirror to Remote Gitlab Repository
+
+on: 
+    push:
+        branches:
+            - main
+            - arm-stack-mode
+    workflow_dispatch:
+
+jobs:
+    mirror:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                    fetch-depth: 0
+            
+            - uses: yesolutions/mirror-action@master
+              with:
+                REMOTE: ${{ vars.GIT_REPO_URL }}
+                GIT_USERNAME: ${{ vars.GIT_USERNAME }}
+                GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+                PUSH_ALL_REFS: "false"
+                DEBUG: "true"
