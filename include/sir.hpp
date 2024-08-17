@@ -8,18 +8,76 @@
 namespace SIR {
     enum InstructionType {
         NOP = 0x00,
+        ICONST, // push a int const
+        FCONST, // push a float const
+
+        ILDLOCAL, // load local
+        FLDLOCAL,
+
+        ALDLOCAL, // load address to stack
+
+        IALD, // load address with offset
+        FALD,
+
+        IAST, // store to address with offset
+        FAST,
+
+        ISTLOCAL, // store local
+        FSTLOCAL,
+
+        ILDGOBAL, // load global
+        FLDGOBAL,
+        ALDGOBAL, // load a global address
+
+        ISTGOBAL, // store global
+        FSTGOBAL, // store global
+
+
+        IRET,
+        FRET,
+
+        CALL,
+
+        IADD,
+        ISUB,
+        IMUL,
+        IDIV,
+        IREM,
+        INEG,
+
+        FADD,
+        FSUB,
+        FMUL,
+        FDIV,
+        FNEG,
+
+        DUP, // duplicate the top
+
     };
 
     class Instruction {
     public:
         InstructionType type;
+
+        std::variant<int, float> operand1;
         
         Instruction(const InstructionType type = NOP) {
             this->type = type;
         }
 
         string to_readable() const {
-            return "TODO";
+            switch (type) {
+                case NOP: return "NOP";
+                case ICONST: {
+                    return "ICONST " + to_string(get<int>(operand1));
+                }
+                case FCONST: {
+                    return "FCONST " + to_string(get<float>(operand1));
+                }
+            
+                default:
+                    return "ERR";
+            }
         }
     };
 
@@ -39,6 +97,10 @@ namespace SIR {
                 ASTNode_get_attr_str_s(param, "type", param_type);
                 paramtersType.push_back(param_type);
             });
+        }
+
+        void add_instr(shared_ptr<Instruction> instr) {
+            body.push_back(instr);
         }
 
         string to_readable() const {
@@ -75,9 +137,13 @@ namespace SIR {
 
     class I {
     public:
-        static Instruction nop() {
-            return Instruction(NOP);
+        static shared_ptr<Instruction> nop() {
+            return make_shared<Instruction>(NOP);
         }
+
+        static shared_ptr<Instruction> iconst(int x) {
+            
+        } 
     };
 }
 

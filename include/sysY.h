@@ -27,6 +27,8 @@ using std::make_shared;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::to_string;
+using std::get;
 #endif
 
 #ifdef __cplusplus

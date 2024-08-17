@@ -96,7 +96,7 @@ INPUT_FILE ?= "testfile.sysy"
 test-compiler: dev-compiler # 测试的时候使用开发模式，快速编译
 	@clear
 	@date
-	$(DEV_BUILD_DIR)/compiler $(TEST_DIR)/$(INPUT_FILE) -S -o $(TEST_DIR)/output.s -fdump-optimized-tree
+	$(DEV_BUILD_DIR)/compiler $(TEST_DIR)/$(INPUT_FILE) -S -o $(TEST_DIR)/output.s -fdump-generated-tree
 
 run-arm: $(TEST_DIR)/output.s $(TEST_DIR)/libsysy.a
 	arm-linux-gnueabihf-gcc $< $(TEST_DIR)/libsysy.a -static -o $(TEST_DIR)/$(basename $(notdir $<)).arm

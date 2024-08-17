@@ -66,9 +66,8 @@ bool ASTNode_get_attr_float(const ASTNode *node, const char* key, float *value);
 bool ASTNode_get_attr_number(const ASTNode *node, const char* key, double *value);
 bool ASTNode_set_attr_int(ASTNode *node, const char* key, int value);
 bool ASTNode_set_attr_float(ASTNode *node, const char* key, float value);
-bool ASTNode_set_attr_str(ASTNode *node, const char* key, const char* value);
+bool ASTNode_set_attr_str(ASTNode *node, const string& key, const string& value);
 
-void ASTNode_set_attr_str_s(ASTNode *node, const string& key, const string& value);
 void ASTNode_get_attr_str_s(const ASTNode *node, const string& key, std::string& value);
 
     /* Attribute Comparisons */
@@ -111,6 +110,8 @@ ASTNode *ASTNode_querySelectorOne(const ASTNode *node, const char* selector);
 
 QueryResult *ASTNode_querySelectorf(const ASTNode *node, const char* fmt, ...);
 ASTNode *ASTNode_querySelectorfOne(const ASTNode *node, const char* fmt, ...);
+
+#define $ ASTNode_querySelector
 
 enum AttrOptionType {
   AttrOptionTypeExists,

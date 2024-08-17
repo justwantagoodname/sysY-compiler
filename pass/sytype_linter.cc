@@ -23,6 +23,6 @@ std::string linter_get_array_decl_type(const ASTNode* array_decl) {
 void SyType_linter(ASTNode* root) {
     auto paramdecls = ASTNode_querySelector(root, "//Params/ParamDecl[@array]");
     paramdecls->foreach([](auto param_decl) {
-        ASTNode_set_attr_str_s(param_decl, "type", linter_get_array_decl_type(param_decl));
+        ASTNode_set_attr_str(param_decl, "type", linter_get_array_decl_type(param_decl));
     });
 }

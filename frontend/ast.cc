@@ -447,21 +447,23 @@ bool ASTNode_attr_eq_float(const ASTNode *node, const char* key, float value) {
     }
 }
 
-bool ASTNode_set_attr_str(ASTNode *node, const char* key, const char* value) {
-    assert(node != NULL && key != NULL && value != NULL);
+bool ASTNode_set_attr_str(ASTNode *node, const string& key, const string& value) {
+    assert(node != NULL);
 
-    ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
+    ASTAttribute *attr = ASTNode_get_attr_or_null(node, key.c_str());
     if (attr != NULL) {
         if (attr->type == ATTR_TYPE_STR) {
             free((char *)attr->value.str_value);
-            attr->value.str_value = strdup(value);
+            attr->value.str_value = strdup(value.c_str());
             return true;
         } else {
-            attr->value.str_value = strdup(value);
+            attr->value.str_value = strdup(value.c_str());
             attr->type = ATTR_TYPE_STR;
         }
+    } else {
+        ASTNode_add_attr_str(node, key.c_str(), value.c_str());
     }
-    return false;
+    return true;
 }
 
 bool ASTNode_set_attr_int(ASTNode *node, const char* key, int value) {
@@ -471,9 +473,10 @@ bool ASTNode_set_attr_int(ASTNode *node, const char* key, int value) {
     if (attr != NULL) {
         attr->value.int_value = value;
         attr->type = ATTR_TYPE_INT;
-        return true;
+    } else {
+        ASTNode_add_attr_int(node, key, value);
     }
-    return false;
+    return true;
 }
 
 bool ASTNode_set_attr_float(ASTNode *node, const char* key, float value) {
@@ -483,8 +486,10 @@ bool ASTNode_set_attr_float(ASTNode *node, const char* key, float value) {
     if (attr != NULL) {
         attr->value.float_value = value;
         attr->type = ATTR_TYPE_FLOAT;
+    } else {
+        ASTNode_add_attr_float(node, key, value);
     }
-    return false;
+    return true;
 }
 
 void ASTNode_copy_attr(const ASTNode *from, ASTNode *to) {
@@ -502,10 +507,4 @@ void ASTNode_set_id(ASTNode *node, const char* id) {
 
     free((char *)node->id);
     node->id = strdup(id);
-}
-
-void ASTNode_set_attr_str_s(ASTNode *node, const string& key, const string& value) {
-    assert(node);
-    bool modified = ASTNode_set_attr_str(node, key.c_str(), value.c_str());
-    assert(modified);
 }

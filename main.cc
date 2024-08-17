@@ -50,10 +50,10 @@ int main(int argc, const char** argv) {
 
     StackTranslator translator(root.unwrap(), std::make_unique<ARMAdapter>(arm_adapter));
 	translator.translate();
-
+#endif
+	
 	if (Flag::getFlag().by<bool>("dump-generated-tree")) {
   		root.print();
 	}
-#endif
 	return 0;
 }
