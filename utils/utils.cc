@@ -61,6 +61,11 @@ std::string generateLabel() {
     return "SYS_Y_" + std::to_string(label_count++);
 }
 
+/**
+ * @deprecated
+ * @param x
+ * @return
+ */
 bool is_array_type(const std::string &x) {
     return x[0] == '[';
 }

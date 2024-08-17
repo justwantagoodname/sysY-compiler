@@ -269,8 +269,10 @@ void StackTranslator::translateExpInner(ASTNode *exp) {
     static std::set<std::string> arithOp = {"Plus", "Minus", "Mult", "Div", "Mod"};
     static std::set<std::string> unaryOp = {"UnPlus", "UnMinus", "Not"};
     if (ASTNode_id_is(exp, "Call")) {
+        // Done.
         translateCall(exp);
     } else if (ASTNode_id_is(exp, "Number")) {
+        // Done.
         const char *type;
         bool hasType = ASTNode_get_attr_str(exp, "type", &type);
         assert(hasType);
@@ -286,22 +288,25 @@ void StackTranslator::translateExpInner(ASTNode *exp) {
             adapter->loadImmediate(accumulatorReg, value);
         }
     } else if (ASTNode_id_is(exp, "Fetch")) {
+        // Done.
         translateFetch(exp);
     } else if (logicOp.find(exp->id) != logicOp.end()) {
+        // Done
         translateShortCircuitLogicOp(exp);
     } else if (relOp.find(exp->id) != relOp.end()) {
-        // 逻辑运算
+        // 逻辑运算 Done
         translateRelOp(exp);
     } else if (arithOp.find(exp->id) != arithOp.end()) {
-        // 算术运算
+        // 算术运算 Done
         translateArithmeticOp(exp);
     } else if (unaryOp.find(exp->id) != unaryOp.end()) {
-        translateUnaryOp(exp);
+        translateUnaryOp(exp); // Done
     } else {
         assert(0);
     }
 }
 
+// Done.
 void StackTranslator::translateArithmeticOp(ASTNode *exp) {
     assert(ASTNode_id_is(exp, "Plus")
            || ASTNode_id_is(exp, "Minus")
@@ -853,6 +858,7 @@ void StackTranslator::translateIf(ASTNode *ifstmt) {
     adapter->emitLabel(end_label);
 }
 
+// Done
 void StackTranslator::translateUnaryOp(ASTNode *exp) {
     assert(ASTNode_id_is(exp, "UnPlus") || ASTNode_id_is(exp, "UnMinus") || ASTNode_id_is(exp, "Not"));
 

@@ -50,9 +50,9 @@ extern "C" {
 
 // 数组类型的以[开头表示一个数组
 // 左值类型的以L开头
-const auto SyInt = "Int";
-const auto SyVoid = "Void";
-const auto SyFloat = "Float";
+//typedef string SyType;
+
+#include "sytype.h"
 
 #ifndef NO_PANIC
 

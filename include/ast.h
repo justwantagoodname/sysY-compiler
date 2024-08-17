@@ -69,6 +69,8 @@ bool ASTNode_set_attr_float(ASTNode *node, const char* key, float value);
 bool ASTNode_set_attr_str(ASTNode *node, const string& key, const string& value);
 
 void ASTNode_get_attr_str_s(const ASTNode *node, const string& key, std::string& value);
+void ASTNode_get_attr_int_s(const ASTNode *node, const string& key, int *value);
+void ASTNode_get_attr_float_s(const ASTNode *node, const string& key, float *value);
 
     /* Attribute Comparisons */
 bool ASTNode_attr_eq_int(const ASTNode *node, const char* key, int value);
@@ -163,6 +165,25 @@ template <typename R = void>
 std::function<std::pair<bool, const std::function<R()>>(const ASTNode*)> TagMatch(const std::string& tag_name, const std::function<R()>& exec) {
     return [&tag_name, &exec](const ASTNode* elem) {
         return std::make_pair(ASTNode_id_is(elem, tag_name.c_str()), exec);
+    };
+}
+
+template <typename R = void>
+std::function<std::pair<bool, const std::function<R()>>(const ASTNode*)> TagMatch(const std::initializer_list<string>& tag_names, const std::function<R()>& exec) {
+    return [&tag_names, &exec](const ASTNode* elem) {
+        auto result = std::find_if(tag_names.begin(), tag_names.end(), [&elem](const auto& tag_name) {
+            return ASTNode_id_is(elem, tag_name.c_str());
+        }) != tag_names.end();
+        return std::make_pair(result, exec);
+    };
+}
+
+template <typename R = void>
+std::function<std::pair<bool, const std::function<R()>>(const ASTNode*)> TypeIs(const std::string& type, const std::function<R()>& exec) {
+    return [&type, &exec](const ASTNode* elem) {
+        string node_type;
+        ASTNode_get_attr_str_s(elem, "type", node_type);
+        return std::make_pair(node_type == type, exec);
     };
 }
 #endif

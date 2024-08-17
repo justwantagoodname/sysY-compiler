@@ -264,6 +264,17 @@ void ASTNode_get_attr_str_s(const ASTNode *node, const string& key, std::string&
     assert(hasAttr);
 }
 
+void ASTNode_get_attr_int_s(const ASTNode *node, const string& key, int *value) {
+    assert(node != nullptr);
+    bool hasAttr = ASTNode_get_attr_int(node, key.c_str(), value);
+    assert(hasAttr);
+}
+void ASTNode_get_attr_float_s(const ASTNode *node, const string& key, float *value) {
+    assert(node != nullptr);
+    bool hasAttr = ASTNode_get_attr_float(node, key.c_str(), value);
+    assert(hasAttr);
+}
+
 bool ASTNode_get_attr_str(const ASTNode *node, const char* key, std::string& value) {
     assert(node != NULL && key != NULL);
 

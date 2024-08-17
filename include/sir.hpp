@@ -44,12 +44,31 @@ namespace SIR {
         IDIV,
         IREM,
         INEG,
+        INOT,
 
         FADD,
         FSUB,
         FMUL,
         FDIV,
         FNEG,
+        FNOT, // the fnot will change the type of top of stack
+
+        ICMPEQ,
+        ICMPNE,
+        ICMPLT,
+        ICMPGT,
+        ICMPLE,
+        ICMPGE,
+
+        FCMPEQ,
+        FCMPNE,
+        FCMPLT,
+        FCMPGT,
+        FCMPLE,
+        FCMPGE,
+
+        I2F,
+        F2I,
 
         DUP, // duplicate the top
 
@@ -67,12 +86,12 @@ namespace SIR {
 
         string to_readable() const {
             switch (type) {
-                case NOP: return "NOP";
+                case NOP: return "nop";
                 case ICONST: {
-                    return "ICONST " + to_string(get<int>(operand1));
+                    return "iconst " + to_string(get<int>(operand1));
                 }
                 case FCONST: {
-                    return "FCONST " + to_string(get<float>(operand1));
+                    return "fconst " + to_string(get<float>(operand1));
                 }
             
                 default:
@@ -80,6 +99,8 @@ namespace SIR {
             }
         }
     };
+
+    typedef shared_ptr<Instruction> InstructionRef;
 
     class Function {
     public:
@@ -99,9 +120,18 @@ namespace SIR {
             });
         }
 
-        void add_instr(shared_ptr<Instruction> instr) {
+        void add_instr(const shared_ptr<Instruction>& instr) {
             body.push_back(instr);
         }
+
+        auto get_current_pos() const {
+            return body.size();
+        }
+
+        void add_instr_at(size_t pos, const shared_ptr<Instruction>& instr) {
+            body.insert(body.begin() + pos, instr);
+        }
+
 
         string to_readable() const {
             std::stringstream ss;
@@ -116,6 +146,8 @@ namespace SIR {
 
             return ss.str();
         }
+
+
     };
 
     class Unit {
@@ -136,14 +168,144 @@ namespace SIR {
 
 
     class I {
-    public:
-        static shared_ptr<Instruction> nop() {
-            return make_shared<Instruction>(NOP);
+        static auto noArgInstr(InstructionType type) {
+            return make_shared<Instruction>(type);
         }
 
-        static shared_ptr<Instruction> iconst(int x) {
-            
-        } 
+    public:
+        static auto nop() {
+            return noArgInstr(NOP);
+        }
+
+        static auto iconst(int x) {
+            auto ret = noArgInstr(ICONST);
+
+            ret->operand1 = x;
+            return ret;
+        }
+
+        static auto fconst(float x) {
+            auto ret = noArgInstr(FCONST);
+
+            ret->operand1 = x;
+            return ret;
+        }
+
+        static auto i2f() {
+            return noArgInstr(I2F);
+        }
+
+        static auto f2i() {
+            return noArgInstr(F2I);
+        }
+
+        static auto iadd() {
+            return noArgInstr(IADD);
+        }
+
+        static auto isub() {
+            return noArgInstr(ISUB);
+        }
+
+        static auto imul() {
+            return noArgInstr(IMUL);
+        }
+
+        static auto idiv() {
+            return noArgInstr(IDIV);
+        }
+
+        static auto irem() {
+            return noArgInstr(IREM);
+        }
+
+        static auto ineg() {
+            return noArgInstr(INEG);
+        }
+
+        static auto inot() {
+            return noArgInstr(INOT);
+        }
+
+        static auto fadd() {
+            return noArgInstr(FADD);
+        }
+
+        static auto fsub() {
+            return noArgInstr(FSUB);
+        }
+
+        static auto fmul() {
+            return noArgInstr(FMUL);
+        }
+
+        static auto fdiv() {
+            return noArgInstr(FDIV);
+        }
+
+        static auto fneg() {
+            return noArgInstr(FNEG);
+        }
+
+        static auto fnot() {
+            return noArgInstr(FNOT);
+        }
+
+        static auto icmpeq() {
+            return noArgInstr(ICMPEQ);
+        }
+
+        static auto icmpne() {
+            return noArgInstr(ICMPNE);
+        }
+
+        static auto icmplt() {
+            return noArgInstr(ICMPLT);
+        }
+
+        static auto icmpgt() {
+            return noArgInstr(ICMPGT);
+        }
+
+        static auto icmple() {
+            return noArgInstr(ICMPLE);
+        }
+
+        static auto icmpge() {
+            return noArgInstr(ICMPGE);
+        }
+
+        static auto fcmpeq() {
+            return noArgInstr(FCMPEQ);
+        }
+
+        static auto fcmpne() {
+            return noArgInstr(FCMPNE);
+        }
+
+        static auto fcmplt() {
+            return noArgInstr(FCMPLT);
+        }
+
+        static auto fcmpgt() {
+            return noArgInstr(FCMPGT);
+        }
+
+        static auto fcmple() {
+            return noArgInstr(FCMPLE);
+        }
+
+        static auto fcmpge() {
+            return noArgInstr(FCMPGE);
+        }
+
+        static auto iret(int offset) {
+            return noArgInstr(IRET);
+        }
+
+        static auto fret(int offset) {
+            return noArgInstr(FRET);
+        }
     };
 }
 
