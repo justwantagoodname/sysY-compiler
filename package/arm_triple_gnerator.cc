@@ -560,7 +560,7 @@ namespace TriplesArmGenerator {
                 if( triples.value_pointer[triple.value].id_is("ParamDecl")){
                     Addr temp = getEmptyIntTempReg();
                     setTempRegState(addr, false);
-                    instrs.push_back({ACmd.ldr, temp, {(ADDRBASE::ADDRBASEENUM)addr.value, 0}});
+                    instrs.push_back({ACmd.ldr, temp, addr});
                     addr = {(ADDRBASE::ADDRBASEENUM)temp.value, 0};
                 }
 
@@ -584,7 +584,7 @@ namespace TriplesArmGenerator {
                 if( triples.value_pointer[triple.value].id_is("ParamDecl")){
                     Addr temp = getEmptyIntTempReg();
                     setTempRegState(lst, false);
-                    instrs.push_back({ACmd.ldr, temp, {(ADDRBASE::ADDRBASEENUM)lst.value, 0}});
+                    instrs.push_back({ACmd.ldr, temp, lst});
                     lst = {(ADDRBASE::ADDRBASEENUM)temp.value, 0};
                 }
 
