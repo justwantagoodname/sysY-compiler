@@ -88,6 +88,9 @@ namespace TriplesArmGenerator {
 //            panic("load bad addr ( like tag ) to int reg!");
 //        }
 
+        if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc) )
+            return addr;
+
         Addr temp = getEmptyIntTempReg();
         loadInt(addr, temp, stack_type);
         setTempRegState(temp, true);
@@ -179,6 +182,9 @@ namespace TriplesArmGenerator {
 //        } else {
 //            panic("load bad addr ( like tag ) to float reg!");
 //        }
+        if (addr.base == AB.reg  && (addr.value >= AB.fa0 && addr.value <= AB.fa15))
+            return addr;
+
         Addr ftemp = getEmptyFloatTempReg();
         loadFloat(addr, ftemp, stack_type);
         setTempRegState(ftemp, true);

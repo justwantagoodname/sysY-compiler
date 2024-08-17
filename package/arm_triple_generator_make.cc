@@ -343,9 +343,16 @@ namespace TriplesArmGenerator {
             setTempRegState(temp, false);
         }
 
+
         // 从参数存放位置读取参数并存入相应地址
         auto& params = triples.funcid_params[func_id];
         auto& param_loads = func_params_load[now_func_id];
+
+        // 对参数存储寄存器标记占用
+        for (const auto & param_load : param_loads) {
+            setTempRegState(param_load, true);
+        }
+
         for (int j = 0; j < param_loads.size(); ++j) {
             bool mov_flg = true;
             if(params[j + 1].first == -1)
