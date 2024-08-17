@@ -82,7 +82,7 @@ namespace TriplesArmGenerator {
             Triples::Triple& triple = triples[i];
             // 是函数， 进入栈分析
             if (triple.cmd == TCmd.tag && triple.e1.type == TTT.func) {
-                //printf("into func\n");
+                printf("into func\n");
                 // 获得func 编号 与 block 编号
                 now_func_block_id = triples[i + 1].e1.value;
                 now_func_id = triple.e1.value;
@@ -100,7 +100,7 @@ namespace TriplesArmGenerator {
                 stack_size = 0;
                 // 获得参数数目
             }
-
+            
             // 结束函数，结束栈分析
             if (triple.cmd == TCmd.blke && triple.e1.value == now_func_block_id) {
 
@@ -109,8 +109,10 @@ namespace TriplesArmGenerator {
                 int param_size = params.size() - 1;
 
                 for (int j = 0; j < param_size; ++j) {
-                    value_addr[params[j + 1].first] = Addr(AB.sp, stack_size);
-                    ++stack_size;
+                    if(params[j + 1].first >= 0){
+                        value_addr[params[j + 1].first] = Addr(AB.sp, stack_size);
+                        ++stack_size;
+                    }
                 }
 
                 // 对齐栈
@@ -163,7 +165,7 @@ namespace TriplesArmGenerator {
                 // 存储函数栈大小
                 func_stack_size[now_func_id] = stack_size;
 
-                //printf("out func\n");
+                printf("out func\n");
                 // 退出当前函数分析
                 now_func_block_id = -1;
                 now_func_id = -1;
@@ -173,7 +175,7 @@ namespace TriplesArmGenerator {
             // 为了（只是为了）方便，混合存储temp和value
             // 如果是var，分配栈
             if (triple.cmd == TCmd.var) {
-                //printf("var def\n");
+                printf("var def\n");
                 value_addr[triple.e1.value] = Addr(AB.sp, stack_size);
                 stack_size += triple.e2.value;
             }
@@ -181,12 +183,13 @@ namespace TriplesArmGenerator {
             // 如果是新的temp，分配栈
             if (triple.to.type == TTT.temp
                 && temp_addr[triple.to.value].base == AB.null) {
-                //printf("temp def\n");
+                printf("temp def\n");
                 temp_addr[triple.to.value] = Addr(AB.sp, stack_size);
                 stack_size += 1;
             }
 
         }
+        
         // 设置库函数
         setExFunc(triples);
         // 设置全局变量
