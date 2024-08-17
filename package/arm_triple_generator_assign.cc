@@ -113,6 +113,11 @@ namespace TriplesArmGenerator {
                     ++stack_size;
                 }
 
+                // 对齐栈
+                if(stack_size % 2 == 1){
+                    ++stack_size;
+                }
+
                 // 依据函数栈大小存储函数参数应当存储位置
 
                 // 整型计数器，浮点计数器
