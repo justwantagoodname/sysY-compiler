@@ -194,7 +194,6 @@ namespace TriplesArmGenerator {
             else{
                 instrs.push_back({ACmd.mov, reg, addr});
             }
-            return;
         } else if (addr.base == AB.reg && (addr.value >= AB.fa0 && addr.value <= AB.fa15)) {
             // 已分配给浮点寄存器，移动到整形寄存器
             Addr ftemp = getEmptyFloatTempReg();
@@ -330,6 +329,7 @@ namespace TriplesArmGenerator {
                 instrs.push_back({ ACmd.vldr, reg,  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 } });
 
             }
+
         } else {
             panic("load bad addr ( like tag ) to float reg!");
         }
@@ -471,6 +471,13 @@ namespace TriplesArmGenerator {
 
     int ArmTripleGenerator::setTempRegState(const Addr& _addr, bool state)
     {
+        if(state) {
+            printf("occupancy %s \n", _addr.toString().c_str());
+        }
+        else {
+            printf("delete %s \n",  _addr.toString().c_str());
+        }
+
         Addr addr = _addr;
         if (addr.base != AB.reg){
             if(addr.base >= AB.r0 && addr.base <= AB.fa15){
@@ -507,18 +514,11 @@ namespace TriplesArmGenerator {
             return { AB.imd, triple.value };
         } else if (triple.type == TTT.temp) {
             Addr addr = temp_addr[triple.value];
-            if(addr.value < 4096)
+            if(addr.value < 1024|| addr.base < AB.r0 || addr.base > AB.pc)
                 return addr;
-            else if(addr.value < 0xFFF) {
-                Addr temp = getEmptyIntTempReg();
-                instrs.push_back({ ACmd.add, temp, temp, addr.value });
-                return  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
-            } else {
-                Addr t = loadInt(addr.value);
-                Addr temp = getEmptyIntTempReg();
-                instrs.push_back({ ACmd.add, temp, temp, t });
-                setTempRegState(t, false);
-                return { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
+            else {
+                Addr t = loadInt(addr.value * 4);
+                return { (ADDRBASE::ADDRBASEENUM)t.value, 0 };
             }
         } else if (triple.type == TTT.value) {
             if (triple.added == NULL) {
@@ -529,14 +529,31 @@ namespace TriplesArmGenerator {
                     instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
                     return { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
                 } else {
-                    return value_addr[triple.value];
+                    Addr addr = value_addr[triple.value];
+                    if(addr.value < 1024 || addr.base < AB.r0 || addr.base > AB.pc)
+                        return addr;
+                    else {
+                        addr.value *= 4;
+                        Addr temp = getEmptyIntTempReg();
+                        loadInt(addr,temp);
+                        return  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
+                    }
                 }
             } else if (triple.added->type == TTT.dimd) {
                 Addr addr = value_addr[triple.value];
                 addr.value += triple.added->value;
-                return addr;
-            } else if (triple.added->type == TTT.temp) {
-                Addr temp = loadInt(temp_addr[triple.added->value]);
+
+                if(addr.value < 1024)
+                    return addr;
+                else {
+                    addr.value *= 4;
+                    Addr temp = getEmptyIntTempReg();
+                    loadInt(addr,temp);
+                    return  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
+                }
+            } else if (triple.added->type == TTT.temp || triple.added->type == TTT.value ) {
+                Addr temp ;
+                temp = loadInt(loadTripleValueAddr(triples, *triple.added));
                 Addr lst = value_addr[triple.value];
                 // 数组只能在栈上或全局
                 assert(lst.base >= AB.r0 && lst.base <= AB.pc || lst.base == AB.tag);
@@ -546,13 +563,10 @@ namespace TriplesArmGenerator {
                     instrs.push_back({ ACmd.lsls, temp, temp, 2 });
                     instrs.push_back({ ACmd.add, temp, lst.base, temp });
                     // 别忘了释放
-                    if(lst.value < 4096)
+                    if(lst.value < 1024)
                         return { (ADDRBASE::ADDRBASEENUM)temp.value, lst.value };
-                    else if(lst.value < 0xFFF) {
-                        instrs.push_back({ ACmd.add, temp, temp, lst.value });
-                        return  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
-                    } else {
-                        Addr t = loadInt(lst.value);
+                    else {
+                        Addr t = loadInt(lst.value * 4 );
                         instrs.push_back({ ACmd.add, temp, temp, t });
                         setTempRegState(t, false);
                         return { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };

@@ -9,7 +9,6 @@ namespace TriplesArmGenerator {
 
         Addr op1 = loadTripleValueAddr(triples, triple.e1);
         Addr op2 = loadTripleValueAddr(triples, triple.e2);
-        Addr to = loadTripleValueAddr(triples, triple.to);
         auto cmd = ACmd.nop;
 
         bool if_r1_save_flg = false;
@@ -32,8 +31,6 @@ namespace TriplesArmGenerator {
             // 将op2放入r1
             loadInt(op2, Addr(AB.r1));
 
-
-
             Addr dst;
             if(triple.cmd == TCmd.div) {
                 instrs.push_back({ACmd.bl, {"__aeabi_idiv"}});
@@ -42,6 +39,7 @@ namespace TriplesArmGenerator {
                 instrs.push_back({ACmd.bl, {"__aeabi_idivmod"}});
                 dst = AB.r1;
             }
+            Addr to = loadTripleValueAddr(triples, triple.to);
 
             storeInt(to, dst);
 
@@ -86,6 +84,7 @@ namespace TriplesArmGenerator {
 
                 dst = getEmptyIntTempReg();
                 instrs.push_back({cmd, dst, op1, op2});
+                Addr to = loadTripleValueAddr(triples, triple.to);
 
                 storeInt(to, dst);
 
@@ -112,9 +111,9 @@ namespace TriplesArmGenerator {
                 dst = getEmptyFloatTempReg();
                 instrs.push_back({cmd, dst, op1, op2});
 
+                Addr to = loadTripleValueAddr(triples, triple.to);
                 storeFloat(to, dst);
             }
-
             setTempRegState(op1, false);
             setTempRegState(op2, false);
         }
@@ -253,6 +252,7 @@ namespace TriplesArmGenerator {
 
         Addr op1 = loadTripleValueAddr(triples, triple.e1);
         Addr dst = loadTripleValueAddr(triples, triple.to);
+
         if (triples.getValueType(triple.to) != 2) {
             op1 = loadInt(op1, triples.getValueType(triple.e1));
             storeInt(dst, op1);
