@@ -222,7 +222,7 @@ Triples::TripleValue::~TripleValue()
 		delete added;
 }
 
-void Triples::TripleValue::toString(char s[], const Triples& triples)
+void Triples::TripleValue::toString(char s[], const Triples& triples) const
 {
 	char ts[500], ts2[500];
 	switch (type)

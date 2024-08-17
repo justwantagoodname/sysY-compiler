@@ -101,7 +101,7 @@ public:
 		TripleValue& operator=(const TripleValue& t);
 		//inline operator int() { return value; }
 
-		void toString(char[], const Triples& triples);
+		void toString(char[], const Triples& triples) const;
 	};
 
 	struct Triple {
