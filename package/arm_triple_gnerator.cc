@@ -563,7 +563,7 @@ namespace TriplesArmGenerator {
                     }
                 }
             } else if (triple.added->type == TTT.dimd) {
-                Addr addr = value_addr[triple.value];
+                Addr addr = loadTripleValueAddr(triples, {triple.value, triple.type});
 
                 // 特判是不是参数，是参数就再加载一次
                 if( triples.value_pointer[triple.value].id_is("ParamDecl")){

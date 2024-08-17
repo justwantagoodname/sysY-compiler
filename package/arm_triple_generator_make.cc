@@ -291,10 +291,10 @@ namespace TriplesArmGenerator {
         printf("---genMove\n");
 
         Addr op1 = loadTripleValueAddr(triples, triple.e1);
-        printf("finish load op1--\n");
+        printf("finish load op1 as %s--\n", op1.toString().c_str());
 
         Addr dst = loadTripleValueAddr(triples, triple.to);
-        printf("finish load ast--\n");
+        printf("finish load ast as %s--\n", dst.toString().c_str());
 
         if (triples.getValueType(triple.to) != 2) {
             op1 = loadInt(op1, triples.getValueType(triple.e1));
