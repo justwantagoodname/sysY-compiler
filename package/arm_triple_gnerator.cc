@@ -341,6 +341,7 @@ namespace TriplesArmGenerator {
 
     void ArmTripleGenerator::storeInt(const Addr& addr, const Addr& reg)
     {
+        printf("store int from %s to %s\n", reg.toString().c_str(), addr.toString().c_str());
         //assert(reg.base == AB.reg && (reg.value >= AB.r0 && reg.value <= AB.pc));
         if (reg.base == AB.reg && (reg.value >= AB.r0 && reg.value <= AB.pc)) {
             if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc)) {

@@ -199,7 +199,6 @@ namespace TriplesArmGenerator {
 
         // 存入参数
         while (cur) {
-
             int ptype = triples.getValueType(*cur);
 
             Addr p = loadTripleValueAddr(triples, *cur);
@@ -218,6 +217,10 @@ namespace TriplesArmGenerator {
         }
         // call
         instrs.push_back({ ACmd.bl, triples.getFuncName(triple.e1) });
+
+        for(auto& a: func_params_load[triple.e1.value]){
+            setTempRegState(a, false);
+        }
 
         // 将r0存入临时变量
         int ftype = triples.funcid_params[triple.e1.value][0].second;
