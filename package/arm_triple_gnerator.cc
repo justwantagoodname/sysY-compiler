@@ -204,6 +204,7 @@ namespace TriplesArmGenerator {
         } else if (addr.base >= AB.r0 && addr.base <= AB.pc || addr.base == AB.reglsl_stack) {
             // 在栈上（以某个寄存器为基偏移）， 读取
             if (stack_type != 2) {
+                assert(addr.value < 1024);
                 instrs.push_back({ ACmd.ldr, reg, addr });
 
             } else {
@@ -534,8 +535,7 @@ namespace TriplesArmGenerator {
                         return addr;
                     else {
                         addr.value *= 4;
-                        Addr temp = getEmptyIntTempReg();
-                        loadInt(addr,temp);
+                        Addr temp = loadInt(addr.value);
                         return  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
                     }
                 }
