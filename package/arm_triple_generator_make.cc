@@ -348,6 +348,8 @@ namespace TriplesArmGenerator {
         auto& param_loads = func_params_load[now_func_id];
         for (int j = 0; j < param_loads.size(); ++j) {
             bool mov_flg = true;
+            if(params[j + 1].first == -1)
+                continue;
             if (param_loads[j].base == AB.sp && value_addr[params[j + 1].first].base == AB.sp
                 && param_loads[j].value == value_addr[params[j + 1].first].value - func_stack_size[now_func_id]) {
                 mov_flg = false;
