@@ -740,7 +740,7 @@ namespace TriplesArmGenerator {
             Addr temp = loadInt(offset);
 
             instrs.push_back({ ACmd.add, temp, addr.base, temp });
-            setTempRegState(addr, true);
+            setTempRegState(addr, false);
 
             return { AB.addr, temp.value };
         } else if (triple.type == TTT.lamb) {
