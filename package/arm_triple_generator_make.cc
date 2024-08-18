@@ -218,6 +218,15 @@ namespace TriplesArmGenerator {
                 continue;
             }
 
+            if (dst.base >= AB.r0 && dst.base <= AB.pc) {
+                if (dst.value > 1024 || dst.value < -1024) {
+                    Addr temp = loadInt(dst.value * 4);
+                    instrs.push_back({ACmd.add, temp, dst.base, temp});
+                    setTempRegState(dst, false);
+                    dst = {(ADDRBASE::ADDRBASEENUM)temp.value, 0};
+                }
+            }
+
             if (dst.base == AB.reg &&
                 (dst.value == float_reg.value
                     || dst.value == int_reg.value)) {
@@ -411,16 +420,28 @@ namespace TriplesArmGenerator {
 
             if (mov_flg) {
                 Addr load_addr = param_loads[j];
+
+                Addr dst = value_addr[params[j + 1].first];
+
+                if (dst.base >= AB.r0 && dst.base <= AB.pc) {
+                    if (dst.value > 1024 || dst.value < -1024) {
+                        Addr temp = loadInt(dst.value * 4);
+                        instrs.push_back({ ACmd.add, temp, dst.base, temp });
+                        setTempRegState(dst, false);
+                        dst = { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
+                    }
+                }
+
                 if (load_addr.base == AB.sp) {
                     load_addr.value += func_stack_size[now_func_id];
                 }
 
                 if (params[j + 1].second != 2) {
                     Addr temp = loadInt(load_addr);
-                    storeInt(value_addr[params[j + 1].first], temp);
+                    storeInt(dst, temp);
                 } else {
                     Addr temp = loadFloat(load_addr);
-                    storeFloat(value_addr[params[j + 1].first], temp);
+                    storeFloat(dst, temp);
                 }
 
             }
