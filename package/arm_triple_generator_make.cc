@@ -372,7 +372,7 @@ namespace TriplesArmGenerator {
 
         instrs.push_back({ ACmd.mov, AB.s0, AB.sp });
         unsigned int d = func_stack_size[func_id] * 4;
-        if(d < 4096)
+        if(d < 0x3FFF)
             instrs.push_back({ ACmd.sub, AB.sp, AB.sp, {(int)d}});
         else {
             Addr temp = loadInt({(int)d});
@@ -425,7 +425,7 @@ namespace TriplesArmGenerator {
         instrs.push_back({ ACmd.tag, { ".endof" + triples.getFuncName({func_id, TTT.func})} });
 
         unsigned int d = func_stack_size[func_id] * 4;
-        if(d < 0xFFFF)
+        if(d < 0x3FFF)
             instrs.push_back({ ACmd.add, AB.sp, AB.sp, {(int)d}});
         else {
             Addr temp = loadInt({(int) d});

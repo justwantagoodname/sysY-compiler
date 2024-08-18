@@ -93,6 +93,9 @@ parser-files: $(FLEX_C_FILES) $(BISON_C_FILES) $(BISON_H_FILES)
 
 INPUT_FILE ?= "testfile.sysy"
 
+test-compiler-run-arm:
+	make test-compiler && make run-arm
+
 test-compiler: dev-compiler # 测试的时候使用开发模式，快速编译
 	@clear
 	@date
