@@ -12,7 +12,7 @@ namespace TriplesArmGenerator {
                 std::vector<unsigned int> init_nums;
                 init_nums.clear();
                 printf("get ex var: %s\n", value.get_attr_str("name"));
-                int size = 0;
+                int size = 1;
                 if (value.get_attr("size"))
                     size = value.get_attr_int("size");
                 int type = 0;
