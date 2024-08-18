@@ -18,7 +18,7 @@ size_t multi_dimensional_index_to_linear_index(const vector<int> &dim_sizes, con
     }
 
     size_t linear_index = 0;
-    for (int i = 0;i < real_dim_sizes.size(); i++) {
+    for (int i = 0;i < locator_access_size.size(); i++) {
         linear_index += locator_access_size[i] * real_dim_sizes[i + 1];
     }
     return linear_index;
