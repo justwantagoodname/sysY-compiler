@@ -23,7 +23,7 @@ namespace TriplesArmGenerator {
             if (int_temp_reg[0].second) {
                 // 将r1存入新的临时变量
                 r1_save = getEmptyIntTempReg();
-                instrs.push_back({ACmd.mov, r1_save, AB.r1});
+                instrs.push_back({ ACmd.mov, r1_save, AB.r1 });
                 if_r1_save_flg = true;
                 setTempRegState(r1_save, true);// 设置为占用
             }
@@ -32,25 +32,24 @@ namespace TriplesArmGenerator {
             loadInt(op2, Addr(AB.r1));
 
             Addr dst;
-            if(triple.cmd == TCmd.div) {
-                instrs.push_back({ACmd.bl, {"__aeabi_idiv"}});
+            if (triple.cmd == TCmd.div) {
+                instrs.push_back({ ACmd.bl, {"__aeabi_idiv"} });
                 dst = AB.r0;
             } else {
-                instrs.push_back({ACmd.bl, {"__aeabi_idivmod"}});
+                instrs.push_back({ ACmd.bl, {"__aeabi_idivmod"} });
                 dst = AB.r1;
             }
             Addr to = loadTripleValueAddr(triples, triple.to);
 
             storeInt(to, dst);
 
-            if(if_r1_save_flg) {
-                instrs.push_back({ACmd.mov, AB.r1, r1_save});
+            if (if_r1_save_flg) {
+                instrs.push_back({ ACmd.mov, AB.r1, r1_save });
                 setTempRegState(r1_save, false);
             }
 
             setTempRegState(AB.r1, false);
-        }
-        else {
+        } else {
             if (!is_float) {
                 op1 = loadInt(op1, triples.getValueType(triple.e1));
             } else {
@@ -68,22 +67,22 @@ namespace TriplesArmGenerator {
             if (!is_float) {
 
                 switch (triple.cmd) {
-                    case TCmd.add:
-                        cmd = ACmd.add;
-                        break;
-                    case TCmd.sub:
-                        cmd = ACmd.sub;
-                        break;
-                    case TCmd.mul:
-                        cmd = ACmd.mul;
-                        break;
-                    default:
-                        panic("ERROR: gen arith int oper.");
-                        break;
+                case TCmd.add:
+                    cmd = ACmd.add;
+                    break;
+                case TCmd.sub:
+                    cmd = ACmd.sub;
+                    break;
+                case TCmd.mul:
+                    cmd = ACmd.mul;
+                    break;
+                default:
+                    panic("ERROR: gen arith int oper.");
+                    break;
                 }
 
                 dst = getEmptyIntTempReg();
-                instrs.push_back({cmd, dst, op1, op2});
+                instrs.push_back({ cmd, dst, op1, op2 });
                 Addr to = loadTripleValueAddr(triples, triple.to);
 
                 storeInt(to, dst);
@@ -91,25 +90,25 @@ namespace TriplesArmGenerator {
             } else {
 
                 switch (triple.cmd) {
-                    case TCmd.add:
-                        cmd = ACmd.vadd;
-                        break;
-                    case TCmd.sub:
-                        cmd = ACmd.vsub;
-                        break;
-                    case TCmd.mul:
-                        cmd = ACmd.vmul;
-                        break;
-                    case TCmd.div:
-                        cmd = ACmd.vdiv;
-                        break;
-                    default:
-                        panic("ERROR: gen arith float oper.");
-                        break;
+                case TCmd.add:
+                    cmd = ACmd.vadd;
+                    break;
+                case TCmd.sub:
+                    cmd = ACmd.vsub;
+                    break;
+                case TCmd.mul:
+                    cmd = ACmd.vmul;
+                    break;
+                case TCmd.div:
+                    cmd = ACmd.vdiv;
+                    break;
+                default:
+                    panic("ERROR: gen arith float oper.");
+                    break;
                 }
 
                 dst = getEmptyFloatTempReg();
-                instrs.push_back({cmd, dst, op1, op2});
+                instrs.push_back({ cmd, dst, op1, op2 });
 
                 Addr to = loadTripleValueAddr(triples, triple.to);
                 storeFloat(to, dst);
@@ -201,7 +200,7 @@ namespace TriplesArmGenerator {
         setTempRegState(int_reg, true);
         setTempRegState(float_reg, true);
 
-        Triples::TripleValue* icur = nullptr, *fcur = nullptr;
+        Triples::TripleValue* icur = nullptr, * fcur = nullptr;
 
         auto& param_loads = func_params_load[triple.e1.value];
 
@@ -212,12 +211,17 @@ namespace TriplesArmGenerator {
         while (cur) {
             int ptype = triples.getValueType(*cur);
 
-            Addr dst = func_params_load[triple.e1.value][count];
+            Addr dst = param_loads[count];
+            if (dst.base == AB.null) {
+                cur = cur->added;
+                count++;
+                continue;
+            }
 
-            if(dst.base == AB.reg &&
+            if (dst.base == AB.reg &&
                 (dst.value == float_reg.value
-                || dst.value == int_reg.value)){
-                if(dst.value == int_reg.value)
+                    || dst.value == int_reg.value)) {
+                if (dst.value == int_reg.value)
                     icur = cur;
                 else
                     fcur = cur;
@@ -239,12 +243,12 @@ namespace TriplesArmGenerator {
         }
 
         // 将应当保存到临时寄存器上的放寄存器上
-        if(icur){
+        if (icur) {
             Addr p = loadTripleValueAddr(triples, *icur);
             int ptype = triples.getValueType(*icur);
             loadInt(p, int_reg, ptype);
         }
-        if(fcur){
+        if (fcur) {
             Addr p = loadTripleValueAddr(triples, *fcur);
             int ptype = triples.getValueType(*fcur);
             loadInt(p, float_reg, ptype);
@@ -255,8 +259,9 @@ namespace TriplesArmGenerator {
         setTempRegState(int_reg, false);
         setTempRegState(float_reg, false);
 
-        for(auto& a: func_params_load[triple.e1.value]){
-            setTempRegState(a, false);
+        for (auto& a : func_params_load[triple.e1.value]) {
+            if (a.base != AB.null)
+                setTempRegState(a, false);
         }
 
         // 将r0存入临时变量
@@ -357,7 +362,7 @@ namespace TriplesArmGenerator {
                 size -= 1;
             }
             if (size > 0) {
-                instrs.push_back({ ACmd.space, size * 4});
+                instrs.push_back({ ACmd.space, size * 4 });
             }
         }
     }
@@ -372,11 +377,11 @@ namespace TriplesArmGenerator {
 
         instrs.push_back({ ACmd.mov, AB.s0, AB.sp });
         unsigned int d = func_stack_size[func_id] * 4;
-        if(d < 0x3FFF)
-            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, {(int)d}});
+        if (d < 0x3FFF)
+            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, {(int)d} });
         else {
-            Addr temp = loadInt({(int)d});
-            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, temp});
+            Addr temp = loadInt({ (int)d });
+            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, temp });
             setTempRegState(temp, false);
         }
 
@@ -387,12 +392,14 @@ namespace TriplesArmGenerator {
 
         // 对参数存储寄存器标记占用
         for (int j = 0; j < param_loads.size(); ++j) {
+            if (params[j + 1].first == -1)
+                continue;
             setTempRegState(param_loads[j], true);
         }
 
         for (int j = 0; j < param_loads.size(); ++j) {
             bool mov_flg = true;
-            if(params[j + 1].first == -1)
+            if (params[j + 1].first == -1)
                 continue;
             if (param_loads[j].base == AB.sp && value_addr[params[j + 1].first].base == AB.sp
                 && param_loads[j].value == value_addr[params[j + 1].first].value - func_stack_size[now_func_id]) {
@@ -425,11 +432,11 @@ namespace TriplesArmGenerator {
         instrs.push_back({ ACmd.tag, { ".endof" + triples.getFuncName({func_id, TTT.func})} });
 
         unsigned int d = func_stack_size[func_id] * 4;
-        if(d < 0x3FFF)
-            instrs.push_back({ ACmd.add, AB.sp, AB.sp, {(int)d}});
+        if (d < 0x3FFF)
+            instrs.push_back({ ACmd.add, AB.sp, AB.sp, {(int)d} });
         else {
-            Addr temp = loadInt({(int) d});
-            instrs.push_back({ACmd.add, AB.sp, AB.sp, temp});
+            Addr temp = loadInt({ (int)d });
+            instrs.push_back({ ACmd.add, AB.sp, AB.sp, temp });
             setTempRegState(temp, false);
         }
 

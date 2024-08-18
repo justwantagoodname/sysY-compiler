@@ -133,6 +133,9 @@ namespace TriplesArmGenerator {
 
                 for (int j = 0; j < param_size; ++j) {
 
+                    if (params[j + 1].first == -1)
+                        continue;
+
                     bool flg = false;
 
                     int ptype = params[j + 1].second;
@@ -142,16 +145,17 @@ namespace TriplesArmGenerator {
                             flg = true;
                         } else {
                             func_params_load[now_func_id][j] = { AB.reg, AB.r0 + int_count };
+                            ++int_count;
                         }
-                        ++int_count;
                     } else {
                         // 浮点
                         if (float_count >= float_reg_number) {
                             flg = true;
                         } else {
                             func_params_load[now_func_id][j] = { AB.reg, AB.fa0 + float_count };
+                            ++float_count;
+
                         }
-                        ++float_count;
                     }
 
                     if (flg) {
@@ -160,6 +164,8 @@ namespace TriplesArmGenerator {
                         r1.value -= stack_size;
                         func_params_load[now_func_id][j] = r1;
                     }
+                    printf("to %s: %d\n", func_params_load[now_func_id][j].toString().c_str(), params[j + 1].first);
+
                 }
 
                 // 存储函数栈大小

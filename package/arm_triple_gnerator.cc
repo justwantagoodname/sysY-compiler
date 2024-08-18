@@ -762,6 +762,17 @@ namespace TriplesArmGenerator {
             string name = triples.getFuncName({ i , TTT.func });
             printf("%d@%s : %d\n", i, name.c_str(),
                 func_stack_size[i] * 4);
+
+            for (int j = 0; j < func_params_load[i].size(); ++j) {
+                if(triples.funcid_params[i][j + 1].first != -1)
+                {
+                    printf("\t%s : %s\n",
+                        triples.getVarName({ triples.funcid_params[i][j + 1].first, TTT.value }).c_str(),
+                        func_params_load[i][j].toString().c_str());
+                } else {
+                    printf("\t!-1 : null\n");
+                }
+            }
         }
 
         printf("\n变量地址分配：\n");
@@ -774,6 +785,7 @@ namespace TriplesArmGenerator {
         for (int i = 0; i < temp_addr.size(); ++i) {
             printf("T%d : %s\n", i, temp_addr[i].toString().c_str());
         }
+
     }
 
     void ArmTripleGenerator::print()
