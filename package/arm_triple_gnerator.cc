@@ -536,7 +536,7 @@ namespace TriplesArmGenerator {
             return { AB.imd, triple.value };
         } else if (triple.type == TTT.temp) {
             Addr addr = temp_addr[triple.value];
-            if (addr.value < 1024 || addr.base < AB.r0 || addr.base > AB.pc)
+            if (addr.value < 1024 || addr.base == AB.reg)
                 return addr;
             else {
                 Addr t = loadInt(addr.value * 4);
@@ -722,6 +722,15 @@ namespace TriplesArmGenerator {
         } else if (triple.type == TTT.addr) {
 
             Addr addr = value_addr[triple.value];
+
+            if (addr.base == AB.tag) {
+                Addr temp = getEmptyIntTempReg();
+                setTempRegState(temp, true);
+                instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
+                instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
+                addr = { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
+            }
+
             Addr offset;
             if (triple.added)
                 offset = loadTripleValueAddr(triples, *triple.added);
@@ -731,6 +740,7 @@ namespace TriplesArmGenerator {
             Addr temp = loadInt(offset);
 
             instrs.push_back({ ACmd.add, temp, addr.base, temp });
+            setTempRegState(addr, true);
 
             return { AB.addr, temp.value };
         } else if (triple.type == TTT.lamb) {

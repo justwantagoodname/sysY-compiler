@@ -1,20 +1,23 @@
-int a[4096];
+int ints[10000];
+int intt;
+int chas[10000];
+int chat;
+int i=0, ii=1;
+int c;
+int get[10000];
+int get2[10000];
 
-int f1(int b[])
-{
-    a[0] = 1;
-    putint(a[0]);
-    putch(10);  
-    return a[0];
+
+int getstr(int get[]) {
+    int x = getch();
+    return x;
 }
 
 int main()
 {
-    int b[4][1024] = {{}, {1}, {2, 3}, {4, 5, 6}};
-    int c[1024][4] = {{1, 2}, {3, 4}};
-    putint(c[0]);
-    putch(10);
-    putint(f1(c[0]));
-    putch(10);
-    return c[2][0];
+    intt=0;
+    chat=0;
+    int lengets = getstr(get);
+   
+    return 0;
 }
