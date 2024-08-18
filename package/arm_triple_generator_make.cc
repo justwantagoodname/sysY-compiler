@@ -219,7 +219,7 @@ namespace TriplesArmGenerator {
             }
 
             if (dst.base >= AB.r0 && dst.base <= AB.pc) {
-                if (dst.value > 1024 || dst.value < -1024) {
+                if (dst.value > MAX_OFFSET || dst.value < -MAX_OFFSET) {
                     Addr temp = loadInt(dst.value * 4);
                     instrs.push_back({ACmd.add, temp, dst.base, temp});
                     setTempRegState(dst, false);
@@ -386,7 +386,7 @@ namespace TriplesArmGenerator {
 
         instrs.push_back({ ACmd.mov, AB.s0, AB.sp });
         unsigned int d = func_stack_size[func_id] * 4;
-        if (d < 0x3FFF)
+        if (d < MAX_ARITH_IMMD)
             instrs.push_back({ ACmd.sub, AB.sp, AB.sp, {(int)d} });
         else {
             Addr temp = loadInt({ (int)d });
@@ -424,7 +424,7 @@ namespace TriplesArmGenerator {
                 Addr dst = value_addr[params[j + 1].first];
 
                 if (dst.base >= AB.r0 && dst.base <= AB.pc) {
-                    if (dst.value > 1024 || dst.value < -1024) {
+                    if (dst.value > MAX_OFFSET || dst.value < -MAX_OFFSET) {
                         Addr temp = loadInt(dst.value * 4);
                         instrs.push_back({ ACmd.add, temp, dst.base, temp });
                         setTempRegState(dst, false);
@@ -453,7 +453,7 @@ namespace TriplesArmGenerator {
         instrs.push_back({ ACmd.tag, { ".endof" + triples.getFuncName({func_id, TTT.func})} });
 
         unsigned int d = func_stack_size[func_id] * 4;
-        if (d < 0x3FFF)
+        if (d < MAX_ARITH_IMMD)
             instrs.push_back({ ACmd.add, AB.sp, AB.sp, {(int)d} });
         else {
             Addr temp = loadInt({ (int)d });

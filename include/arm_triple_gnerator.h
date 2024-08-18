@@ -2,6 +2,11 @@
 #include "triples.h"
 #include "codegen/generator.h"
 #include <codegen/asm_helper.hpp>
+
+#define __MAX_OFFSET_NUM 1024
+#define MAX_OFFSET  (__MAX_OFFSET_NUM / 4)
+#define MAX_ARITH_IMMD 1024
+
 namespace TriplesArmGenerator {
 
     static auto& TTT = Triples::TT;

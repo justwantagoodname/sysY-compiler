@@ -1,6 +1,7 @@
 ﻿#include "arm_triple_gnerator.h"
 namespace TriplesArmGenerator {
 
+
     Addr ArmTripleGenerator::loadInt(const Addr& addr, int stack_type)
     {
         //        if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc)) {
@@ -536,7 +537,7 @@ namespace TriplesArmGenerator {
             return { AB.imd, triple.value };
         } else if (triple.type == TTT.temp) {
             Addr addr = temp_addr[triple.value];
-            if (addr.value < 1024 || addr.base == AB.reg)
+            if (addr.value < MAX_OFFSET || addr.base == AB.reg)
                 return addr;
             else {
                 Addr t = loadInt(addr.value * 4);
@@ -563,7 +564,7 @@ namespace TriplesArmGenerator {
                 Addr temp = getEmptyIntTempReg();
                 setTempRegState(temp, true);
 
-                if (base.value >= 1024) {
+                if (base.value >= MAX_OFFSET) {
                     base.value *= 4;
                     Addr temp = loadInt(base.value);
                     instrs.push_back({ ACmd.add, temp, base.base, temp });
@@ -603,7 +604,7 @@ namespace TriplesArmGenerator {
                 base.value = offset;
             }
 
-            if (offset < 1024)
+            if (offset < MAX_OFFSET)
                 return base;
             else {
                 base.value *= 4;
@@ -624,7 +625,7 @@ namespace TriplesArmGenerator {
             //        return { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
             //    } else {
             //        Addr addr = value_addr[triple.value];
-            //        if(addr.value < 1024 || addr.base < AB.r0 || addr.base > AB.pc)
+            //        if(addr.value < MAX_OFFSET || addr.base < AB.r0 || addr.base > AB.pc)
             //            return addr;
             //        else {
             //            addr.value *= 4;
@@ -646,7 +647,7 @@ namespace TriplesArmGenerator {
             //    // 特判是不是参数，是参数就再加载一次
             //    if( triples.value_pointer[triple.value].id_is("ParamDecl")){
             //        Addr temp = getEmptyIntTempReg();
-            //        if (addr.value >= 1024) {
+            //        if (addr.value >= MAX_OFFSET) {
             //            addr.value *= 4;
             //            Addr temp = getEmptyIntTempReg();
             //            loadInt(addr.value, temp);
@@ -661,7 +662,7 @@ namespace TriplesArmGenerator {
 
             //    addr.value += triple.added->value;
 
-            //    if(addr.value < 1024)
+            //    if(addr.value < MAX_OFFSET)
             //        return addr;
             //    else {
             //        addr.value *= 4;
@@ -679,7 +680,7 @@ namespace TriplesArmGenerator {
             //    if( triples.value_pointer[triple.value].id_is("ParamDecl")){
             //        Addr temp = getEmptyIntTempReg();
             //        setTempRegState(temp, true);
-            //        if(lst.value < 1024)
+            //        if(lst.value < MAX_OFFSET)
             //            instrs.push_back({ACmd.ldr, temp, lst});
             //        else {
             //            Addr t = loadInt(lst.value * 4);
@@ -700,7 +701,7 @@ namespace TriplesArmGenerator {
             //        instrs.push_back({ ACmd.add, temp, lst.base, temp });
             //        // 别忘了释放
             //        setTempRegState(lst, false);
-            //        if (lst.value < 1024) {
+            //        if (lst.value < MAX_OFFSET) {
             //            return { (ADDRBASE::ADDRBASEENUM)temp.value, lst.value };
             //        } else {
             //            Addr t = loadInt(lst.value * 4 );
