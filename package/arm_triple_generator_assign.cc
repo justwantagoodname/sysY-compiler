@@ -182,16 +182,16 @@ namespace TriplesArmGenerator {
             // 如果是var，分配栈
             if (triple.cmd == TCmd.var) {
                 printf("var def\n");
-                value_addr[triple.e1.value] = Addr(AB.sp, stack_size);
                 stack_size += triple.e2.value;
+                value_addr[triple.e1.value] = Addr(AB.sp, stack_size - 1);
             }
 
             // 如果是新的temp，分配栈
             if (triple.to.type == TTT.temp
                 && temp_addr[triple.to.value].base == AB.null) {
                 printf("temp def\n");
-                temp_addr[triple.to.value] = Addr(AB.sp, stack_size);
                 stack_size += 1;
+                temp_addr[triple.to.value] = Addr(AB.sp, stack_size - 1);
             }
 
         }

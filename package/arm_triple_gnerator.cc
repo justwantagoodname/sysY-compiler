@@ -593,7 +593,7 @@ namespace TriplesArmGenerator {
                     added = loadInt(added);
 
                     setTempRegState(b, false);
-                } 
+                }
 
             } else {
                 added = 0;
@@ -604,7 +604,7 @@ namespace TriplesArmGenerator {
             // 偏移地址是为寄存器
             if (added.base == AB.reg) {
                 instrs.push_back({ ACmd.lsls, added, added, 2 });
-                instrs.push_back({ ACmd.add, added, base.base, added });
+                instrs.push_back({ ACmd.sub, added, base.base, added });
                 setTempRegState(base, false);
                 base = { (ADDRBASE::ADDRBASEENUM)added.value, offset };
             } else if (added.base == AB.imd) {
@@ -617,7 +617,7 @@ namespace TriplesArmGenerator {
             else {
                 base.value *= 4;
                 Addr temp = loadInt(base.value);
-                instrs.push_back({ ACmd.add, temp, base.base, temp });
+                instrs.push_back({ ACmd.sub, temp, base.base, temp });
                 setTempRegState(base, false);
                 return  { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
             }
@@ -741,13 +741,21 @@ namespace TriplesArmGenerator {
             }
 
             Addr offset;
-            if (triple.added)
+            Addr temp;
+
+            if (triple.added) {
                 offset = loadTripleValueAddr(triples, *triple.added);
-            else
-                offset = 0;
+                temp = loadInt(offset);
+                Addr t = loadInt(addr.value);
+                instrs.push_back({ ACmd.add, temp, t, temp });
+                setTempRegState(t, false);
+            } else {
+                offset = addr.value;
+                temp = loadInt(offset);
+            }
 
-            Addr temp = loadInt(offset);
 
+            instrs.push_back({ ACmd.add, temp, temp, addr.value });
             instrs.push_back({ ACmd.lsls, temp, temp, 2 });
             instrs.push_back({ ACmd.add, temp, addr.base, temp });
             setTempRegState(addr, false);
@@ -774,7 +782,7 @@ namespace TriplesArmGenerator {
                 func_stack_size[i] * 4);
 
             for (int j = 0; j < func_params_load[i].size(); ++j) {
-                if(triples.funcid_params[i][j + 1].first != -1)
+                if (triples.funcid_params[i][j + 1].first != -1)
                 {
                     printf("\t%s : %s\n",
                         triples.getVarName({ triples.funcid_params[i][j + 1].first, TTT.value }).c_str(),

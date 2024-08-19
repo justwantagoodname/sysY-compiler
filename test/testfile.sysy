@@ -82,6 +82,8 @@ int main() {
   int len = getfarray(arr);
   while (i < MAX) {
     float input = getfloat();
+    putfloat(input);
+    putch(32);
     float area = PI * input * input, area_trunc = circle_area(input);
     arr[p] = arr[p] + input;
 
