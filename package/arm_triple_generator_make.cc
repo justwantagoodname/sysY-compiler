@@ -83,9 +83,15 @@ namespace TriplesArmGenerator {
 
                 dst = getEmptyIntTempReg();
                 instrs.push_back({ cmd, dst, op1, op2 });
+                setTempRegState(dst, true);
+
+                setTempRegState(op1, false);
+                setTempRegState(op2, false);
+
                 Addr to = loadTripleValueAddr(triples, triple.to);
 
                 storeInt(to, dst);
+                setTempRegState(dst, false);
 
             } else {
 
@@ -108,13 +114,16 @@ namespace TriplesArmGenerator {
                 }
 
                 dst = getEmptyFloatTempReg();
+                setTempRegState(dst, true);
                 instrs.push_back({ cmd, dst, op1, op2 });
+
+                setTempRegState(op1, false);
+                setTempRegState(op2, false);
 
                 Addr to = loadTripleValueAddr(triples, triple.to);
                 storeFloat(to, dst);
+                setTempRegState(dst, false);
             }
-            setTempRegState(op1, false);
-            setTempRegState(op2, false);
         }
 
 
@@ -363,7 +372,7 @@ namespace TriplesArmGenerator {
             int type = std::get<1>(e.second);
             int size = std::get<2>(e.second);
             vector<unsigned int>& init_num = std::get<3>(e.second);
-            instrs.push_back({ ACmd.lamb, {".bss"} });
+            instrs.push_back({ ACmd.lamb, {".data"} });
             instrs.push_back({ ACmd.lamb, {".align  2"} });
 
             instrs.push_back({ ACmd.tag, {name} });
@@ -402,7 +411,6 @@ namespace TriplesArmGenerator {
             instrs.push_back({ ACmd.sub, AB.sp, AB.sp, temp });
             setTempRegState(temp, false);
         }
-
 
         // 从参数存放位置读取参数并存入相应地址
         auto& params = triples.funcid_params[func_id];
@@ -452,7 +460,7 @@ namespace TriplesArmGenerator {
                     Addr temp = loadFloat(load_addr);
                     storeFloat(dst, temp);
                 }
-
+                setTempRegState(dst, false);
             }
         }
     }

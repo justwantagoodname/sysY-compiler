@@ -125,7 +125,7 @@ namespace TriplesArmGenerator {
                 // 整型计数器，浮点计数器
                 int int_count = 0, float_count = 0;
                 // 参数整形寄存器数， 浮点寄存器数
-                int int_reg_number = 4, float_reg_number = 1;
+                int int_reg_number = 3, float_reg_number = 1;
 
                 // 初始化函数加载地址列表
                 func_params_load[now_func_id].clear();

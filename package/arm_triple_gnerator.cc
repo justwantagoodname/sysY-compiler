@@ -560,7 +560,8 @@ namespace TriplesArmGenerator {
             }
 
             // 特判是不是参数，是参数就再加载一次
-            if (triples.value_pointer[triple.value].id_is("ParamDecl")) {
+            if (triples.value_pointer[triple.value].id_is("ParamDecl")
+                && triples.value_pointer[triple.value].get_attr("array")) {
                 Addr temp = getEmptyIntTempReg();
                 setTempRegState(temp, true);
 

@@ -469,7 +469,7 @@ void Triples::make()
                 ASTNode_get_attr_int(cur, "temp", &t);
                 if (cur->next != NULL) {
                     cr *= value[count + 1].get_attr_int("size");
-                    triples.add(Cmd.mul, { t }, { cr, TT.dimd }, { t });
+                    triples.add(Cmd.mul, { temp }, { cr, TT.dimd }, { temp });
                 }
                 ++count;
                 triples.add(Cmd.add, { temp }, { t }, { temp });
@@ -673,6 +673,7 @@ void Triples::make()
             } while (f != 0);
 
             triples[t2].to = { t1 ,TT.lamb };
+
             element.add_attr("true", t2);
             element.add_attr("false", f2);
         }
@@ -742,7 +743,13 @@ void Triples::make()
             int b = element.get_attr_int("begin");
             int f = element.get_attr_int("false");
             triples.add(Cmd.jmp, {}, {}, { b, TT.lamb });
-            triples[f].to = { tag_count, TT.lamb };
+
+            do {
+                TripleValue tmp = triples[f].to;
+                triples[f].to = { tag_count, TT.lamb };
+                f = tmp.value;
+            } while (f != 0);
+
             triples.add(Cmd.tag, { tag_count, TT.lamb }, {}, {});
 
             if (element.get_attr("break")) {
