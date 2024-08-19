@@ -232,5 +232,9 @@ namespace TriplesArmGenerator {
         void print();
 
         void write(AssemblyBuilder&);
+    private:
+
+        std::map<int, ADDRBASE::ADDRBASEENUM> var2reg, temp2reg;
+        void getVar2Reg();
     };
 }

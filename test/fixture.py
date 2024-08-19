@@ -13,12 +13,21 @@ testcases = []
 class Helper:
     @staticmethod
     def search_testcase():
-        for root, dirs, files in os.walk('testcases'):
-            for file in files:
-                if file.endswith('.sy'):
-                    name, _ = file.split('.')
-                    abs_path = os.path.abspath(root)
-                    testcases.append(TestCase(name, abs_path))
+        # for root, dirs, files in os.path('testcases'):
+        #     for file in files:
+        #         if file.endswith('.sy'):
+        #             name, _ = file.split('.')
+        #             abs_path = os.path.abspath(root)
+        #             testcases.append(TestCase(name, abs_path))
+        for f in os.scandir('testcases'):
+            if not f.is_dir():
+                exit(-1)
+            
+            name = f.name
+            test_path = os.path.join('testcases', name)
+            testcase_num = len([g for g in os.scandir(test_path) if (g.is_file() and g.name.endswith('.out'))])
+            testcases.append(TestCase(name, test_path, testcase_num))
+
 
     @staticmethod
     def build_compiler():
@@ -29,19 +38,29 @@ class Helper:
             exit(ret)
 
 class TestCase:
-    def __init__(self, name, abs_path):
+    def __init__(self, name, abs_path, testcase_num):
         self.name = name
         self.path = abs_path
         self.source = os.path.join(self.path, f'{name}.sy')
-        self.input = os.path.join(self.path, f'{name}.in')
-        self.output = os.path.join(self.path, f'{name}.out')
+        # self.input = os.path.join(self.path, f'{name}.in')
+        # self.output = os.path.join(self.path, f'{name}.out')
+        self.testcase_num = testcase_num
+        self.with_input = True if len([g for g in os.scandir(self.path) if (g.is_file() and g.name.endswith('.out'))]) else False
         self.check_valid() 
     
     def check_valid(self):
         if not os.path.exists(self.source):
             raise FileNotFoundError(f'{self.source} not found')
-        if not os.path.exists(self.input):
-            self.input = 'stdin'
+        if self.testcase_num == 0:
+            # print('no testcase found in', self.name)
+            # exit(-1)
+            pass
+        
+        in_num = len([g for g in os.scandir(self.path) if (g.is_file() and g.name.endswith('.out'))])
+        if in_num != 0 and in_num != self.testcase_num:
+            print('invalid input files')
+            exit(-1)
+            # self.input = 'stdin'
         # if not os.path.exists(self.output):
         #    raise FileNotFoundError(f'{self.output} not found')
 
@@ -49,16 +68,26 @@ class Runner:
     def run(self, testcase):
         logger.info(f'Running testcase: {testcase.name}')
 
-        compile = subprocess.Popen(['compiler', testcase.source, '-o', '../test/output.s'], executable='../build/compiler')
-        ret = compile.wait()
-        if ret != 0:
-            exit(ret)
+        with open('/dev/null', 'w') as f:
+            compile = subprocess.Popen(['compiler', testcase.source, '-o', '../test/output.s'], executable='../build/compiler', stdout=f)
+            ret = compile.wait()
+            if ret != 0:
+                print('compile failed.')
+                exit(ret)
 
-        arm_simulation = subprocess.Popen(['bash', 'run_wrapper.sh', 'arm', 'empty.in', 'hello.out'], cwd='.')
-        ret = arm_simulation.wait()
+        for i in range(testcase.testcase_num):
+            if testcase.with_input:
+                arm_simulation = subprocess.Popen(['bash', 'run_wrapper.sh', 'arm', str(i) + '.in', str(i) + '.out'], cwd='.')
+                ret = arm_simulation.wait()
+            else:
+                arm_simulation = subprocess.Popen(['bash', 'run_wrapper.sh', 'arm', '/dev/null', str(i) + '.out'], cwd='.')
+                ret = arm_simulation.wait()
 
-        if ret != 0:
-            exit(ret)
+            if ret != 0:
+                printf(f'error on {i}.')
+                exit(ret)
+            else:
+                print(f'ok on input {i}.')
 
 
 if __name__ == '__main__':
@@ -72,5 +101,5 @@ if __name__ == '__main__':
 
     runner = Runner()
 
-    for testcase in tqdm(testcases):
+    for testcase in testcases:
         runner.run(testcase)
