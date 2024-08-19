@@ -7,6 +7,8 @@ from time import sleep
 import subprocess
 import filecmp
 
+
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 testcases = []
@@ -24,7 +26,7 @@ class Helper:
             if not f.is_dir():
                 exit(-1)
             
-            name = f.name
+            name = 'long_code2'
             test_path = os.path.join('testcases', name)
             testcase_num = len([g for g in os.scandir(test_path) if (g.is_file() and g.name.endswith('.out'))])
             testcases.append(TestCase(name, test_path, testcase_num))
@@ -33,7 +35,7 @@ class Helper:
     @staticmethod
     def build_compiler():
         logger.info('Building compiler')
-        build = subprocess.Popen(['make', 'release-compiler'], cwd='..')
+        build = subprocess.Popen(['make', 'dev-compiler', '-j12'], cwd='..')
         ret = build.wait()
         if ret != 0:
             exit(ret)
@@ -69,8 +71,8 @@ class Runner:
     def run(self, testcase):
         logger.info(f'Running testcase: {testcase.name}')
 
-        with open('/dev/null', 'w') as f:
-            compile = subprocess.Popen(['compiler', testcase.source, '-o', '../test/output.s'], executable='../build/compiler', stdout=f)
+        with open('test-run/compile_log', 'w') as f:
+            compile = subprocess.Popen(['compiler', testcase.source, '-o', '../test/output.s'], executable='../build-dev/compiler', stdout=f)
             ret = compile.wait()
             if ret != 0:
                 print('compile failed.')
@@ -105,5 +107,6 @@ if __name__ == '__main__':
 
     runner = Runner()
 
-    for testcase in testcases:
-        runner.run(testcase)
+    # for testcase in testcases:
+    #     runner.run(testcase)
+    runner.run(testcases[0])

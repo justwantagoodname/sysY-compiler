@@ -21,6 +21,9 @@ public:
     Query operator[] (const char* key) const;
     Element operator[] (int);
     Query operator() (const char* select) const;
+    QueryResult* unwrap() const {
+        return result;
+    }
 
     struct Iter {
         QueryResult* it;
