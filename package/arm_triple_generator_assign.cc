@@ -125,7 +125,7 @@ namespace TriplesArmGenerator {
                 // 整型计数器，浮点计数器
                 int int_count = 0, float_count = 0;
                 // 参数整形寄存器数， 浮点寄存器数
-                int int_reg_number = 4, float_reg_number = 1;
+                int int_reg_number = 3, float_reg_number = 1;
 
                 // 初始化函数加载地址列表
                 func_params_load[now_func_id].clear();
@@ -161,7 +161,7 @@ namespace TriplesArmGenerator {
                     if (flg) {
                         // 存入栈的情况
                         Addr r1 = value_addr[params[j + 1].first];
-                        r1.value -= stack_size;
+                        r1.value -= stack_size + func_reg[now_func_id].size() + 1;
                         func_params_load[now_func_id][j] = r1;
                     }
                     printf("to %s: %d\n", func_params_load[now_func_id][j].toString().c_str(), params[j + 1].first);

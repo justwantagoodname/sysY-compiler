@@ -196,7 +196,7 @@ namespace TriplesArmGenerator {
     void ArmTripleGenerator::loadInt(const Addr& addr, const Addr& reg, int stack_type) {
         printf("load int from %s to %s\n", addr.toString().c_str(), reg.toString().c_str());
 
-        if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc) || addr.base == AB.addr) {
+        if (addr.base == AB.reg && (addr.value >= AB.r0 && addr.value <= AB.pc)) {
             // 已分配给通用寄存器，直接返回
             if (reg.value == addr.value)
                 return;
@@ -265,6 +265,10 @@ namespace TriplesArmGenerator {
                 instrs.push_back({ ACmd.vmov, reg, ftemp });
 
             }
+
+        } else if (addr.base == AB.addr) {
+
+            loadInt(reg, (ADDRBASE::ADDRBASEENUM)addr.value);
 
         } else {
             panic("load bad addr ( like tag ) to int reg!");
@@ -560,12 +564,14 @@ namespace TriplesArmGenerator {
             }
 
             // 特判是不是参数，是参数就再加载一次
-            if (triples.value_pointer[triple.value].id_is("ParamDecl")) {
+            if (triples.value_pointer[triple.value].id_is("ParamDecl")
+                && triples.value_pointer[triple.value].get_attr("array")) {
                 Addr temp = getEmptyIntTempReg();
                 setTempRegState(temp, true);
 
                 if (base.value >= MAX_OFFSET) {
                     base.value *= 4;
+
                     Addr temp = loadInt(base.value);
                     instrs.push_back({ ACmd.add, temp, base.base, temp });
 
@@ -585,8 +591,10 @@ namespace TriplesArmGenerator {
                 if (added.base >= AB.r0 && added.base <= AB.pc) {
                     auto b = added.base;
                     added = loadInt(added);
+
                     setTempRegState(b, false);
-                }
+                } 
+
             } else {
                 added = 0;
             }
@@ -740,10 +748,11 @@ namespace TriplesArmGenerator {
 
             Addr temp = loadInt(offset);
 
+            instrs.push_back({ ACmd.lsls, temp, temp, 2 });
             instrs.push_back({ ACmd.add, temp, addr.base, temp });
             setTempRegState(addr, false);
 
-            return { AB.addr, temp.value };
+            return { AB.reg, temp.value };
         } else if (triple.type == TTT.lamb) {
             return ".l" + std::to_string(triple.value);
         } else if (triple.type == TTT.func) {
