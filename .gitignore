@@ -8,6 +8,7 @@ test/parser
 test/compiler
 test/*.exe
 test/output.*
+test/test-run/
 .vs/
 .vscode/
 sysY-compiler/

@@ -1,3 +1,0 @@
-int main() {
-    putf("Hello, world\n");
-}

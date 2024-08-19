@@ -201,4 +201,13 @@ namespace TriplesArmGenerator {
         // 设置全局变量
         makeGlobeMap(triples);
     }
+
+
+    struct GraphNode {
+        
+    };
+    void TriplesArmGenerator::ArmTripleGenerator::getVar2Reg() {
+        // ji lie de dou zheng
+        return;
+    }
 }
