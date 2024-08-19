@@ -252,8 +252,6 @@ void Triples::pretreat()
     cond_node += root("//Not");
 
     for (auto cond : cond_node) {
-        Element copy_cond_node = cond.clone();
-        copy_cond_node.unwrap()->children = NULL;
 
         ASTNode* head = cond.children();
         ASTNode* el = NULL;
@@ -311,8 +309,6 @@ void Triples::pretreat()
     cond_node += root("//UnMinus");
 
     for (auto cond : cond_node) {
-        Element copy_cond_node = cond.clone();
-        copy_cond_node.unwrap()->children = NULL;
 
         ASTNode* head = cond.children();
         ASTNode* el = NULL;
@@ -350,7 +346,7 @@ void Triples::pretreat()
 
                 el->parent = cutnode.unwrap();
                 el = cutnode.unwrap();
-            }
+            } 
         }
     }
 
