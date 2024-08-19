@@ -26,7 +26,7 @@ class Helper:
             if not f.is_dir():
                 exit(-1)
             
-            name = 'long_code2'
+            name = f.name
             test_path = os.path.join('testcases', name)
             testcase_num = len([g for g in os.scandir(test_path) if (g.is_file() and g.name.endswith('.out'))])
             testcases.append(TestCase(name, test_path, testcase_num))
@@ -107,6 +107,6 @@ if __name__ == '__main__':
 
     runner = Runner()
 
-    # for testcase in testcases:
-    #     runner.run(testcase)
-    runner.run(testcases[0])
+    for testcase in testcases:
+        runner.run(testcase)
+    # runner.run(testcases[0])

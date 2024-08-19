@@ -202,10 +202,73 @@ namespace TriplesArmGenerator {
         makeGlobeMap(triples);
     }
 
-    void TriplesArmGenerator::ArmTripleGenerator::getVar2Reg(Triples& triples) {
+    void TriplesArmGenerator::ArmTripleGenerator::getVar2Reg(Triples& triples, int num_regs) {
         CFG cfg(triples);
-        for (auto *block : cfg.blocks) {
-            printf("%d - %d\n", block->range_begin, block->range_end);
+        cfg.liveVarAnal();
+
+        // build interference graph
+        std::vector<std::vector<int>> graph(triples.temp_count);
+        for (auto* block : cfg.blocks) {
+            std::set<int> &live_vars = block->in;
+
+            for (int var1 : live_vars) {
+                for (int var2 : live_vars) {
+                    if (var1 != var2) {
+                        graph[var1].push_back(var2);
+                        graph[var2].push_back(var1);
+                    }
+                }
+            }
+        }
+
+        // allocate
+        std::map<int, int> reg_allocation;
+        std::vector<int> reg_pool(num_regs, -1);
+
+        for (int node = 0; node < graph.size(); ++node) {
+            auto &neighbors = graph[node];
+
+            std::set<int> used_regs;
+            for (int neighbor : neighbors) {
+                if (reg_allocation.find(neighbor) != reg_allocation.end()) {
+                    used_regs.insert(reg_allocation[neighbor]);
+                }
+            }
+
+            int assigned_reg = -1;
+            for (int i = 0; i < num_regs; ++i) {
+                if (used_regs.find(i) == used_regs.end()) {
+                    assigned_reg = i;
+                    break;
+                }
+            }
+            
+            if (assigned_reg == -1) {
+                for (int i = 0; i < num_regs; ++i) {
+                    bool can_share = true;
+                    for (int neighbor : neighbors) {
+                        if (reg_allocation[neighbor] == i) {
+                            can_share = false;
+                            break;
+                        }
+                    }
+                    if (can_share) {
+                        assigned_reg = i;
+                        break;
+                    }
+                }
+            }
+
+            if (assigned_reg != -1) {
+                reg_allocation[node] = assigned_reg;
+            } else {
+                panic("assign error");
+            }
+        }
+
+
+        for (auto [var, reg] : reg_allocation) {
+            printf("%d on %d\n", var, reg);
         }
     }
 }

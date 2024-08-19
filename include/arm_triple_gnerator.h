@@ -236,6 +236,6 @@ namespace TriplesArmGenerator {
     private:
 
         std::map<int, ADDRBASE::ADDRBASEENUM> var2reg, temp2reg;
-        void getVar2Reg(Triples& triples);
+        void getVar2Reg(Triples& triples, int num_regs);
     };
 }
