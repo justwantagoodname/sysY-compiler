@@ -6,6 +6,23 @@ void func(){
     }
 }
 
+void func2(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j) {
+    int _a = a;
+    int _b = b;
+    int _c = c;
+    int _d = d;
+    int _e = e;
+    int _f = f;
+    int _g = g;
+    int _h = h;
+    int _i = i;
+    int _j = j;
+}
+
+void func3(int a[]) {
+    putf("%d\n", a[0]);
+}
+
 int main() {
     int a = 1, b = 2, c = 3, d = 5, f;
 
@@ -21,11 +38,14 @@ int main() {
     float g = 3.14;
     if(e[0][c])g = 12.6;
     if(a % 2  && b % 2 )
-        printf("no");
+        putf("no");
 
     func();
 
-    printf("hello world! %f %f\n", 6.28, 3.14);
+    putf("hello world! %f %f\n", 3.14, 6.28);
+
+    int a[3] = {0, 1, 2};
+    func3(a);
 
     return 0;
 }

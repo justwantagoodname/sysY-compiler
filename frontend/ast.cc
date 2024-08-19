@@ -450,7 +450,33 @@ bool ASTNode_set_attr_str(ASTNode *node, const char* key, const char* value) {
             free((char *)attr->value.str_value);
             attr->value.str_value = strdup(value);
             return true;
+        } else {
+            attr->value.str_value = strdup(value);
+            attr->type = ATTR_TYPE_STR;
         }
+    }
+    return false;
+}
+
+bool ASTNode_set_attr_int(ASTNode *node, const char* key, int value) {
+    assert(node != NULL && key != NULL);
+
+    ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
+    if (attr != NULL) {
+        attr->value.int_value = value;
+        attr->type = ATTR_TYPE_INT;
+        return true;
+    }
+    return false;
+}
+
+bool ASTNode_set_attr_float(ASTNode *node, const char* key, float value) {
+    assert(node != NULL && key != NULL);
+
+    ASTAttribute *attr = ASTNode_get_attr_or_null(node, key);
+    if (attr != NULL) {
+        attr->value.float_value = value;
+        attr->type = ATTR_TYPE_FLOAT;
     }
     return false;
 }

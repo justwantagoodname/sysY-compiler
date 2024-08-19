@@ -4,13 +4,15 @@ using std::vector;
 
 void Triples::add(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, const TripleValue& to)
 {
-	assert(cmd != Cmd.mov || (cmd == Cmd.mov && e1.value < 20000) || e1.type != TT.temp);
+	//assert(cmd != Cmd.mov || (cmd == Cmd.mov && e1.value < 20000) || e1.type != TT.temp);
 	triples.push_back(std::shared_ptr<Triple>(new Triple(cmd, e1, e2, to)));
 }
 
 int Triples::find(const Element& e)
 {
 	assert(e);
+	assert(!e.id_is("ArraySize"));
+
 	for (int i = 0; i < value_pointer.size(); ++i) {
 		if (value_pointer[i] == e)return i;
 	}
@@ -71,7 +73,13 @@ int Triples::findf(const char* name)
 //	return {};
 //}
 
-Triples::Triples(const Element& e) : root(e) {}
+Triples::Triples(const Element& e) : root(e), temp_count(-1) {
+	triples.clear();
+	value_pointer.clear();
+	function_pointer.clear();
+	string_pointer.clear();
+	temp_type.clear();
+}
 
 Triples::Triple::Triple(CMD::CMD_ENUM cmd, const TripleValue& e1, const TripleValue& e2, const TripleValue& to) : cmd(cmd), e1(e1), e2(e2), to(to) {}
 
@@ -87,7 +95,6 @@ size_t Triples::size()
 
 void Triples::print() const
 {
-
 	char ts1[550], ts2[550], ts3[550];
 	int idx = 0;
 	printf("\n");
@@ -132,6 +139,7 @@ void Triples::print() const
 		"var"
 	};
 	for (auto i : triples) {
+		//printf("%s, %d, %d, %d\n", cmd_text[i->cmd], i->e1.value, i->e2.value, i->to.value);
 
 		if (i->cmd == Cmd.tag) {
 			i->e1.toString(ts1, *this);
@@ -214,7 +222,7 @@ Triples::TripleValue::~TripleValue()
 		delete added;
 }
 
-void Triples::TripleValue::toString(char s[], const Triples& triples)
+void Triples::TripleValue::toString(char s[], const Triples& triples) const
 {
 	char ts[500], ts2[500];
 	switch (type)
@@ -223,7 +231,10 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		snprintf(s, 20, "-");
 		break;
 	case TT.temp:
-		snprintf(s, 20, "T%d", value);
+		if (triples.temp_type[value] == 2)
+			snprintf(s, 20, "fT%d", value);
+		else
+			snprintf(s, 20, "T%d", value);
 		break;
 	case TT.dimd:
 		snprintf(s, 40, "#%d", value);
@@ -233,7 +244,7 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		break;
 	case TT.value:
 		if (added == nullptr) {
-			snprintf(s, 40, "%s", triples.value_pointer[value].get_attr_str("name"));
+			snprintf(s, 40, "%s(%d)", triples.value_pointer[value].get_attr_str("name"), value);
 		}
 		else {
 			added->toString(ts, triples);
@@ -241,10 +252,15 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 		}
 		break;
 	case TT.func:
-		snprintf(s, 500, "%d@%s",
-			triples.function_pointer[value].get_attr_int("place"),
-			triples.function_pointer[value].get_attr_str("name")
-		);
+		if (triples.function_pointer[value].get_attr("ex_func"))
+			snprintf(s, 500, "lib@%s",
+				triples.function_pointer[value].get_attr_str("name")
+			);
+		else
+			snprintf(s, 500, "%d@%s",
+				triples.function_pointer[value].get_attr_int("place"),
+				triples.function_pointer[value].get_attr_str("name")
+			);
 		break;
 	case TT.lamb:
 		snprintf(s, 20, ".l%d", value);
@@ -278,7 +294,58 @@ void Triples::TripleValue::toString(char s[], const Triples& triples)
 	}
 }
 
+std::string Triples::getFuncName(const TripleValue& tv) const {
+	assert(tv.type == TT.func);
+	return function_pointer[tv.value].get_attr_str("name");
+}
+
 std::string Triples::getValueString(const TripleValue& tv) const {
 	assert(tv.type == TT.str);
 	return string_pointer[tv.value];
+}
+
+std::string Triples::getLabelName(const TripleValue& tv) const {
+	assert(tv.type == TT.lamb);
+	return ".l" + std::to_string(tv.value);
+}
+
+std::string Triples::getVarName(const TripleValue& tv) const {
+	assert(tv.type == TT.value);
+	return value_pointer[tv.value].get_attr_str("name");
+}
+
+int Triples::getValueType(const TripleValue& e) {
+	int t;
+	switch (e.type)
+	{
+	case TT.temp:
+		return temp_type[e.value];
+		break;
+	case TT.dimd:
+		return 1;
+		break;
+	case TT.fimd:
+		return 2;
+		break;
+	case TT.str:
+		return 6;
+		break;
+	case TT.value:
+		return (strcmp(value_pointer[e.value].get_attr_str("type"), "Float") == 0) + 1;
+		break;
+	case TT.func:
+		t = strcmp(function_pointer[e.value].get_attr_str("return"), "Int");
+		t = t > 0 ? 1 : t < 0 ? -1 : 0;
+		return -t + 1;
+		break;
+	case TT.addr:
+		return (strcmp(value_pointer[e.value].get_attr_str("type"), "Float") == 0) + 3;
+		break;
+	case TT.null:
+		return 0;
+		break;
+	default:
+		panic("gettype error");
+		break;
+	}
 }

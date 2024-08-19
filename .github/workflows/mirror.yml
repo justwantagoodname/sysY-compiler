@@ -5,6 +5,8 @@ on:
         branches:
             - main
             - arm-stack-mode
+            - arm-can-do
+            - bromine
     workflow_dispatch:
 
 jobs:

@@ -36,9 +36,9 @@ sim_result_t ExpNode_op_calc(const char *op, sim_result_t left, sim_result_t rig
                 case 4:
                     return (int) left % (int) right;
                 case 5:
-                    return (int) left && (int) right;
+                    return (left != 0) && (right != 0);
                 case 6:
-                    return (int) left || (int) right;
+                    return (left != 0) || (right != 0);
                 case 7:
                     return left == right;
                 case 8:
@@ -226,6 +226,28 @@ ASTNode *ExpNode_simplify_binary_operator(const ASTNode *exp) {
     return ret;
 }
 
+void NumberNode_cast(ASTNode* node, const string& targetType) {
+    assert(node);
+    assert(targetType == SyFloat || targetType == SyInt);
+    
+    string type;
+    ASTNode_get_attr_str(node, "type", type);
+
+    if (type == targetType) return;
+
+    if (type == SyFloat && targetType == SyInt) {
+        float value;
+        ASTNode_get_attr_float(node, "value", &value);
+        ASTNode_set_attr_int(node, "value", (int) value);
+        ASTNode_set_attr_str(node, "type", SyInt);
+    } else if (type == SyInt && targetType == SyFloat) {
+        int value;
+        ASTNode_get_attr_int(node, "value", &value);
+        ASTNode_set_attr_float(node, "value", (float) value);
+        ASTNode_set_attr_str(node, "type", SyFloat);
+    }
+}
+
 ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
     assert(node != nullptr);
     assert(ASTNode_id_is(node, "Fetch"));
@@ -233,21 +255,23 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
     ASTNode *base_node = ASTNode_querySelectorOne(node, "//*[@base][0]");
     const char *base_name = nullptr;
     ASTNode_get_attr_str(base_node, "base", &base_name);
-    int access_line;
+    int access_line, access_col;
     bool hasLine = ASTNode_get_attr_int(base_node, "line", &access_line);
-    assert(hasLine);
+    bool hasCol = ASTNode_get_attr_int(base_node, "column", &access_col);
+    assert(hasLine && hasCol);
 
     assert(base_name != nullptr);
 
-    QueryResult *const_list = ASTNode_querySelectorf(node, "/ancestor::Scope//Const[@name='%s'][0]", base_name), *cur;
+    QueryResult *const_list = ASTNode_querySelectorf(node, "/ancestor::Scope/Decl/Const[@name='%s'][0]", base_name), *cur;
 
     ASTNode* target = nullptr;
     DL_FOREACH(const_list, cur) {
-        int line;
+        int line, col;
         hasLine = ASTNode_get_attr_int(cur->node, "line", &line);
-        assert(hasLine);
+        hasCol = ASTNode_get_attr_int(cur->node, "column", &col);
+        assert(hasLine && hasCol);
 
-        if (line < access_line) {
+        if (line < access_line || (line == access_line && col < access_col)) { // 不能访问自己
             target = cur->node;
             break;
         }
@@ -261,7 +285,10 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
     // can ref self check
     assert(ASTNode_id_is(target, "Const"));
 
-    ASTNode *value = nullptr;
+    string const_type;
+    ASTNode_get_attr_str(target, "type", const_type);
+
+    ASTNode *value;
 
     if (ASTNode_has_attr(target, "array") || ASTNode_querySelectorOne(node, "//Locator[0]") != nullptr) {
         value = ExpNode_fetch_const_array_value(node, target);
@@ -269,6 +296,7 @@ ASTNode *ExpNode_try_fetch_const(const ASTNode *node) {
         value = ASTNode_querySelectorOne(target, "//Exp/Number");
         value = ASTNode_clone(value);
     }
+    NumberNode_cast(value, const_type);
     return value;
 }
 

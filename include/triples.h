@@ -2,8 +2,15 @@
 #define TRIPLE_H
 #include "element.h"
 
+#include <map>
 #include <vector>
 #include <memory>
+
+struct ValueTableElement {
+	std::string name;
+	int type;
+	int scope;
+};
 
 class Triples {
 private:
@@ -94,7 +101,7 @@ public:
 		TripleValue& operator=(const TripleValue& t);
 		//inline operator int() { return value; }
 
-		void toString(char[], const Triples& triples);
+		void toString(char[], const Triples& triples) const;
 	};
 
 	struct Triple {
@@ -103,14 +110,32 @@ public:
 
 		Triple(CMD::CMD_ENUM, const TripleValue&, const TripleValue&, const TripleValue&);
 	};
+
+	std::vector<ValueTableElement> value_table;
+	
+	// func name -> [<param id, type>, ...]
+	// 0,    1,   2,     3,     4
+	// void, int, float, int[], float[]
+	std::map<std::string, std::vector<std::pair<int, int>>> func_params;
+
+	// func id -> [<param id, type>, ...]
+	// 0,    1,   2,     3,     4
+	// void, int, float, int[], float[]
+	std::vector<std::vector<std::pair<int, int>>> funcid_params;
+
 private:
-	int temp_count = -1;
+	void setValueTable();
+	void setFuncParams();
+
+public:
+	int temp_count;
 
 
 	std::vector<std::shared_ptr<Triple>> triples;
 	std::vector<Element> value_pointer;
 	std::vector<Element> function_pointer;
 	std::vector<std::string> string_pointer;
+	std::vector<int> temp_type;
 	//std::vector<Element> value_table;
 	//std::vector<int> page_stack;
 
@@ -153,6 +178,23 @@ public:
 	/// </summary>
 	void resortTemp();
 
+	/// <summary>
+	/// 分析临时变量类型
+	/// </summary>
+	void listTempType();
+	
+	/// <summary>
+	/// 获得临时变量类型
+	/// </summary>
+	int getTempType(int n) {
+		return temp_type[n];
+	}
+
+	/// <summary>
+	/// 获取类型
+	/// </summary>
+	int getValueType(const TripleValue& e);
+
 	Triple& operator[](int idx) {
 		return *triples[idx];
 	};
@@ -165,6 +207,9 @@ public:
 	void print() const;
 
 	std::string getValueString(const TripleValue& triple_value) const;
+	std::string getFuncName(const TripleValue& triple_value) const;
+	std::string getLabelName(const TripleValue& triple_value) const;
+	std::string getVarName(const TripleValue& triple_value) const;
 };
 
 #endif //TRIPLE_H

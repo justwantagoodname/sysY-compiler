@@ -8,12 +8,19 @@
 #include "codegen/const_inflater.hpp"
 #include "codegen/stack_translator.hpp"
 #include "codegen/arm_adapter.hpp"
+#include "arm_triple_gnerator.h"
 #define UNI_OPTIMIZTION
-// #define ASM_GEN
-#define TRIPLE_DEBUG
+
+ //#define ASM_GEN
+//#define TRIPLE_DEBUG
+#define ARM_TRIPLE_DEBUG
+// #define RV_ASM_GEN
 
 #ifdef TRIPLE_DEBUG
-#include "codegen/generator.h"
+#include "codegen/stack_rv_generator.h"
+#endif
+#ifdef RV_ASM_GEN
+#include "codegen/stack_rv_generator.h"
 #endif
 
 
@@ -24,15 +31,14 @@ int main(int argc, const char** argv) {
 	Element root = Element::CreateByFile(Flag::getFlag().by<std::string>("input").c_str());
 
 	if (Flag::getFlag().by<bool>("dump-raw")) {
-  		root.print();
+  		 root.print();
 	}
 
 #ifdef UNI_OPTIMIZTION
-	ConstNode_unfold(root);
-	
+	ConstNode_fold(root);
 	ArrayDecl_flatten(root);
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
-  		root.print();
+  		 //root.print();
 	}
 #endif
 	
@@ -53,18 +59,18 @@ int main(int argc, const char** argv) {
 #endif
 
 #ifdef TRIPLE_DEBUG
-	root.print();
+	// root.print();
 
 	Triples triples(root);
 	triples.pretreat();
 	printf("===After pretreat===\n");
 
-	//root.print();
+	root.print();
 
 	printf("===After make===\n");
 	triples.make();
 	root.print();
-	 triples.print();
+	// triples.print();
 
 	printf("===After eliUnnecVar===\n");
 	triples.eliUnnecVar();
@@ -78,8 +84,79 @@ int main(int argc, const char** argv) {
 	triples.resortTemp();
 	triples.print();
 
-	RiscVGenerator g;
+	StackRiscVGenerator g;
 	g.generate(triples, false);
+
+	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());
+	asm_file.raw(".global main\n.text\n.align 2\n.type main, %function\n");
+	for (auto p : g.instrs) {
+		asm_file.raw(p->toASM().c_str());
+	}
+	asm_file.raw(".section	.note.GNU-stack,\"\",%progbits\n.ident	\"SysY-Compiler\"\n");
+#endif
+
+#ifdef ARM_TRIPLE_DEBUG
+	// root.print();
+
+	Triples triples(root);
+	triples.pretreat();
+	printf("===After pretreat===\n");
+
+	//root.print();
+
+	printf("===After make===\n");
+	triples.make();
+	//root.print();
+	triples.print();
+
+	printf("===After eliUnnecVar===\n");
+	triples.eliUnnecVar();
+	triples.print();
+
+	printf("===After MinTemp===\n");
+	triples.minTempVar();
+	triples.print();
+
+	printf("===After ResortTemp===\n");
+	triples.resortTemp();
+	triples.print();
+
+	TriplesArmGenerator::ArmTripleGenerator generator;
+
+	generator.generate(triples, false);
+
+	//generator.printAddrs(triples);
+    //generator.print();
+
+	//panic("DOING……");
+
+	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());
+	//asm_file.raw(".global main\n.text\n.align 2\n.type main, %function\n");
+	generator.write(asm_file);
+	asm_file.raw(".section	.note.GNU-stack,\"\",%progbits\n.ident	\"SysY-Compiler\"\n");
+#endif
+
+#ifdef RV_ASM_GEN
+	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());
+
+	// GlobalDeclInflater const_inflater(root.unwrap());
+    // const_inflater.inflate(asm_file);
+
+	asm_file.raw(".global main\n.text\n.align 2\n.type main, %function\n");
+
+	Triples triples(root);
+	triples.pretreat();
+	triples.make();
+	triples.eliUnnecVar();
+	triples.minTempVar();
+	triples.resortTemp();
+
+	StackRiscVGenerator g;
+	g.generate(triples, false);
+	for (auto p : g.instrs) {
+		asm_file.raw(p->toASM().c_str());
+	}
+	asm_file.raw(".section	.note.GNU-stack,\"\",%progbits\n.ident	\"SysY-Compiler\"\n");
 #endif
 
 	return 0;

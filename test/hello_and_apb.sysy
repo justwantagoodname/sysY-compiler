@@ -1,0 +1,5 @@
+int main() {
+    int a = getint(), b = getint();
+    putf("a + b: %d\n", a + b);
+    putf("Hello world!\n");
+}

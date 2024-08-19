@@ -14,6 +14,7 @@ class StackTranslator {
 private:
     ASTNode* comp_unit;
     std::unique_ptr<Adapter> adapter;
+    int literal_pool_counter;
 
 public:
     std::string tempReg;
@@ -57,6 +58,8 @@ public:
 
     void translateReturn(ASTNode* ret);
 
+    void insertLiteralPool();
+
     /**
      * 翻译栈上变量的初始化
      */
@@ -65,6 +68,7 @@ public:
     StackTranslator(ASTNode* comp_unit, std::unique_ptr<Adapter> adapter) : comp_unit(comp_unit), adapter(std::move(adapter)) {
         assert(comp_unit != nullptr);
         assert(ASTNode_id_is(comp_unit, "CompUnit"));
+        literal_pool_counter = 0;
         /* 
             使用 r4 作为临时寄存器，根据 ATPCS 规范，r4-r11 是callee-saved寄存器
             但是我们实际是仅仅是把 r4 作为临时寄存器，保存从堆栈中取出的值，因此我们在我们的调用约定中无需保存 r4 的值

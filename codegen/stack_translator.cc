@@ -68,7 +68,6 @@ void StackTranslator::translateFunc(ASTNode *func) {
 #endif
 
     // 查找所有的参数，为参数生成引用 label
-    int paramSize = ASTNode_children_size(ASTNode_querySelectorOne(func, "/Params"));
     QueryResult *params = ASTNode_querySelector(func, "/Params/ParamDecl"), *cur = nullptr;
     // 这里从 1 开始，因为 0 是 old fp
     int funcParamIndex = 1;
@@ -181,6 +180,7 @@ void StackTranslator::translateStmt(ASTNode *stmt) {
 }
 
 void StackTranslator::translateCall(ASTNode *call) {
+    adapter->emitComment("Call 开始");
     assert(ASTNode_id_is(call, "Call"));
     const char *funcName;
     bool hasFuncName = ASTNode_get_attr_str(call, "name", &funcName);
@@ -333,9 +333,7 @@ void StackTranslator::translateArithmeticOp(ASTNode *exp) {
             // 转换右边为浮点数
             translateTypeConversion(rhs, SyFloat); // s0 <- r0
             adapter->fpopStack({floatTempReg}); // s1 <- lhs
-        }
-
-        if (strcmp(rhs_type, SyFloat) == 0) {
+        } else if (strcmp(rhs_type, SyFloat) == 0) {
             // 转换左边为浮点数
             adapter->fpopStack({floatTempReg});
             adapter->i2f(floatTempReg, floatTempReg);
@@ -438,19 +436,21 @@ void StackTranslator::translateLVal(ASTNode *lval) {
     bool hasName = ASTNode_get_attr_str(address, "base", &name);
     assert(hasName);
 
-    int access_line;
+    int access_line, access_col;
     bool hasLine = ASTNode_get_attr_int(address, "line", &access_line);
-    assert(hasLine);
+    bool hasCol = ASTNode_get_attr_int(address, "column", &access_col);
+    assert(hasLine && hasCol);
 
     QueryResult *decl_list = ASTNode_querySelectorf(address, "/ancestor::Scope/Decl/*[@name='%s']", name), *cur;
 
     ASTNode* decl = nullptr;
     DL_FOREACH(decl_list, cur) {
-        int line;
+        int line, col;
         hasLine = ASTNode_get_attr_int(cur->node, "line", &line);
-        assert(hasLine);
+        hasCol = ASTNode_get_attr_int(cur->node, "column", &col);
+        assert(hasLine && hasCol);
 
-        if (line < access_line) {
+        if (line < access_line || (line == access_line && col < access_col)) { // 不能访问自己
             decl = cur->node;
             break;
         }
@@ -530,6 +530,7 @@ void StackTranslator::translateLVal(ASTNode *lval) {
         auto *locator = ASTNode_querySelectorOne(address, "/Locator");
         // 没有访问数组的索引，那么直接返回地址
         if (locator) {
+            auto locator_size = ASTNode_children_size(locator); // subarray 运算符的数量
             // 访问数组 依次计算索引，这里翻译为一个连加，因为我们可以控制过程，所以优化一下
             QueryResult *locators = ASTNode_querySelector(locator, "/Dimension/*"), *cur;
             int idx = 0;
@@ -566,7 +567,8 @@ void StackTranslator::translateLVal(ASTNode *lval) {
                     adapter->add(accumulatorReg, accumulatorReg, tempReg);
                 }
 
-                if (idx != dim_sizes.size() - 1) {
+                // Update 这里按照实际的subarray数量来计算防止多push了
+                if (idx != locator_size - 1) {
                     adapter->pushStack({accumulatorReg}); // 如果后面还有维度，先保存
                 }
 
@@ -662,15 +664,22 @@ void StackTranslator::translateAssign(ASTNode *assign) {
 void StackTranslator::translateReturn(ASTNode *ret) {
     assert(ASTNode_id_is(ret, "Return"));
 
+    auto func = ASTNode_querySelectorOne(ret, "/ancestor::Function");
+    string ret_type;
+    ASTNode_get_attr_str(func, "return", ret_type);
+
     auto exp = ASTNode_querySelectorOne(ret, "Exp");
+    assert((ret_type == SyVoid && exp == nullptr )|| (ret_type != SyVoid && exp != nullptr));
+
     if (exp) {
         translateExp(exp);
-    }
+        string exp_type;
+        ASTNode_get_attr_str(exp, "type", exp_type);
 
-    auto func = ASTNode_querySelectorOne(ret, "/ancestor::Function");
-    const char* ret_label;
-    bool hasRetLabel = ASTNode_get_attr_str(func, "returnLabel", &ret_label);
-    assert(hasRetLabel);
+        if (ret_type != exp_type) {
+            translateTypeConversion(exp, ret_type);
+        }
+    }
 
     // 直接返回不做转跳了，应该没有什么问题
     adapter->sub(adapter->getStackPointerName(), adapter->getFramePointerName(), 4);
@@ -714,6 +723,8 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
             cleared = true;
         }
         QueryResult *inits = ASTNode_querySelector(decl_entity, "InitValue/*"), *cur;
+        if (inits == nullptr) return;
+
         int idx = 0;
         DL_FOREACH(inits, cur) {
             auto init = cur->node;
@@ -747,7 +758,7 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
                 translateTypeConversion(init, var_type);
             }
 
-            if (value != 0 || !cleared) {
+            if (!hasValue || (hasValue && value != 0) || !cleared) {
                 // 如果不是 0 或者没有清空过，那么就赋值
                 for (int i = 0; i < repeat; i++) {
                     if (var_type == SyInt) {
@@ -769,7 +780,7 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
         // 变量初始化表达式
         auto init_exp = ASTNode_querySelectorOne(decl_entity, "InitValue/Exp");
         // 在文法里已经确定过了，必定有初始化表达式
-        assert(init_exp);
+        if (init_exp == nullptr) return;
 
         translateExp(init_exp);
 
@@ -798,6 +809,8 @@ void StackTranslator::translateVarDecl(ASTNode* var_decl) {
 void StackTranslator::translateIf(ASTNode *ifstmt) {
     assert(ASTNode_id_is(ifstmt, "If"));
 
+    adapter->emitComment("If 开始");
+
     // 生成真分支和假分支标签
     // TODO： 也许可以研究一下分支优化的策略，生成更好的代码
 
@@ -821,8 +834,10 @@ void StackTranslator::translateIf(ASTNode *ifstmt) {
 
     assert(cond_type != SyVoid);
     if (cond_type == SyInt) adapter->jumpEqual(accumulatorReg, 0, false_label);
-    if (cond_type == SyFloat) adapter->fjumpEqual(floatAccumulatorReg, 0.0f, false_label);
-
+    if (cond_type == SyFloat) {
+        adapter->fjumpEqual(floatAccumulatorReg, 0.0f, false_label);
+        
+    }
     adapter->emitLabel(true_label);
     auto true_branch = ASTNode_querySelectorOne(ifstmt, "Then/*");
     assert(true_branch);
@@ -891,35 +906,34 @@ void StackTranslator::translateRelOp(ASTNode *exp) {
 
     assert(lhs != nullptr && rhs != nullptr);
 
-    const char *rhs_type, *lhs_type;
-    std::string cmp_type;
+    std::string rhs_type, lhs_type, cmp_type;
 
     translateExpInner(lhs);
     translateTypePush(lhs);
-    bool lhs_has_type = ASTNode_get_attr_str(lhs, "type", &lhs_type);
+    bool lhs_has_type = ASTNode_get_attr_str(lhs, "type", lhs_type);
 
     translateExpInner(rhs);
-    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", &rhs_type);
+    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", rhs_type);
 
 
     assert(rhs_has_type && lhs_has_type);
-    assert(strcmp(lhs_type, SyVoid) != 0 && strcmp(rhs_type, SyVoid) != 0);
+    assert(lhs_type != SyVoid && rhs_type != SyVoid);
 
-    if (strcmp(lhs_type, SyFloat) == 0 ^ strcmp(rhs_type, SyFloat) == 0) {
+    if ((lhs_type == SyFloat) ^ (rhs_type == SyFloat)) {
         cmp_type = SyFloat;
         // 仅有一边为浮点的情况需要转换
-        if (strcmp(lhs_type, SyFloat) == 0) {
+        if (lhs_type == SyFloat) {
             // 转换右边为浮点数
             translateTypeConversion(rhs, SyFloat); // s0 <- r0
             adapter->fpopStack({floatTempReg}); // s1 <- lhs
         }
 
-        if (strcmp(rhs_type, SyFloat) == 0) {
+        if (rhs_type == SyFloat) {
             // 转换左边为浮点数
             adapter->fpopStack({floatTempReg});
             adapter->i2f(floatTempReg, floatTempReg);
         }
-    } else if (strcmp(lhs_type, SyFloat) == 0 && strcmp(rhs_type, SyFloat) == 0) {
+    } else if (lhs_type == SyFloat && rhs_type != SyFloat) {
         cmp_type = SyFloat;
         adapter->fpopStack({floatTempReg});
     } else {
@@ -1002,6 +1016,19 @@ void StackTranslator::translateShortCircuitLogicOp(ASTNode *logic) {
     } else if (ASTNode_id_is(logic, "Or")) {
         // 短路或
         adapter->jumpNotEqual(accumulatorReg, 0, true_label);
+    } else {
+        assert(false);
+    }
+
+
+    if (ASTNode_id_is(logic, "And")) {
+        // 短路与
+        // 计算 rhs 时，如果为真，直接转跳父节点的true_label
+        ASTNode_set_attr_str(logic, "trueLabel", true_label);
+    } else if (ASTNode_id_is(logic, "Or")) {
+        // 短路或
+        // 计算 rhs 时，如果为假，转跳父节点的falseLabel
+        ASTNode_set_attr_str(logic, "falseLabel", false_label);
     } else {
         assert(false);
     }
@@ -1152,4 +1179,8 @@ void StackTranslator::translateTypePop(ASTNode* exp) {
     } else {
         assert(false);
     }
+}
+
+void StackTranslator::insertLiteralPool() {
+    adapter->createLocalLTPool();
 }

@@ -1,0 +1,16 @@
+int foo() {
+    int a = 3;
+    return a;
+}
+
+int main() {
+    int t = 3.14;
+    t = t + 1;
+    putf("test! %d\n", t);
+    float s1 = 4, s2 = 6;
+    float s = 0;
+    putf("s1: %f, s2: %f, s1 + s2: %f\n", s1, s2, s1 + s2);
+    s = s1 + s2;
+    putf("var arg: %d %f\n", t, s);
+    return 0;
+}
