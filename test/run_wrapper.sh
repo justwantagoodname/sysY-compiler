@@ -18,4 +18,3 @@ fi
 $CC output.s libsysy.a -static -o output.$PLATFORM
 $RUNNER output.$PLATFORM < $INPUT > output.$PLATFORM.out
 echo -e "\n$?" >> output.$PLATFORM.out
-diff output.$PLATFORM.out $ANSWER

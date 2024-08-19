@@ -5,6 +5,7 @@ import os
 from tqdm import tqdm
 from time import sleep
 import subprocess
+import filecmp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ class TestCase:
         # self.input = os.path.join(self.path, f'{name}.in')
         # self.output = os.path.join(self.path, f'{name}.out')
         self.testcase_num = testcase_num
-        self.with_input = True if len([g for g in os.scandir(self.path) if (g.is_file() and g.name.endswith('.out'))]) else False
+        self.with_input = True if len([g for g in os.scandir(self.path) if (g.is_file() and g.name.endswith('.in'))]) != 0 else False
         self.check_valid() 
     
     def check_valid(self):
@@ -76,15 +77,18 @@ class Runner:
                 exit(ret)
 
         for i in range(testcase.testcase_num):
-            if testcase.with_input:
-                arm_simulation = subprocess.Popen(['bash', 'run_wrapper.sh', 'arm', str(i) + '.in', str(i) + '.out'], cwd='.')
-                ret = arm_simulation.wait()
+            out_file = os.path.join(testcase.path, str(i) + '.out')
+            if testcase.with_input != 0:
+                in_file = os.path.join(testcase.path, str(i) + '.in')
+                
             else:
-                arm_simulation = subprocess.Popen(['bash', 'run_wrapper.sh', 'arm', '/dev/null', str(i) + '.out'], cwd='.')
-                ret = arm_simulation.wait()
+                in_file = '/dev/null'
+            
+            arm_simulation = subprocess.Popen(['bash', 'run_wrapper.sh', 'arm', in_file, out_file], cwd='.')
+            ret = arm_simulation.wait()
 
-            if ret != 0:
-                printf(f'error on {i}.')
+            if not filecmp.cmp(out_file, 'output.arm.out', shallow=False):
+                print(f'error on {i}.')
                 exit(ret)
             else:
                 print(f'ok on input {i}.')
