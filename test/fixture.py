@@ -71,7 +71,7 @@ class Runner:
     def run(self, testcase):
         logger.info(f'Running testcase: {testcase.name}')
 
-        with open('test-run/compile_log', 'w') as f:
+        with open('test-run/compile_log.log', 'w') as f:
             compile = subprocess.Popen(['compiler', testcase.source, '-o', '../test/output.s'], executable='../build-dev/compiler', stdout=f)
             ret = compile.wait()
             if ret != 0:

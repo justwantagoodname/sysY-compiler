@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "triples.h"
 #include "codegen/generator.h"
+#include "cfg.h"
 #include <codegen/asm_helper.hpp>
 
 #define __MAX_OFFSET_NUM 1024
@@ -235,6 +236,6 @@ namespace TriplesArmGenerator {
     private:
 
         std::map<int, ADDRBASE::ADDRBASEENUM> var2reg, temp2reg;
-        void getVar2Reg();
+        void getVar2Reg(Triples& triples);
     };
 }

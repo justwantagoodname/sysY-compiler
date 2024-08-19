@@ -202,12 +202,10 @@ namespace TriplesArmGenerator {
         makeGlobeMap(triples);
     }
 
-
-    struct GraphNode {
-        
-    };
-    void TriplesArmGenerator::ArmTripleGenerator::getVar2Reg() {
-        // ji lie de dou zheng
-        return;
+    void TriplesArmGenerator::ArmTripleGenerator::getVar2Reg(Triples& triples) {
+        CFG cfg(triples);
+        for (auto *block : cfg.blocks) {
+            printf("%d - %d\n", block->range_begin, block->range_end);
+        }
     }
 }

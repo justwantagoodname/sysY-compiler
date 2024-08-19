@@ -28,6 +28,7 @@ public:
 public:
     std::vector<BasicBlock*> blocks;
     void createCFG(Triples& triples);
+    Triples createTriples(Triples& triples);
 };
 
-#endif CFG_H
+#endif
