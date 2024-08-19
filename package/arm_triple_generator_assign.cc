@@ -116,7 +116,7 @@ namespace TriplesArmGenerator {
                 }
 
                 // 对齐栈
-                if(stack_size % 2 == 1){
+                if((stack_size + func_reg[now_func_id].size() + 1) % 2 == 1) {
                     ++stack_size;
                 }
 

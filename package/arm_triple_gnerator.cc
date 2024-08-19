@@ -919,7 +919,7 @@ namespace TriplesArmGenerator {
             "lsls",
             "lsrs",
 
-            "vmov",
+            "vmov.f32",
             "vldr.32",
             "vstr.32",
 
