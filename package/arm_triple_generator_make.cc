@@ -221,9 +221,9 @@ namespace TriplesArmGenerator {
             if (dst.base >= AB.r0 && dst.base <= AB.pc) {
                 if (dst.value > MAX_OFFSET || dst.value < -MAX_OFFSET) {
                     Addr temp = loadInt(dst.value * 4);
-                    instrs.push_back({ACmd.add, temp, dst.base, temp});
+                    instrs.push_back({ ACmd.add, temp, dst.base, temp });
                     setTempRegState(dst, false);
-                    dst = {(ADDRBASE::ADDRBASEENUM)temp.value, 0};
+                    dst = { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
                 }
             }
 
@@ -363,6 +363,8 @@ namespace TriplesArmGenerator {
             int type = std::get<1>(e.second);
             int size = std::get<2>(e.second);
             vector<unsigned int>& init_num = std::get<3>(e.second);
+            instrs.push_back({ ACmd.lamb, {".bss"} });
+            instrs.push_back({ ACmd.lamb, {".align  2"} });
 
             instrs.push_back({ ACmd.tag, {name} });
 
@@ -378,7 +380,14 @@ namespace TriplesArmGenerator {
 
     void ArmTripleGenerator::genFuncBegin(Triples& triples, int func_id)
     {
-        instrs.push_back({ ACmd.tag, {triples.getFuncName({func_id, TTT.func})} });
+        string func_name = triples.getFuncName({ func_id, TTT.func });
+        instrs.push_back({ ACmd.lamb, {".text"} });
+        instrs.push_back({ ACmd.lamb, {".align  1"} });
+        instrs.push_back({ ACmd.lamb, {".global " + func_name} });
+        instrs.push_back({ ACmd.lamb, {".syntax unified"} });
+        instrs.push_back({ ACmd.lamb, {".type   " + func_name +", %function"} });
+
+        instrs.push_back({ ACmd.tag, {func_name} });
 
         func_reg[func_id].push_back(AB.lr);
         instrs.push_back({ ACmd.push, func_reg[func_id] });

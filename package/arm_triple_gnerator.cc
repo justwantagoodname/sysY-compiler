@@ -929,12 +929,16 @@ namespace TriplesArmGenerator {
             "word",   // 需特判, 放置word
             "space",
             "ascii",  // 需特判, 放置ascii字符串
+
+            "lamb",
         };
 
         if (cmd == ACmd.tag) {
             ans = e1.tag + ":";
         } else if (cmd >= ACmd.word && cmd <= ACmd.space) {
             ans = "\t." + cmds[cmd] + " " + std::to_string(e1.value);
+        } else if (cmd == ACmd.lamb) {
+            ans = "\t" + e1.tag;
         } else {
             ans = "\t" + cmds[cmd];
             if (e1.base != AB.null)

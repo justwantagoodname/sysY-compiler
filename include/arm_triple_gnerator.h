@@ -95,6 +95,7 @@ namespace TriplesArmGenerator {
             space,  // 需特判, 空置空间
             ascii,  // 需特判, 放置ascii字符串
 
+            lamb,
         };
     }ACmd;
 

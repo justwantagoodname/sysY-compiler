@@ -120,7 +120,6 @@ int main(int argc, const char** argv) {
 	printf("===After ResortTemp===\n");
 	triples.resortTemp();
 	triples.print();
-	panic("DOING……");
 
 	TriplesArmGenerator::ArmTripleGenerator generator;
 
@@ -132,7 +131,7 @@ int main(int argc, const char** argv) {
 	//panic("DOING……");
 
 	AssemblyBuilder asm_file(Flag::getFlag().by<std::string>("output").c_str());
-	asm_file.raw(".global main\n.text\n.align 2\n.type main, %function\n");
+	//asm_file.raw(".global main\n.text\n.align 2\n.type main, %function\n");
 	generator.write(asm_file);
 	asm_file.raw(".section	.note.GNU-stack,\"\",%progbits\n.ident	\"SysY-Compiler\"\n");
 #endif
