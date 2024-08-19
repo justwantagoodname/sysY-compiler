@@ -28,7 +28,7 @@ namespace TriplesArmGenerator {
             fa8, fa9, fa10, fa11, fa12,
             fa13, fa14, fa15, // 用作临时浮点寄存器
 
-            imd, dimd, //立即数, 双字立即数
+            imd, fimd, //立即数, 浮点立即数
             tag, // 是tag
             up_tag, low_tag, //高位读取， 低位读取
             reglist, // 寄存器列表

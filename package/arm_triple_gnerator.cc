@@ -226,27 +226,21 @@ namespace TriplesArmGenerator {
             }
             setTempRegState(addr, false);
 
-        } else if (addr.base == AB.imd) {
+        } else if (addr.base == AB.imd || addr.base == AB.fimd) {
             // 限定范围
-            unsigned int d = addr.value;
+            unsigned int d;
+            if (addr.base == AB.imd)
+                d = addr.value;
+            else
+                d = (unsigned int)(*((float*)(&addr.value)));
+
             if (d < 0xFFFF)
-                instrs.push_back({ ACmd.mov, reg, addr });
+                instrs.push_back({ ACmd.mov, reg, d });
             else {
                 instrs.push_back({ ACmd.movw, reg, d & 0xFFFF });
                 instrs.push_back({ ACmd.movt, reg, d >> 16 });
             }
 
-        } else if (addr.base == AB.dimd) {
-            // 是浮点立即数，转换为整形读取
-            unsigned int d = (int)*(float*)(&addr.value);
-
-            // 限定范围
-            if (d < 0xFFFF)
-                instrs.push_back({ ACmd.mov, reg, addr });
-            else {
-                instrs.push_back({ ACmd.movw, reg, d & 0xFFFF });
-                instrs.push_back({ ACmd.movt, reg, d >> 16 });
-            }
         } else if (addr.base == AB.tag) {
             // 全局变量
             if (stack_type != 2) {
@@ -309,16 +303,17 @@ namespace TriplesArmGenerator {
             }
             setTempRegState(addr, false);
 
-        } else if (addr.base == AB.imd || addr.base == AB.dimd) {
+        } else if (addr.base == AB.imd || addr.base == AB.fimd) {
             // 是立即数，读取，整形转换为浮点读取
             float v;
             unsigned int d;
             if (addr.base == AB.imd) {
                 v = addr.value;
-            } else if (addr.base == AB.dimd) {
-                v = *(float*)(&addr.value);
+                d = *(int*)(&v);
+
+            } else {
+                d = addr.value;
             }
-            d = *(int*)(&v);
             Addr temp = getEmptyIntTempReg();
             //加载立即数
 
@@ -538,7 +533,7 @@ namespace TriplesArmGenerator {
         if (triple.type == TTT.dimd) {
             return triple.value;
         } else if (triple.type == TTT.fimd) {
-            return { AB.imd, triple.value };
+            return { AB.fimd, triple.value };
         } else if (triple.type == TTT.temp) {
             Addr addr = temp_addr[triple.value];
             if (addr.value < MAX_OFFSET || addr.base == AB.reg)
@@ -755,7 +750,6 @@ namespace TriplesArmGenerator {
             }
 
 
-            instrs.push_back({ ACmd.add, temp, temp, addr.value });
             instrs.push_back({ ACmd.lsls, temp, temp, 2 });
             instrs.push_back({ ACmd.add, temp, addr.base, temp });
             setTempRegState(addr, false);

@@ -269,7 +269,7 @@ namespace TriplesArmGenerator {
         if (fcur) {
             Addr p = loadTripleValueAddr(triples, *fcur);
             int ptype = triples.getValueType(*fcur);
-            loadInt(p, float_reg, ptype);
+            loadFloat(p, float_reg, ptype);
         }
 
         // call
@@ -402,15 +402,7 @@ namespace TriplesArmGenerator {
         instrs.push_back({ ACmd.push, func_reg[func_id] });
         func_reg[func_id].pop_back();
 
-        instrs.push_back({ ACmd.mov, AB.s0, AB.sp });
-        unsigned int d = func_stack_size[func_id] * 4;
-        if (d < MAX_ARITH_IMMD)
-            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, {(int)d} });
-        else {
-            Addr temp = loadInt({ (int)d });
-            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, temp });
-            setTempRegState(temp, false);
-        }
+
 
         // 从参数存放位置读取参数并存入相应地址
         auto& params = triples.funcid_params[func_id];
@@ -421,6 +413,16 @@ namespace TriplesArmGenerator {
             if (params[j + 1].first == -1)
                 continue;
             setTempRegState(param_loads[j], true);
+        }
+
+        instrs.push_back({ ACmd.mov, AB.s0, AB.sp });
+        unsigned int d = func_stack_size[func_id] * 4;
+        if (d < MAX_ARITH_IMMD)
+            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, {(int)d} });
+        else {
+            Addr temp = loadInt({ (int)d });
+            instrs.push_back({ ACmd.sub, AB.sp, AB.sp, temp });
+            setTempRegState(temp, false);
         }
 
         for (int j = 0; j < param_loads.size(); ++j) {
