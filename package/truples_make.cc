@@ -632,6 +632,8 @@ void Triples::make()
 
             element.add_attr("true", triples.size() - 2);
             element.add_attr("false", triples.size() - 1);
+
+            triples.add(Cmd.tag, { tag_count++, TT.lamb }, {}, {});
         }
         ife("And") {
             int t1 = element[0].get_attr_int("true"),
