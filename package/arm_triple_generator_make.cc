@@ -394,7 +394,7 @@ namespace TriplesArmGenerator {
         instrs.push_back({ ACmd.lamb, {".align  1"} });
         instrs.push_back({ ACmd.lamb, {".global " + func_name} });
         instrs.push_back({ ACmd.lamb, {".syntax unified"} });
-        instrs.push_back({ ACmd.lamb, {".type   " + func_name +", %function"} });
+        instrs.push_back({ ACmd.lamb, {".type   " + func_name + ", %function"} });
 
         instrs.push_back({ ACmd.tag, {func_name} });
 
@@ -428,7 +428,8 @@ namespace TriplesArmGenerator {
             if (params[j + 1].first == -1)
                 continue;
             if (param_loads[j].base == AB.sp && value_addr[params[j + 1].first].base == AB.sp
-                && param_loads[j].value == value_addr[params[j + 1].first].value - func_stack_size[now_func_id]) {
+                && param_loads[j].value == value_addr[params[j + 1].first].value
+                - (func_stack_size[now_func_id] + func_reg[now_func_id].size() + 1)) {
                 mov_flg = false;
             } else if (param_loads[j].base == value_addr[params[j + 1].first].base
                 && param_loads[j].value == value_addr[params[j + 1].first].value) {

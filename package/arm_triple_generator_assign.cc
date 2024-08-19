@@ -161,7 +161,7 @@ namespace TriplesArmGenerator {
                     if (flg) {
                         // 存入栈的情况
                         Addr r1 = value_addr[params[j + 1].first];
-                        r1.value -= stack_size;
+                        r1.value -= stack_size + func_reg[now_func_id].size() + 1;
                         func_params_load[now_func_id][j] = r1;
                     }
                     printf("to %s: %d\n", func_params_load[now_func_id][j].toString().c_str(), params[j + 1].first);
