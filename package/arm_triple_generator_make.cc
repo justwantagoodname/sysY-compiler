@@ -624,6 +624,6 @@ namespace TriplesArmGenerator {
                 i = genFunction(triples, i);
             }
         }
-        getVar2Reg(triples, 5);
+        //getVar2Reg(triples, 5);
     }
 }

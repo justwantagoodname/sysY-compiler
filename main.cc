@@ -28,9 +28,7 @@ int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
 	Flag::getFlag().init(argc, argv);
 
-    std::cout << "Hi!" << std::endl;
 	Element root = Element::CreateByFile(Flag::getFlag().by<std::string>("input").c_str());
-    std::cout << "There!" << std::endl;
 
 	if (Flag::getFlag().by<bool>("dump-raw")) {
   		 root.print();
@@ -42,7 +40,6 @@ int main(int argc, const char** argv) {
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
   		 //root.print();
 	}
-    std::cout << "zhan kai wan le!" << std::endl;
 #endif
 	
 #ifdef ASM_GEN

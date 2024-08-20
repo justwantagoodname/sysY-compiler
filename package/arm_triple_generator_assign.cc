@@ -82,7 +82,7 @@ namespace TriplesArmGenerator {
             Triples::Triple& triple = triples[i];
             // 是函数， 进入栈分析
             if (triple.cmd == TCmd.tag && triple.e1.type == TTT.func) {
-                printf("into func\n");
+                //printf("into func\n");
                 // 获得func 编号 与 block 编号
                 now_func_block_id = triples[i + 1].e1.value;
                 now_func_id = triple.e1.value;
@@ -164,14 +164,14 @@ namespace TriplesArmGenerator {
                         r1.value -= stack_size + func_reg[now_func_id].size() + 1;
                         func_params_load[now_func_id][j] = r1;
                     }
-                    printf("to %s: %d\n", func_params_load[now_func_id][j].toString().c_str(), params[j + 1].first);
+                    //printf("to %s: %d\n", func_params_load[now_func_id][j].toString().c_str(), params[j + 1].first);
 
                 }
 
                 // 存储函数栈大小
                 func_stack_size[now_func_id] = stack_size;
 
-                printf("out func\n");
+                //printf("out func\n");
                 // 退出当前函数分析
                 now_func_block_id = -1;
                 now_func_id = -1;
@@ -181,7 +181,7 @@ namespace TriplesArmGenerator {
             // 为了（只是为了）方便，混合存储temp和value
             // 如果是var，分配栈
             if (triple.cmd == TCmd.var) {
-                printf("var def\n");
+                //printf("var def\n");
                 stack_size += triple.e2.value;
                 value_addr[triple.e1.value] = Addr(AB.sp, stack_size - 1);
             }
@@ -189,7 +189,7 @@ namespace TriplesArmGenerator {
             // 如果是新的temp，分配栈
             if (triple.to.type == TTT.temp
                 && temp_addr[triple.to.value].base == AB.null) {
-                printf("temp def\n");
+                //printf("temp def\n");
                 stack_size += 1;
                 temp_addr[triple.to.value] = Addr(AB.sp, stack_size - 1);
             }
