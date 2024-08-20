@@ -375,7 +375,6 @@ namespace TriplesArmGenerator {
             instrs.push_back({ ACmd.lamb, {".data"} });
             instrs.push_back({ ACmd.lamb, {".align  2"} });
 
-            instrs.push_back({ ACmd.tag, {name} });
 
             for (auto item : init_num) {
                 instrs.push_back({ ACmd.word, item });
@@ -384,6 +383,8 @@ namespace TriplesArmGenerator {
             if (size > 0) {
                 instrs.push_back({ ACmd.space, size * 4 });
             }
+            instrs.push_back({ ACmd.tag, {name} });
+
         }
     }
 

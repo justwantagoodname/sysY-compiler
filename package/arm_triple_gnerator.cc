@@ -812,15 +812,6 @@ namespace TriplesArmGenerator {
         asm_file.line("\t.syntax unified")
             .line("\t.arch armv7-a")
             .line("\t.fpu vfpv4")
-            .line("\t.eabi_attribute 27, 3")
-            .line("\t.eabi_attribute 28, 1")
-            .line("\t.eabi_attribute 23, 1")
-            .line("\t.eabi_attribute 24, 1")
-            .line("\t.eabi_attribute 25, 1")
-            .line("\t.eabi_attribute 26, 2")
-            .line("\t.eabi_attribute 30, 6")
-            .line("\t.eabi_attribute 34, 0")
-            .line("\t.eabi_attribute 18, 4")
             .line();
 
 
