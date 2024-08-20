@@ -134,6 +134,7 @@ void CFG::liveVarAnal() {
     for (auto* p : blocks) {
         initUseDef(p);
     }
+    int line = blocks.size();
     for (auto it = blocks.rbegin(); it != blocks.rend(); ++it) {
         BasicBlock *B = *it;
 
@@ -145,6 +146,23 @@ void CFG::liveVarAnal() {
         }
 
         std::set_difference(B->out.begin(), B->out.end(), B->def.begin(), B->def.end(), std::inserter(B->in, B->in.begin()));
+        std::cout << "da duan yi xia! " << --line << "\n";
+        for (auto v : B->in) {
+            std::cout << v << ' ';
+        }
+        std::cout << std::endl;
         B->in.insert(B->use.begin(), B->use.end());
+    }
+    for (int i = 0; i < blocks.size(); ++i) {
+        std::cout << "Block-in[" << i << "]: \n";
+        for (auto v : blocks[i]->in) {
+            std::cout << v << ' ';
+        }
+        std::cout << std::endl;
+        std::cout << "Block-use[" << i << "]: \n";
+        for (auto v : blocks[i]->use) {
+            std::cout << v << ' ';
+        }
+        std::cout << std::endl;
     }
 }

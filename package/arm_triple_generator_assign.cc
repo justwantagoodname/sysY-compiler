@@ -202,73 +202,154 @@ namespace TriplesArmGenerator {
         makeGlobeMap(triples);
     }
 
+    // void TriplesArmGenerator::ArmTripleGenerator::getVar2Reg(Triples& triples, int num_regs) {
+    //     CFG cfg(triples);
+    //     cfg.liveVarAnal();
+
+    //     // build interference graph
+    //     std::vector<std::vector<int>> graph(triples.temp_count);
+    //     for (auto* block : cfg.blocks) {
+    //         std::set<int> &live_vars = block->in;
+
+    //         for (int var1 : live_vars) {
+    //             for (int var2 : live_vars) {
+    //                 if (var1 != var2) {
+    //                     graph[var1].push_back(var2);
+    //                     graph[var2].push_back(var1);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     // allocate
+    //     std::map<int, int> reg_allocation;
+    //     std::vector<int> reg_pool(num_regs, -1);
+
+    //     for (int node = 0; node < graph.size(); ++node) {
+    //         auto &neighbors = graph[node];
+
+    //         std::set<int> used_regs;
+    //         for (int neighbor : neighbors) {
+    //             if (reg_allocation.find(neighbor) != reg_allocation.end()) {
+    //                 used_regs.insert(reg_allocation[neighbor]);
+    //             }
+    //         }
+
+    //         int assigned_reg = -1;
+    //         for (int i = 0; i < num_regs; ++i) {
+    //             if (used_regs.find(i) == used_regs.end()) {
+    //                 assigned_reg = i;
+    //                 break;
+    //             }
+    //         }
+            
+    //         if (assigned_reg == -1) {
+    //             for (int i = 0; i < num_regs; ++i) {
+    //                 bool can_share = true;
+    //                 for (int neighbor : neighbors) {
+    //                     if (reg_allocation[neighbor] == i) {
+    //                         can_share = false;
+    //                         break;
+    //                     }
+    //                 }
+    //                 printf("%d can share: %d\n", i, can_share);
+    //                 if (can_share) {
+    //                     assigned_reg = i;
+    //                     break;
+    //                 }
+    //             }
+    //         }
+
+    //         reg_allocation[node] = assigned_reg;
+    //     }
+
+
+    //     for (auto [var, reg] : reg_allocation) {
+    //         printf("%d on %d\n", var, reg);
+    //     }
+    // }
+
     void TriplesArmGenerator::ArmTripleGenerator::getVar2Reg(Triples& triples, int num_regs) {
-        CFG cfg(triples);
-        cfg.liveVarAnal();
+        std::map<int, int> regs_allocation;
+        std::vector<std::tuple<int, int, int>> live_intervals(triples.temp_count);
 
-        // build interference graph
-        std::vector<std::vector<int>> graph(triples.temp_count);
-        for (auto* block : cfg.blocks) {
-            std::set<int> &live_vars = block->in;
+        std::vector<bool> visited(triples.temp_count);
+        std::fill(visited.begin(), visited.end(), false);
+        for (int cur_line = 0; cur_line < triples.size(); ++cur_line) {
+            Triples::Triple &t = triples[cur_line];
 
-            for (int var1 : live_vars) {
-                for (int var2 : live_vars) {
-                    if (var1 != var2) {
-                        graph[var1].push_back(var2);
-                        graph[var2].push_back(var1);
+            auto check_and_do = [&](Triples::TripleValue& t) {
+                if (t.type == TTT.temp) {
+                    if (!visited[t.value]) {
+                        std::get<0>(live_intervals[t.value]) = t.value;
+                        std::get<1>(live_intervals[t.value]) = cur_line;
+                        visited[t.value] = true;
+                    }
+                }
+            };
+            check_and_do(t.e1);
+            check_and_do(t.e2);
+            check_and_do(t.to);
+        }
+
+        std::fill(visited.begin(), visited.end(), false);
+        for (int cur_line = triples.size() - 1; cur_line >= 0; --cur_line) {
+            Triples::Triple &t = triples[cur_line];
+
+            auto check_and_do = [&](Triples::TripleValue& t) {
+                if (t.type == TTT.temp) {
+                    if (!visited[t.value]) {
+                        std::get<2>(live_intervals[t.value]) = cur_line;
+                        visited[t.value] = true;
+                    }
+                }
+            };
+            check_and_do(t.e1);
+            check_and_do(t.e2);
+            check_and_do(t.to);
+        }
+
+        std::sort(live_intervals.begin(), live_intervals.end(), [](const auto& a, const auto& b) {
+            return std::get<1>(a) < std::get<1>(b);
+        });
+
+        for (int i = 0; i < triples.temp_count; ++i) {
+            printf("%d: [%d, %d]\n", std::get<0>(live_intervals[i]), std::get<1>(live_intervals[i]), std::get<2>(live_intervals[i]));
+        }
+
+
+        vector<int> regs_pool(num_regs, -1);
+        auto releaseRegs = [&](int point) {
+            for (int reg = 0; reg < num_regs; ++reg) {
+                if (regs_pool[reg] != -1) {
+                    for (int i = 0; i < triples.temp_count; ++i) {
+                        if (std::get<0>(live_intervals[i]) == regs_pool[reg]) {
+                            if (std::get<2>(live_intervals[i]) < point) {
+                                regs_pool[reg] = -1;
+                            }
+                            break;
+                        }
                     }
                 }
             }
-        }
+        };
+        for (auto& interval : live_intervals) {
+            releaseRegs(std::get<1>(interval));
 
-        // allocate
-        std::map<int, int> reg_allocation;
-        std::vector<int> reg_pool(num_regs, -1);
-
-        for (int node = 0; node < graph.size(); ++node) {
-            auto &neighbors = graph[node];
-
-            std::set<int> used_regs;
-            for (int neighbor : neighbors) {
-                if (reg_allocation.find(neighbor) != reg_allocation.end()) {
-                    used_regs.insert(reg_allocation[neighbor]);
-                }
-            }
-
-            int assigned_reg = -1;
+            int reg_allocated = -1;
             for (int i = 0; i < num_regs; ++i) {
-                if (used_regs.find(i) == used_regs.end()) {
-                    assigned_reg = i;
+                if (regs_pool[i] == -1) {
+                    reg_allocated = i;
+                    regs_pool[reg_allocated] = std::get<0>(interval);
                     break;
                 }
             }
             
-            if (assigned_reg == -1) {
-                for (int i = 0; i < num_regs; ++i) {
-                    bool can_share = true;
-                    for (int neighbor : neighbors) {
-                        if (reg_allocation[neighbor] == i) {
-                            can_share = false;
-                            break;
-                        }
-                    }
-                    if (can_share) {
-                        assigned_reg = i;
-                        break;
-                    }
-                }
-            }
-
-            if (assigned_reg != -1) {
-                reg_allocation[node] = assigned_reg;
-            } else {
-                panic("assign error");
-            }
+            regs_allocation[std::get<0>(interval)] = reg_allocated;
         }
 
-
-        for (auto [var, reg] : reg_allocation) {
-            printf("%d on %d\n", var, reg);
+        for (auto [temp, reg] : regs_allocation) {
+            printf("%d on %d\n", temp, reg);
         }
     }
 }
