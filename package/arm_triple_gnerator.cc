@@ -732,7 +732,7 @@ namespace TriplesArmGenerator {
                 setTempRegState(temp, true);
                 instrs.push_back({ ACmd.movw, temp, {AB.low_tag, addr.tag} });
                 instrs.push_back({ ACmd.movt, temp, {AB.up_tag, addr.tag} });
-                addr = { (ADDRBASE::ADDRBASEENUM)temp.value, 0 };
+                addr = { (ADDRBASE::ADDRBASEENUM)temp.value, -4 };
             }
 
             Addr offset;
