@@ -180,14 +180,61 @@ namespace TriplesArmGenerator {
             cmd = ACmd.bne;
             break;
         default:
+            panic("error cmp command");
             break;
         }
 
         if (!is_float) {
             instrs.push_back({ ACmd.cmp, op1, op2 });
         } else {
+            string cmd_s;
+            string cmd_n;
+            switch (triple.cmd)
+            {
+            case TCmd.jeq:
+                cmd_s = "eq";
+                cmd_n = "ne";
+                break;
+            case TCmd.jne:
+                cmd_s = "ne";
+                cmd_n = "eq";
+                break;
+            case TCmd.jlt:
+                cmd_s = "mi";
+                cmd_n = "pl";
+                break;
+            case TCmd.jle:
+                cmd_s = "ls";
+                cmd_n = "hi";
+                break;
+            case TCmd.jgt:
+                cmd_s = "gt";
+                cmd_n = "le";
+                break;
+            case TCmd.jge:
+                cmd_s = "ge";
+                cmd_n = "lt";
+                break;
+            case TCmd.jn0:
+                cmd_s = "ne";
+                cmd_n = "eq";
+                break;
+            default:
+                panic("error cmp command");
+                break;
+            }
             instrs.push_back({ ACmd.vcmp, op1, op2 });
             instrs.push_back({ ACmd.vmrs, {"APSR_nzcv"}, {"FPSCR"} });
+
+            //Addr temp = getEmptyIntTempReg();
+
+            //instrs.push_back({ ACmd.mov_when, cmd_s, temp, 1});
+            //instrs.push_back({ ACmd.mov_when, cmd_n, temp, 0 });
+            //instrs.push_back({ ACmd.uxtb, temp, temp });
+
+            //instrs.push_back({ ACmd.cmp, temp, 0 });
+
+            //cmd = ACmd.bne;
         }
 
         setTempRegState(op1, false);
@@ -356,9 +403,10 @@ namespace TriplesArmGenerator {
             Addr ftemp;
 
             ftemp = loadTripleValueAddr(triples, triple.e1);
-            ftemp = loadInt(ftemp, triples.getValueType(triple.e1));
+            ftemp = loadFloat(ftemp, triples.getValueType(triple.e1));
 
             instrs.push_back({ ACmd.vmov, AB.fa0, ftemp });
+
             setTempRegState(ftemp, false);
         }
 

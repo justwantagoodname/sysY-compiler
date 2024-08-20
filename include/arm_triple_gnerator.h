@@ -96,6 +96,9 @@ namespace TriplesArmGenerator {
             ascii,  // 需特判, 放置ascii字符串
 
             lamb,
+
+            mov_when,
+            uxtb,
         };
     }ACmd;
 

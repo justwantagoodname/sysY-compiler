@@ -502,7 +502,9 @@ namespace TriplesArmGenerator {
                 addr = { AB.reg, addr.tag[0] };
             } else if (addr.base == AB.addr) {
                 addr = { AB.reg, addr.value };
-            } else
+            } else if (addr.base == AB.imd)
+                return 0;
+            else
                 panic("set not reg temp state");
 
         }
@@ -933,6 +935,9 @@ namespace TriplesArmGenerator {
             "ascii",  // 需特判, 放置ascii字符串
 
             "lamb",
+
+            "mov",
+            "uxtb",
         };
 
         if (cmd == ACmd.tag) {
@@ -943,6 +948,12 @@ namespace TriplesArmGenerator {
             ans = "\t" + e1.tag;
         } else {
             ans = "\t" + cmds[cmd];
+            if (cmd == ACmd.mov_when) {
+                ans += e1.tag;
+                e1 = e2;
+                e2 = e3;
+                e3.base = AB.null;  
+            }
             if (e1.base != AB.null)
                 ans += "\t" + e1.toString();
             if (e2.base != AB.null)
