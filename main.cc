@@ -28,7 +28,9 @@ int main(int argc, const char** argv) {
 	/* 解析命令行选项 */
 	Flag::getFlag().init(argc, argv);
 
+    std::cout << "Hi!" << std::endl;
 	Element root = Element::CreateByFile(Flag::getFlag().by<std::string>("input").c_str());
+    std::cout << "There!" << std::endl;
 
 	if (Flag::getFlag().by<bool>("dump-raw")) {
   		 root.print();
@@ -40,6 +42,7 @@ int main(int argc, const char** argv) {
 	if (Flag::getFlag().by<bool>("dump-optimized-tree")) {
   		 //root.print();
 	}
+    std::cout << "zhan kai wan le!" << std::endl;
 #endif
 	
 #ifdef ASM_GEN
@@ -99,26 +102,33 @@ int main(int argc, const char** argv) {
 	// root.print();
 
 	Triples triples(root);
+    std::cout << "===Triples created===" << std::endl;
+
 	triples.pretreat();
-	printf("===After pretreat===\n");
+	// printf("===After pretreat===\n");
+    std::cout << "===After pretreat===" << std::endl;
 
 	//root.print();
 
-	printf("===After make===\n");
+	// printf("===After make===\n");
 	triples.make();
+    std::cout << "===After make===" << std::endl;
 	//root.print();
 	triples.print();
 
-	printf("===After eliUnnecVar===\n");
+	// printf("===After eliUnnecVar===\n");
 	triples.eliUnnecVar();
+    std::cout << "===After eliUnnecVar===" << std::endl;
 	triples.print();
 
-	printf("===After MinTemp===\n");
+	// printf("===After MinTemp===\n");
 	triples.minTempVar();
+    std::cout << "===After MinTemp===" << std::endl;
 	triples.print();
 
-	printf("===After ResortTemp===\n");
+	// printf("===After ResortTemp===\n");
 	triples.resortTemp();
+    std::cout << "===After ResortTemp===" << std::endl;
 	triples.print();
 
 	TriplesArmGenerator::ArmTripleGenerator generator;

@@ -6,6 +6,7 @@
 #include "sysY.h"
 #include "triples.h"
 
+#include <set>
 #include <vector>
 
 
@@ -17,17 +18,24 @@ struct BasicBlock {
     BasicBlock* prev;
     BasicBlock* succ;
 
+    std::set<int> use, def;
+    std::set<int> in, out;
+
     BasicBlock();
     BasicBlock(int range_begin, int range_end);
 };
 
 class CFG {
+private:
+    void initUseDef(BasicBlock* block);
+    Triples &triples;
 public:
     CFG(Triples& triples);
     ~CFG();
 public:
     std::vector<BasicBlock*> blocks;
-    void createCFG(Triples& triples);
+    void createCFG();
+    void liveVarAnal();
 };
 
-#endif CFG_H
+#endif
