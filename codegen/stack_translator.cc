@@ -905,35 +905,35 @@ void StackTranslator::translateRelOp(ASTNode *exp) {
 
     assert(lhs != nullptr && rhs != nullptr);
 
-    const char *rhs_type, *lhs_type;
-    std::string cmp_type;
+    std::string rhs_type, lhs_type, cmp_type;
 
     translateExpInner(lhs);
     translateTypePush(lhs);
-    bool lhs_has_type = ASTNode_get_attr_str(lhs, "type", &lhs_type);
+    bool lhs_has_type = ASTNode_get_attr_str(lhs, "type", lhs_type);
 
     translateExpInner(rhs);
-    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", &rhs_type);
+    bool rhs_has_type = ASTNode_get_attr_str(rhs, "type", rhs_type);
 
 
     assert(rhs_has_type && lhs_has_type);
-    assert(strcmp(lhs_type, SyVoid) != 0 && strcmp(rhs_type, SyVoid) != 0);
+    assert(lhs_type != SyVoid && rhs_type != SyVoid);
 
-    if (strcmp(lhs_type, SyFloat) == 0 ^ strcmp(rhs_type, SyFloat) == 0) {
+    if (lhs_type != rhs_type) {
+        // 类型不同，需要转换
         cmp_type = SyFloat;
         // 仅有一边为浮点的情况需要转换
-        if (strcmp(lhs_type, SyFloat) == 0) {
+        if (lhs_type == SyFloat) {
             // 转换右边为浮点数
             translateTypeConversion(rhs, SyFloat); // s0 <- r0
             adapter->fpopStack({floatTempReg}); // s1 <- lhs
         }
 
-        if (strcmp(rhs_type, SyFloat) == 0) {
+        if (rhs_type == SyFloat) {
             // 转换左边为浮点数
             adapter->fpopStack({floatTempReg});
             adapter->i2f(floatTempReg, floatTempReg);
         }
-    } else if (strcmp(lhs_type, SyFloat) == 0 && strcmp(rhs_type, SyFloat) == 0) {
+    } else if (lhs_type == SyFloat && rhs_type == SyFloat) {
         cmp_type = SyFloat;
         adapter->fpopStack({floatTempReg});
     } else {

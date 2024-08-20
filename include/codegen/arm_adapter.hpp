@@ -35,7 +35,7 @@ private:
 public:
     explicit ARMAdapter(AssemblyBuilder &asm_file) : asm_file(asm_file) {
         // "starttime","stoptime","getarray","getch","getfarray","getfloat","getint","putarray","putch","putf","putfarray","putfloat","putint"
-        auto arm_std_call_hf_handle = [this](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
+        auto arm_std_call_hf_handle = [this, &asm_file](const ExternFunctionDeclare& declare, ASTNode* callContext, StackTranslator* translator) {
             // 这个其实只能用于我们的StackTranslator，因为这里先把参数 push 到栈上
 
             // 开始计算参数
@@ -111,7 +111,19 @@ public:
                 }
             }
 
+            // chcek the sp is aligned to 8 bytes
+            asm_file.line("\tmov     r7, #0")
+                    .line("\tands    r7, sp, #7")
+                    .line("\tit      ne")
+                    .line("\tmovne   r7, #1")
+                    .line("\tsub     sp, sp, r7, lsl #2");
+
             call(declare.asm_name);
+
+            asm_file.line("\tsub     r7, #1")
+                    .line("\tclz     r7, r7")
+                    .line("\tlsrs    r7, r7, #5")
+                    .line("\tadd     sp, sp, r7, lsl #2");
         };
 
         // 需要行号的函数

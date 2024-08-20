@@ -1,7 +1,32 @@
-int f(int x1, int x2, int x3, int x4, int x5, int x6) {
-    putf("%d %d %d %d %d %d ", 1, 2, 3, 4, 5, 6);
+int k;
+
+float params_f40(float x0, float x1, float x2, float x3, float x4, float x5,
+                 float x6, float x7, float x8, float x9, float x10, float x11,
+                 float x12, float x13, float x14, float x15, float x16,
+                 float x17, float x18, float x19, float x20, float x21,
+                 float x22, float x23, float x24, float x25, float x26,
+                 float x27, float x28, float x29, float x30, float x31,
+                 float x32, float x33, float x34, float x35, float x36,
+                 float x37, float x38, float x39) {
+  putfloat(x39);
+  putch(10);
+  if (x39 != 0) {
+    float arr[10] = {x0 + x1 + x2 + x3,     x4 + x5 + x6 + x7,
+                     x8 + x9 + x10 + x11,   x12 + x13 + x14 + x15,
+                     x16 + x17 + x18 + x19, x20 + x21 + x22 + x23,
+                     x24 + x25 + x26 + x27, x28 + x29 + x30 + x31,
+                     x32 + x33 + x34 + x35, x36 + x37 + x38 + x39};
+    putfarray(10, arr);
+    return arr[k];
+  } else {
+    return params_f40(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13,
+                      x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24,
+                      x25, x26, x27, x28, x29, x30, x31, x32, x33, x34, x35,
+                      x36, x37, x38, x39, x0 + x1 + x2);
+  }
 }
 
 int main() {
-    f(1,2,3,4,5,6);
+
+  return 0;
 }
